@@ -1,0 +1,41 @@
+{
+  "name": "ats-checker",
+  "version": "0.1.0",
+  "description": "Deterministic, configurable ATS compatibility checker with no external dependencies.",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "ats",
+    "resume",
+    "scoring",
+    "hiring",
+    "checker",
+    "analysis"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pranavraut033/resume-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@vitest/ui": "^4.0.16",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3",
+    "vitest": "^4.0.16"
+  }
+}
