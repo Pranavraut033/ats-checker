@@ -1,4 +1,5 @@
 import { ATSConfig } from "./config";
+import type { LLMConfig } from "./llm";
 
 export interface ATSBreakdown {
   skills: number;
@@ -11,6 +12,7 @@ export interface AnalyzeResumeInput {
   resumeText: string;
   jobDescription: string;
   config?: ATSConfig;
+  llm?: LLMConfig;
 }
 
 export interface ATSAnalysisResult {
