@@ -1,8 +1,8 @@
-# ATS Checker v2 - LLM Support Guide
+# ATS Checker — LLM Support Guide
 
 ## Overview
 
-ATS Checker v2 adds **optional** LLM capabilities while maintaining 100% backward compatibility with v1. The LLM is never responsible for the final score—it only enhances suggestions and provides insights.
+ATS Checker adds **optional** LLM capabilities while maintaining 100% backward compatibility with the deterministic core (v1). The LLM is never responsible for the final score—it only enhances suggestions and provides insights.
 
 **Key Principles:**
 - ✅ Deterministic ATS score (v1 unchanged)
@@ -33,7 +33,7 @@ console.log(result.score); // 0-100 (unchanged, deterministic)
 
 ---
 
-### v2 with LLM (Optional)
+### Async with LLM (Optional)
 
 ```typescript
 import { analyzeResumeAsync } from "@pranavraut033/ats-checker";
@@ -347,9 +347,9 @@ expect(mockLLMClient.createCompletion).toHaveBeenCalled();
 
 ## Migration Path
 
-### From v1 to v2
+### From sync to async
 
-No breaking changes. Your v1 code works unchanged:
+No breaking changes. Your existing sync (v1) code works unchanged:
 
 ```typescript
 // v1.0 code (still works in v2)

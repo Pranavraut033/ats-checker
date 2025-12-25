@@ -1,4 +1,4 @@
-# ATS Checker v2 - Delivery Summary
+# ATS Checker — LLM Enhancements Delivery Summary
 
 ## Status: ✅ COMPLETE
 
@@ -8,7 +8,7 @@ All deliverables completed, tested, and production-ready.
 
 ## Executive Summary
 
-Implemented optional LLM support (v2) in the ats-checker library with:
+Implemented optional LLM support in the ats-checker library with:
 
 | Aspect | Details |
 |--------|---------|
@@ -496,7 +496,7 @@ For questions about the v2 implementation:
 
 ---
 
-**Version:** 2.0.0  
+**Release:** Optional LLM Enhancements (backward compatible)  
 **Status:** ✅ Production Ready  
 **Date:** December 25, 2024  
 **Tests:** 24/24 passing  

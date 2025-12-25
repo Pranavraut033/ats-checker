@@ -1,8 +1,8 @@
-# ATS Checker v2 Implementation Summary
+# ATS Checker — LLM Enhancements Implementation Summary
 
 ## Overview
 
-Successfully implemented optional LLM support (v2) in the ats-checker library while maintaining **100% backward compatibility** with v1.
+Successfully implemented optional LLM support in the ats-checker library while maintaining **100% backward compatibility** with v1.
 
 **Key Achievement:** LLM is strictly opt-in, budget-bounded, structured, and never responsible for the final ATS score.
 

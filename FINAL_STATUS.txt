@@ -1,5 +1,5 @@
 ╔════════════════════════════════════════════════════════════════╗
-║           ATS CHECKER V2 - IMPLEMENTATION COMPLETE              ║
+║     ATS CHECKER — LLM ENHANCEMENTS IMPLEMENTATION COMPLETE      ║
 ╚════════════════════════════════════════════════════════════════╝
 
 PROJECT STATUS: ✅ PRODUCTION READY
@@ -38,7 +38,7 @@ Documentation (4):
   • LLM_GUIDE.md               (300+ lines)
   • V2_IMPLEMENTATION.md       (400+ lines)
   • DELIVERY_SUMMARY.md        (500+ lines)
-  • README_V2.md               (300+ lines)
+  • README_LLM.md              (300+ lines)
   • examples/llm-client-examples.ts (150+ lines)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -121,7 +121,7 @@ v2 with LLM:
 📚 DOCUMENTATION
 
 Start Here:
-  → README_V2.md              (This project's v2 overview)
+  → README_LLM.md             (LLM enhancements overview)
   → LLM_GUIDE.md              (Complete user guide)
 
 For Developers:

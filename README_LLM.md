@@ -1,8 +1,8 @@
-# ATS Checker v2 Implementation - Executive Summary
+# ATS Checker — LLM Enhancements Executive Summary
 
 ## 🎯 Objective: COMPLETED ✅
 
-Designed and implemented v2 of ats-checker with optional LLM support while preserving v1 behavior, determinism, and public API compatibility.
+Designed and implemented optional LLM enhancements for ats-checker while preserving v1 behavior, determinism, and public API compatibility.
 
 ---
 

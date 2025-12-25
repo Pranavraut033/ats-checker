@@ -1,4 +1,4 @@
-ATS Checker v2 - Verification Log
+ATS Checker — LLM Enhancements Verification Log
 ====================================
 
 Date: December 25, 2024
