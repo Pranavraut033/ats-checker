@@ -1,5 +1,5 @@
 {
-  "name": "ats-checker",
+  "name": "@pranavraut033/ats-checker",
   "version": "0.1.0",
   "description": "Deterministic, configurable ATS compatibility checker with no external dependencies.",
   "main": "dist/index.cjs",
