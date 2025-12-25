@@ -1,13 +1,48 @@
 {
   "name": "@pranavraut033/ats-checker",
-  "version": "0.1.0",
-  "description": "Deterministic, configurable ATS compatibility checker with no external dependencies.",
+  "version": "0.2.0",
+  "description": "Deterministic, configurable ATS (Applicant Tracking System) compatibility checker with no external dependencies. Analyze resumes, generate scores, and get actionable suggestions.",
+  "license": "MIT",
+  "author": {
+    "name": "Pranav Raut",
+    "url": "https://github.com/Pranavraut033"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pranavraut033/resume-builder"
+  },
+  "bugs": {
+    "url": "https://github.com/Pranavraut033/resume-builder/issues"
+  },
+  "homepage": "https://github.com/Pranavraut033/resume-builder#readme",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
   "sideEffects": false,
   "files": [
     "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ats",
+    "resume",
+    "job-description",
+    "scoring",
+    "compatibility",
+    "hiring",
+    "checker",
+    "analysis",
+    "applicant-tracking"
   ],
   "scripts": {
     "build": "tsup",
@@ -15,27 +50,11 @@
     "test:watch": "vitest",
     "type-check": "tsc --noEmit"
   },
-  "keywords": [
-    "ats",
-    "resume",
-    "scoring",
-    "hiring",
-    "checker",
-    "analysis"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Pranavraut033/resume-builder"
-  },
-  "author": "",
-  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "engines": {
-    "node": ">=18"
-  },
   "devDependencies": {
+    "@types/node": "^25.0.3",
     "@vitest/ui": "^4.0.16",
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
