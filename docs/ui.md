@@ -1,39 +1,67 @@
 # Web Interface
 
-ats-checker includes a web-based interface for testing and demonstrating the library's capabilities.
+ATS Checker includes a web-based demo for testing and demonstrating the library's capabilities. The interface runs entirely in your browser—no backend server needed.
 
-## Starting the UI
+## 🚀 Live Demo
+
+The interactive demo is hosted on GitHub Pages:
+- **URL**: `https://Pranavraut033.github.io/ats-checker/index.html`
+- **Updates**: Automatically deployed when you push to `main`
+- **Privacy**: 100% client-side processing—data never leaves your browser
+
+## Starting Locally
+
+To test the demo on your local machine:
 
 ```bash
-npm run dev
+npm run build      # Build library and copy to UI dist folder
 ```
 
-Opens at `http://localhost:3000`
+Then choose one of these options:
+
+**Using npx http-server (recommended):**
+```bash
+npx http-server ui/public -p 3005
+```
+
+**Using Python:**
+```bash
+cd ui/public && python3 -m http.server 3005
+```
+
+**Direct in browser:**
+Open `ui/public/index.html` directly (works offline after build).
+
+Visit `http://localhost:3005`
 
 ## Features
 
 The interface provides:
 
-- **Real-time Analysis** - Instant scoring as you type
+- **Real-time Analysis** - Instant ATS scoring in your browser
 - **Visual Breakdown** - Component scores for skills, experience, keywords, education
 - **Keyword Insights** - Matched and missing keywords with color coding
-- **Suggestions** - Specific recommendations for improvement
-- **Warnings** - Detection of formatting issues and ATS problems
-- **Sample Data** - Pre-loaded examples for testing
-- **LLM Toggle** - Optional AI enhancement for suggestions
+- **AI Suggestions** - Optional OpenAI-powered recommendations
+- **Warnings** - Detection of ATS issues (keyword stuffing, missing sections, etc.)
+- **Sample Data** - Pre-loaded examples for quick testing
+- **Security** - Full transparency with open-source code
 
 ## Usage
 
-1. **Enter Resume** - Paste your resume text in the left panel
-2. **Enter Job Description** - Add the target job posting in the right panel
-3. **Load Samples** - Use the sample buttons for quick testing
+1. **Enter Resume** - Paste your resume text
+2. **Enter Job Description** - Add the target job posting
+3. **Load Samples** - Use sample buttons for quick testing
 4. **Analyze** - Click "Analyze Resume" to see results
 5. **Review Results** - Check score, breakdown, and recommendations
+6. **(Optional) Enable LLM** - Add OpenAI API key for AI-powered suggestions
 
 ## Results Display
 
 ### ATS Score
-Overall compatibility score (0-100) prominently displayed.
+Overall compatibility score (0-100) with color-coded indicator:
+- 🟢 **75+**: Strong match
+- 🟡 **50-74**: Moderate match  
+- 🔴 **<50**: Needs improvement
 
 ### Component Breakdown
 Individual scores for:
@@ -44,8 +72,8 @@ Individual scores for:
 
 ### Keywords
 - **Matched** - Green tags for keywords found in both documents
-- **Missing** - Red tags for important keywords not in resume
-- **Overused** - Keywords that appear too frequently
+- **Missing** - Red tags for important keywords to add
+- **Overused** - Yellow tags for keywords appearing too frequently
 
 ### Suggestions
 Actionable advice like:
@@ -53,42 +81,48 @@ Actionable advice like:
 - "Include more JavaScript experience details"
 - "Consider adding a summary section"
 
+AI-powered suggestions are enhanced when LLM is enabled.
+
 ### Warnings
 Issues detected such as:
-- Missing resume sections
+- Missing resume sections (Summary, Education, etc.)
 - Potential keyword stuffing
 - Formatting problems
 
-## API Endpoint
+## AI-Powered Suggestions (Optional)
 
-The UI exposes a REST API for programmatic use:
+Enable LLM enhancement for AI-generated suggestions:
 
-```javascript
-const response = await fetch('http://localhost:3000/api/analyze', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    resume: 'Your resume text',
-    jobDescription: 'Job posting text',
-    useLLM: false  // optional LLM enhancement
-  })
-});
+1. Get a free OpenAI API key: https://platform.openai.com/api-keys
+2. Enable "AI-Powered Suggestions" toggle in the UI
+3. Paste your API key (password field for security)
+4. Run analysis as normal
 
-const result = await response.json();
-console.log(result.data.score);
-```
+**Security Note:** 
+- Your data stays in your browser—API key is only used for OpenAI calls
+- Use a test/development key with limited permissions
+- Never share your production API key
 
 ## Technical Details
 
-- **Frontend** - Vanilla HTML/CSS/JavaScript, no frameworks
-- **Backend** - Express server with TypeScript
-- **Styling** - Responsive design with purple gradient theme
+- **Architecture** - 100% client-side using ES modules
+- **Styling** - Tailwind CSS via CDN
+- **Build** - Static HTML + bundled library (dist/index.mjs)
+- **Deployment** - GitHub Pages (automatic on push)
 - **Performance** - Sub-second analysis for typical resumes
-- **Dependencies** - Only Express for the server
+- **Dependencies** - Zero at runtime (library is deterministic)
 
-## Use Cases
+## Deployment
 
-- **Testing** - Verify library behavior with different inputs
-- **Demos** - Showcase ATS analysis capabilities
-- **Learning** - Understand how ATS systems work
-- **Development** - Debug and iterate on resume optimization
+The UI deploys automatically when you push to `main`:
+
+```bash
+npm run build      # Builds library and copies to ui/public/dist/
+git push origin main
+```
+
+GitHub Actions workflow:
+1. Builds the library (`tsup`)
+2. Copies UI files and library to `pages/` directory
+3. Deploys to GitHub Pages
+4. Available at your repository's GitHub Pages URL
