@@ -1,37 +1,55 @@
 # ATS Checker UI
 
-A minimal web-based UI for the ATS Checker library. Analyze resume compatibility with job descriptions in real-time with visual feedback and detailed insights.
+A lightweight, client-side web interface for the ATS Checker library. Analyze resume compatibility with job descriptions in real-time with visual feedback and detailed insights. 100% runs in your browser—no backend needed.
 
 ## Features
 
-- **Real-time Analysis**: Instant ATS compatibility scoring
+- **100% Client-Side**: All analysis runs in your browser (no server required)
+- **Real-time Analysis**: Instant ATS compatibility scoring  
 - **Visual Breakdown**: Component-wise scoring (Skills, Experience, Keywords, Education)
 - **Keyword Matching**: See exactly which keywords match and which are missing
 - **Actionable Suggestions**: Get specific recommendations to improve ATS score
+- **AI-Powered Suggestions**: Optional OpenAI integration for enhanced recommendations
 - **Warnings**: Understand issues like missing sections or keyword stuffing
 - **Sample Data**: Quick-load sample resume and job description
-- **LLM Integration**: Optional LLM enhancement for suggestions (experimental)
+- **Security**: All data stays on your device—open-source transparency
 
 ## Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- npm or yarn
+- Node.js 18+ (for building)
+- Any modern browser
 
 ### Installation
 
 ```bash
 cd packages/ats-checker
 npm install
+npm run build      # Builds library and copies to ui/public/dist/
 ```
 
-### Running the UI
+### Running Locally
 
+**Option 1: Using npx (recommended)**
 ```bash
-npm run dev
+npx http-server ui/public -p 3005
 ```
 
-The UI will be available at `http://localhost:3000`
+**Option 2: Using Python**
+```bash
+cd ui/public
+python3 -m http.server 3005
+```
+
+**Option 3: Direct browser**
+Simply open `ui/public/index.html` directly in your browser (works offline).
+
+The UI will be available at `http://localhost:3005`
+
+## Live Demo
+
+The demo is automatically deployed to GitHub Pages:
+- **Live URL**: https://Pranavraut033.github.io/ats-checker/
 
 ## Usage
 
@@ -50,116 +68,90 @@ Overall compatibility score based on weighted components:
 - **Keywords** (25%): Job description keyword matches
 - **Education** (15%): Education requirement match
 
-### Breakdown
+### Component Breakdown
 Each component scored independently, showing your strength in different areas.
 
 ### Matched Keywords
-Keywords from the job description that appear in your resume.
+Keywords from the job description that appear in your resume (green tags).
 
 ### Missing Keywords
-Job-relevant keywords not found in your resume - great focus areas for improvement.
+Job-relevant keywords not found in your resume - focus areas for improvement (red tags).
 
 ### Suggestions
 Specific, actionable recommendations based on analysis gaps.
+- Without LLM: Rule-based deterministic suggestions
+- With LLM: AI-enhanced suggestions using OpenAI (optional)
 
 ### Warnings
 Issues detected like:
 - Missing critical sections (Summary, Experience, Skills, Education)
 - Keyword stuffing (overuse of keywords)
-- Table-like formatting (ATS-unfriendly)
+- ATS-unfriendly formatting
 
 ### Overused Keywords
-Keywords appearing more frequently than recommended (may hurt ATS parsing).
+Keywords appearing more frequently than recommended (yellow tags).
 
-## LLM Enhancement (Experimental)
+## AI-Powered Suggestions (Optional)
 
-The UI supports optional LLM enhancement for suggestions:
+Enable LLM enhancement for smarter suggestions:
 
-1. Enable "LLM Enhancement" checkbox
-2. Provide your API key
-3. LLM will refine and enhance the suggestions
+1. Enable "AI-Powered Suggestions" toggle
+2. Get a free OpenAI API key: https://platform.openai.com/api-keys
+3. Paste your API key (password field for security)
+4. Run analysis - suggestions will be enhanced by AI
 
-Note: This requires backend configuration with an LLM client. Currently, it's a placeholder for future integration.
+**Security**: Your data stays in your browser. API key only used for OpenAI calls.
 
 ## Architecture
 
-- **Frontend**: Vanilla JavaScript with modern CSS Grid and Flexbox
-- **Backend**: Express.js server
-- **Core**: Uses the ats-checker library directly
-
 ```
 ui/
-├── server.ts           # Express server with API endpoints
 ├── public/
-│   └── index.html      # Full UI (HTML + CSS + JS)
+│   ├── index.html      # Full app (HTML + CSS + JS)
+│   └── dist/
+│       └── index.mjs   # Bundled ATS Checker library (auto-generated)
 └── README.md
 ```
 
-## API Endpoints
-
-### POST /api/analyze
-Analyzes a resume against a job description.
-
-**Request:**
-```json
-{
-  "resume": "Resume text...",
-  "jobDescription": "Job description text...",
-  "useLLM": false,
-  "apiKey": "optional-api-key"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "score": 85,
-    "breakdown": {
-      "skills": 90,
-      "experience": 80,
-      "keywords": 85,
-      "education": 95
-    },
-    "matchedKeywords": ["react", "typescript", "node.js", ...],
-    "missingKeywords": ["kubernetes", "graphql", ...],
-    "suggestions": [...],
-    "warnings": [...]
-  }
-}
-```
-
-### GET /api/health
-Health check endpoint.
+- **Frontend**: Vanilla HTML/CSS/JavaScript with Tailwind CSS (CDN)
+- **Core**: Uses the ATS Checker library as ES module
+- **Build**: Static site—no backend or build step needed (except npm run build)
+- **Deploy**: Works on any static host (GitHub Pages, Netlify, Vercel, etc.)
 
 ## Customization
 
-### Change Port
-Edit `server.ts` and modify the `PORT` constant.
-
 ### Styling
-All CSS is embedded in `index.html`. Modify the `<style>` section to customize colors and layout.
+Uses Tailwind CSS via CDN. Modify the `<style>` section in `index.html` to customize the spinner animation. Update Tailwind classes directly in HTML for styling changes.
 
 ### Sample Data
-Update the `loadSampleResume()` and `loadSampleJD()` functions to change defaults.
+Edit the `loadSampleResume()` and `loadSampleJD()` functions in the `<script>` section to change sample data.
 
 ## Browser Support
 
 - Modern browsers (Chrome, Firefox, Safari, Edge)
 - Requires JavaScript enabled
 - Mobile responsive
+- Works offline (after initial load)
+
+## Development
+
+### Local Build
+```bash
+npm run build      # Builds library + copies to ui/public/dist/
+```
+
+### Deployment
+Push to `main` branch → GitHub Actions automatically deploys to GitHub Pages.
 
 ## Future Enhancements
 
-- [ ] File upload for resume/JD
+- [ ] File upload for resume/JD  
 - [ ] PDF support
 - [ ] Historical analysis tracking
 - [ ] Export results as PDF
 - [ ] Multiple profile support (Data Scientist, Product Manager, etc.)
-- [ ] Real LLM integration with multiple providers
 - [ ] Dark mode
-- [ ] Syntax highlighting for better readability
+- [ ] Syntax highlighting
 
 ## License
 
@@ -167,4 +159,4 @@ MIT
 
 ## Support
 
-For issues or questions about the ATS Checker library, visit the [main repository](https://github.com/Pranavraut033/resume-builder).
+For issues or questions, visit the [main repository](https://github.com/Pranavraut033/ats-checker).
