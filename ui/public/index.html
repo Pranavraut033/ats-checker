@@ -22,98 +22,350 @@
   <body
     class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen p-5"
   >
+    <!-- Navigation Bar -->
+    <nav class="max-w-6xl mx-auto mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-white text-3xl">🎯</div>
+          <div>
+            <h1 class="text-white font-bold text-xl">ATS Checker</h1>
+            <p class="text-indigo-100 text-xs">Resume Analysis Tool</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <a
+            href="./docs/"
+            target="_blank"
+            class="text-white hover:text-indigo-200 text-sm font-medium transition"
+          >
+            📚 Docs ↗
+          </a>
+          <a
+            href="https://github.com/Pranavraut033/ats-checker"
+            target="_blank"
+            class="text-white hover:text-indigo-200 text-sm font-medium transition"
+          >
+            GitHub ↗
+          </a>
+        </div>
+      </div>
+    </nav>
+
     <div class="max-w-6xl mx-auto">
       <div class="text-center text-white mb-8">
-        <h1 class="text-5xl font-bold mb-2">🎯 ATS Checker</h1>
-        <p class="text-lg opacity-95">
-          Analyze your resume compatibility with job descriptions
+        <h2 class="text-4xl font-bold mb-3">Optimize Your Resume</h2>
+        <p class="text-lg opacity-90 max-w-2xl mx-auto">
+          Get instant ATS compatibility scoring and actionable insights to
+          improve your resume's chances of passing applicant tracking systems.
         </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        <div class="bg-white rounded-lg p-6 shadow-xl">
-          <h2
-            class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-indigo-500 pb-3"
-          >
-            📄 Resume
-          </h2>
+        <div
+          class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition"
+        >
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">📄</span>
+            <h2
+              class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1"
+            >
+              Resume
+            </h2>
+          </div>
           <textarea
             id="resume"
             placeholder="Paste your resume here..."
             class="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-vertical mb-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
           ></textarea>
           <button
-            class="w-full bg-gray-100 text-gray-800 border border-gray-300 px-5 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+            class="w-full bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-200 px-5 py-3 rounded-lg font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
             onclick="loadSampleResume()"
           >
-            Load Sample
+            📋 Load Sample
           </button>
         </div>
 
-        <div class="bg-white rounded-lg p-6 shadow-xl">
-          <h2
-            class="text-xl font-bold text-gray-800 mb-4 border-b-2 border-indigo-500 pb-3"
-          >
-            💼 Job Description
-          </h2>
+        <div
+          class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition"
+        >
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-2xl">💼</span>
+            <h2
+              class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1"
+            >
+              Job Description
+            </h2>
+          </div>
           <textarea
             id="jobDescription"
             placeholder="Paste the job description here..."
             class="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-vertical mb-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
           ></textarea>
           <button
-            class="w-full bg-gray-100 text-gray-800 border border-gray-300 px-5 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+            class="w-full bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-200 px-5 py-3 rounded-lg font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
             onclick="loadSampleJD()"
           >
-            Load Sample
+            📋 Load Sample
           </button>
         </div>
       </div>
 
-      <div class="bg-white rounded-lg p-6 shadow-xl mb-5">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">⚙️ Options</h2>
-        <div class="bg-gray-50 p-4 rounded-lg mb-4">
-          <label
-            class="flex items-center gap-3 mb-3 cursor-pointer text-gray-800"
-          >
-            <input type="checkbox" id="useLLM" class="cursor-pointer" />
-            <span>Enable LLM Enhancement (optional)</span>
-          </label>
-          <input
-            type="text"
-            id="apiKey"
-            placeholder="API Key (if using LLM)"
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm hidden focus:outline-none focus:border-indigo-500"
-          />
+      <div
+        class="bg-white rounded-lg p-6 shadow-xl mb-5 border-t-4 border-indigo-500"
+      >
+        <div class="flex items-center gap-2 mb-6">
+          <span class="text-2xl">⚙️</span>
+          <h2 class="text-2xl font-bold text-gray-800">Analysis Options</h2>
         </div>
+
+        <!-- Security Notice -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg">
+          <p
+            class="text-sm text-blue-800 font-semibold mb-2 flex items-center gap-2"
+          >
+            <span>🔒</span> Privacy & Security Guaranteed
+          </p>
+          <p class="text-xs text-blue-700">
+            100% client-side processing. Your resume, job description, and API
+            key never leave your device.
+            <a
+              href="https://github.com/Pranavraut033/ats-checker"
+              target="_blank"
+              class="font-semibold underline hover:text-blue-600"
+              >View the open-source code</a
+            >.
+          </p>
+        </div>
+
+        <div class="bg-gray-50 p-5 rounded-lg mb-6 border border-gray-200">
+          <label
+            class="flex items-center gap-3 mb-4 cursor-pointer text-gray-800"
+          >
+            <input type="checkbox" id="useLLM" class="cursor-pointer w-4 h-4" />
+            <span class="font-semibold"
+              >🤖 Enable AI-Powered Suggestions (optional)</span
+            >
+          </label>
+
+          <div id="llmOptions" class="hidden border-t pt-4">
+            <p class="text-xs text-gray-600 mb-4">
+              Use OpenAI to generate enhanced, AI-powered suggestions.
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                class="text-indigo-600 hover:underline font-semibold"
+                >Get a free API key</a
+              >
+              (free tier available).
+            </p>
+            <div class="mb-3">
+              <label class="text-xs font-semibold text-gray-700 block mb-2"
+                >OpenAI API Key</label
+              >
+              <input
+                type="password"
+                id="apiKey"
+                placeholder="sk-..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </div>
+            <p
+              class="text-xs text-amber-700 bg-amber-50 p-3 rounded mb-3 border border-amber-200"
+            >
+              ⚠️ <strong>Security Tip:</strong> Use a test/development API key
+              with limited permissions. Never use your main production key.
+            </p>
+            <label
+              class="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800"
+            >
+              <input
+                type="checkbox"
+                id="showApiKey"
+                class="cursor-pointer w-3 h-3"
+              />
+              <span>👁️ Show API key</span>
+            </label>
+          </div>
+        </div>
+
         <div class="flex gap-3">
           <button
-            class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed text-lg"
             onclick="analyzeResume()"
           >
-            Analyze Resume
+            ✨ Analyze Resume
           </button>
           <button
             class="flex-1 bg-gray-100 text-gray-800 border border-gray-300 px-5 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
             onclick="clearAll()"
           >
-            Clear All
+            🗑️ Clear
           </button>
         </div>
       </div>
 
       <div id="resultsSection"></div>
+
+      <!-- Branded Footer -->
+      <footer class="mt-16 pt-8 border-t border-white border-opacity-20">
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-white text-sm"
+        >
+          <div>
+            <h3 class="font-bold mb-2 flex items-center gap-2">
+              <span>🎯</span> ATS Checker
+            </h3>
+            <p class="text-indigo-100 text-xs">
+              Open-source tool to optimize resumes for Applicant Tracking
+              Systems
+            </p>
+          </div>
+          <div>
+            <h3 class="font-bold mb-2">🔗 Links</h3>
+            <ul class="text-xs text-indigo-100 space-y-1">
+              <li>
+                <a
+                  href="./docs/"
+                  target="_blank"
+                  class="hover:text-white underline"
+                  >📚 Documentation</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/Pranavraut033/ats-checker"
+                  target="_blank"
+                  class="hover:text-white underline"
+                  >GitHub Repository</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.npmjs.com/package/@pranavraut033/ats-checker"
+                  target="_blank"
+                  class="hover:text-white underline"
+                  >NPM Package</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-bold mb-2">⭐ Features</h3>
+            <ul class="text-xs text-indigo-100 space-y-1">
+              <li>✅ Zero Dependencies</li>
+              <li>✅ 100% Client-Side</li>
+              <li>✅ Open Source (MIT)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="text-center text-white text-xs opacity-60 border-t border-white border-opacity-20 pt-6"
+        >
+          <p>
+            🔐 <strong>Privacy First:</strong> Built by
+            <a
+              href="https://github.com/Pranavraut033"
+              target="_blank"
+              class="hover:opacity-100 underline"
+              >@Pranavraut033</a
+            >
+          </p>
+          <p class="mt-2">
+            Made with ❤️ for job seekers •
+            <a
+              href="https://github.com/Pranavraut033/ats-checker/blob/main/LICENSE"
+              target="_blank"
+              class="hover:opacity-100 underline"
+              >MIT License</a
+            >
+          </p>
+        </div>
+      </footer>
     </div>
 
-    <script>
+    <script type="module">
+      import { analyzeResumeAsync } from "./dist/index.mjs";
+
+      /**
+       * Minimal OpenAI client implementing the library's LLMClient interface
+       */
+      class OpenAIClient {
+        constructor(apiKey) {
+          this.apiKey = apiKey;
+        }
+
+        async createCompletion(input) {
+          console.log(
+            `[OpenAI] Calling ${input.model} with ${input.messages.length} messages`
+          );
+
+          const resp = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${this.apiKey}`,
+              },
+              body: JSON.stringify({
+                model: input.model || "gpt-4o-mini",
+                messages: input.messages,
+                response_format: { type: "json_object" },
+                max_tokens: input.max_tokens || 2000,
+                temperature: 0.2,
+              }),
+            }
+          );
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            console.error(`[OpenAI] Error ${resp.status}: ${text}`);
+            throw new Error(`OpenAI API error ${resp.status}: ${text}`);
+          }
+
+          const data = await resp.json();
+          const contentStr = data?.choices?.[0]?.message?.content ?? "{}";
+          const usage = data?.usage ?? {};
+
+          console.log(`[OpenAI] Response received, parsing JSON...`);
+
+          // Parse JSON string from OpenAI into actual object
+          let parsedContent;
+          try {
+            parsedContent =
+              typeof contentStr === "string"
+                ? JSON.parse(contentStr)
+                : contentStr;
+            console.log(`[OpenAI] Parsed content:`, parsedContent);
+          } catch (e) {
+            console.error(
+              `[OpenAI] JSON parse error:`,
+              e,
+              `Raw content:`,
+              contentStr
+            );
+            parsedContent = {};
+          }
+
+          return { content: parsedContent, usage };
+        }
+      }
+
       const useLLMCheckbox = document.getElementById("useLLM");
       const apiKeyInput = document.getElementById("apiKey");
+      const llmOptions = document.getElementById("llmOptions");
+      const showApiKeyCheckbox = document.getElementById("showApiKey");
 
       useLLMCheckbox.addEventListener("change", () => {
-        apiKeyInput.style.display = useLLMCheckbox.checked ? "block" : "none";
+        llmOptions.style.display = useLLMCheckbox.checked ? "block" : "none";
       });
 
-      function loadSampleResume() {
+      showApiKeyCheckbox.addEventListener("change", () => {
+        apiKeyInput.type = showApiKeyCheckbox.checked ? "text" : "password";
+      });
+
+      window.loadSampleResume = function () {
         const sample = `Summary
 Experienced full-stack engineer with 5+ years building scalable web applications. Passionate about clean code and user-centric design.
 
@@ -139,9 +391,9 @@ Frontend Developer at WebAgency (Jun 2018 - Feb 2019)
 Education
 B.S. Computer Science, University of Technology (2018)`;
         document.getElementById("resume").value = sample;
-      }
+      };
 
-      function loadSampleJD() {
+      window.loadSampleJD = function () {
         const sample = `Frontend Engineer - React Specialist
 
 About the Role:
@@ -168,9 +420,9 @@ We offer:
 - Professional development budget
 - Collaborative team environment`;
         document.getElementById("jobDescription").value = sample;
-      }
+      };
 
-      async function analyzeResume() {
+      window.analyzeResume = async function () {
         const resume = document.getElementById("resume").value.trim();
         const jobDescription = document
           .getElementById("jobDescription")
@@ -186,58 +438,97 @@ We offer:
           '<div class="flex items-center justify-center p-10"><div class="w-10 h-10 border-4 border-gray-300 border-t-indigo-500 rounded-full spinner"></div></div>';
 
         try {
-          const response = await fetch("/api/analyze", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              resume,
-              jobDescription,
-              useLLM: document.getElementById("useLLM").checked,
-              apiKey: document.getElementById("apiKey").value,
-            }),
-          });
+          const useLLM = document.getElementById("useLLM").checked;
+          const apiKey = document.getElementById("apiKey").value;
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          // Build input config - note: library expects 'resumeText' not 'resume'
+          const input = {
+            resumeText: resume,
+            jobDescription,
+          };
+
+          // Add LLM config if requested (requires valid API key)
+          if (useLLM && apiKey) {
+            console.log("[Analysis] Configuring LLM with OpenAI key");
+            const llmClient = new OpenAIClient(apiKey);
+            input.llm = {
+              client: llmClient,
+              models: { default: "gpt-4o-mini", thinking: "o1-mini" },
+              limits: {
+                maxCalls: 3,
+                maxTokensPerCall: 2000,
+                maxTotalTokens: 5000,
+              },
+              enable: { suggestions: true },
+              timeoutMs: 25000,
+            };
           }
 
-          const result = await response.json();
+          console.log("[Analysis] Starting analysis...");
+          const result = await analyzeResumeAsync(input);
+          console.log(
+            `[Analysis] Complete. Suggestions count: ${
+              result.suggestions?.length || 0
+            }`
+          );
 
-          if (result.success) {
-            displayResults(result.data);
-          } else {
-            showError(result.error || "Analysis failed");
-          }
+          displayResults(result);
         } catch (error) {
+          console.error("Analysis error:", error);
           showError(
             `Error: ${error instanceof Error ? error.message : "Unknown error"}`
           );
         }
-      }
+      };
 
       function displayResults(data) {
         const resultsSection = document.getElementById("resultsSection");
 
-        let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-5">`;
-
-        // Score Card
-        html += `
-          <div class="bg-white rounded-lg p-6 shadow-xl text-center border-b-8 ${
-            data.score >= 75
-              ? "border-green-500"
-              : data.score >= 50
-              ? "border-yellow-500"
-              : "border-red-500"
-          }">
-            <div class="text-sm font-semibold text-gray-600">ATS Score</div>
-            <div class="text-5xl font-bold my-4 bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">${Math.round(
-              data.score
-            )}</div>
-            <div class="text-sm text-gray-600">out of 100</div>
+        let html = `<div class="mt-8">
+          <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <span>📊</span> Your Results
+          </h2>
+          
+          <!-- Main ATS Score - Center of Attention -->
+          <div class="mb-6 flex justify-center">
+            <div class="bg-gradient-to-br ${
+              data.score >= 75
+                ? "from-green-400 to-emerald-600"
+                : data.score >= 50
+                ? "from-yellow-400 to-orange-500"
+                : "from-red-400 to-rose-600"
+            } rounded-xl p-1 shadow-xl transform hover:scale-105 transition-transform duration-300 max-w-sm w-full">
+              <div class="bg-white rounded-lg p-6 text-center">
+                <div class="text-sm font-semibold text-gray-600 mb-1">Your ATS Score</div>
+                <div class="text-6xl font-extrabold my-4 bg-gradient-to-r ${
+                  data.score >= 75
+                    ? "from-green-500 to-emerald-600"
+                    : data.score >= 50
+                    ? "from-yellow-500 to-orange-600"
+                    : "from-red-500 to-rose-600"
+                } bg-clip-text text-transparent">${Math.round(data.score)}</div>
+                <div class="text-sm text-gray-600 font-medium">out of 100</div>
+                <div class="mt-3 text-xs font-semibold ${
+                  data.score >= 75
+                    ? "text-green-600"
+                    : data.score >= 50
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                }">${
+          data.score >= 75
+            ? "🎉 Excellent! Your resume is ATS-friendly"
+            : data.score >= 50
+            ? "⚠️ Good, but room for improvement"
+            : "❌ Needs significant improvements"
+        }</div>
+              </div>
+            </div>
           </div>
-        `;
+
+          <!-- Breakdown Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">`;
+
+        // Removed old score card HTML here
 
         // Breakdown Cards
         const breakdown = data.breakdown;
@@ -268,17 +559,20 @@ We offer:
         html += `</div>`;
 
         // Matched Keywords
-        if (data.matchedKeywords.length > 0) {
+        if (data.matchedKeywords && data.matchedKeywords.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="text-sm font-semibold text-gray-800 mb-4">✅ Matched Keywords (${
-                data.matchedKeywords.length
-              })</div>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">✅</span>
+                <h3 class="text-lg font-bold text-gray-800">Matched Keywords <span class="text-sm text-indigo-600">(${
+                  data.matchedKeywords.length
+                })</span></h3>
+              </div>
               <div class="flex flex-wrap gap-2">
                 ${data.matchedKeywords
                   .map(
                     (kw) =>
-                      `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">${kw}</span>`
+                      `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
                   )
                   .join("")}
               </div>
@@ -287,17 +581,20 @@ We offer:
         }
 
         // Missing Keywords
-        if (data.missingKeywords.length > 0) {
+        if (data.missingKeywords && data.missingKeywords.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="text-sm font-semibold text-gray-800 mb-4">❌ Missing Keywords (${
-                data.missingKeywords.length
-              })</div>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">❌</span>
+                <h3 class="text-lg font-bold text-gray-800">Missing Keywords <span class="text-sm text-red-600">(${
+                  data.missingKeywords.length
+                })</span></h3>
+              </div>
               <div class="flex flex-wrap gap-2">
                 ${data.missingKeywords
                   .map(
                     (kw) =>
-                      `<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">${kw}</span>`
+                      `<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
                   )
                   .join("")}
               </div>
@@ -306,17 +603,22 @@ We offer:
         }
 
         // Suggestions
-        if (data.suggestions.length > 0) {
+        if (data.suggestions && data.suggestions.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="text-sm font-semibold text-gray-800 mb-4">💡 Suggestions (${
-                data.suggestions.length
-              })</div>
-              <ul class="space-y-2">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">💡</span>
+                <h3 class="text-lg font-bold text-gray-800">Suggestions <span class="text-sm text-indigo-600">(${
+                  data.suggestions.length
+                })</span></h3>
+              </div>
+              <ul class="space-y-3">
                 ${data.suggestions
                   .map(
-                    (s) =>
-                      `<li class="p-3 bg-blue-50 border-l-3 border-indigo-500 rounded text-sm text-gray-700">${s}</li>`
+                    (s, i) =>
+                      `<li class="p-3 bg-blue-50 border-l-4 border-indigo-500 rounded"><span class="font-semibold text-indigo-700">${
+                        i + 1
+                      }.</span> <span class="text-gray-700">${s}</span></li>`
                   )
                   .join("")}
               </ul>
@@ -325,17 +627,20 @@ We offer:
         }
 
         // Warnings
-        if (data.warnings.length > 0) {
+        if (data.warnings && data.warnings.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="text-sm font-semibold text-gray-800 mb-4">⚠️ Warnings (${
-                data.warnings.length
-              })</div>
-              <ul class="space-y-2">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">⚠️</span>
+                <h3 class="text-lg font-bold text-gray-800">Warnings <span class="text-sm text-yellow-600">(${
+                  data.warnings.length
+                })</span></h3>
+              </div>
+              <ul class="space-y-3">
                 ${data.warnings
                   .map(
                     (w) =>
-                      `<li class="p-3 bg-yellow-50 border-l-3 border-yellow-500 rounded text-sm text-yellow-800">${w}</li>`
+                      `<li class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded text-yellow-800"><strong>•</strong> ${w}</li>`
                   )
                   .join("")}
               </ul>
@@ -344,15 +649,18 @@ We offer:
         }
 
         // Overused Keywords
-        if (data.overusedKeywords.length > 0) {
+        if (data.overusedKeywords && data.overusedKeywords.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="text-sm font-semibold text-gray-800 mb-4">🔁 Potentially Overused Keywords</div>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-2xl">🔁</span>
+                <h3 class="text-lg font-bold text-gray-800">Potentially Overused Keywords</h3>
+              </div>
               <div class="flex flex-wrap gap-2">
                 ${data.overusedKeywords
                   .map(
                     (kw) =>
-                      `<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">${kw}</span>`
+                      `<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
                   )
                   .join("")}
               </div>
@@ -360,19 +668,26 @@ We offer:
           `;
         }
 
+        html += `</div>`;
         resultsSection.innerHTML = html;
       }
 
-      function showError(message) {
+      window.showError = function (message) {
         const resultsSection = document.getElementById("resultsSection");
-        resultsSection.innerHTML = `<div class="bg-red-100 text-red-800 p-4 rounded-lg border border-red-300 mt-5">${message}</div>`;
-      }
+        resultsSection.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-6 rounded-lg mt-8 flex items-start gap-3">
+          <span class="text-2xl">❌</span>
+          <div>
+            <h3 class="font-bold mb-1">Analysis Failed</h3>
+            <p class="text-sm">${message}</p>
+          </div>
+        </div>`;
+      };
 
-      function clearAll() {
+      window.clearAll = function () {
         document.getElementById("resume").value = "";
         document.getElementById("jobDescription").value = "";
         document.getElementById("resultsSection").innerHTML = "";
-      }
+      };
     </script>
   </body>
 </html>
