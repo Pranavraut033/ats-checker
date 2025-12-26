@@ -1,0 +1,79 @@
+site_name: ATS Checker Documentation
+site_description: Zero-dependency TypeScript library for ATS compatibility analysis
+site_author: Pranav Virendra Raut
+site_url: https://pranavraut033.github.io/ats-checker/
+
+repo_name: Pranavraut033/ats-checker
+repo_url: https://github.com/Pranavraut033/ats-checker
+
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+nav:
+  - Home: index.md
+  - Documentation:
+    - Architecture: architecture.md
+    - Configuration: configuration.md
+    - LLM Integration: llm-integration.md
+    - UI Guide: ui.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Pranavraut033/ats-checker
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/pranav-raut
+
+copyright: Copyright &copy; 2025 Pranav Virendra Raut
+

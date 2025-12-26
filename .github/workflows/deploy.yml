@@ -33,15 +33,27 @@ jobs:
       - name: Build library
         run: npm run build
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - name: Install MkDocs Material
+        run: |
+          pip install mkdocs-material
+          pip install mkdocs-minify-plugin
+
+      - name: Build MkDocs site
+        run: mkdocs build
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Create pages structure
         run: |
-          mkdir -p pages
+          mkdir -p pages/docs
           cp -r ui/public/* pages/
-          cp README.md pages/
-          cp -r docs pages/docs
+          cp -r site/* pages/docs/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
