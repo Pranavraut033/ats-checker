@@ -1,69 +1,73 @@
-# ATS Checker - AI Coding Agent Instructions
+# ATS Checker - AI Agent Instructions
 
-## Project Architecture
+## Architecture Overview
 
-This is a deterministic, zero-dependency ATS (Applicant Tracking System) compatibility checker. Single entry point: `analyzeResume()` in [src/index.ts](../src/index.ts) orchestrates a pipeline:
+This is a zero-dependency TypeScript library for ATS (Applicant Tracking System) compatibility analysis. The core flow is:
 
-1. **Parse** → [resume.parser.ts](../src/core/parser/resume.parser.ts) + [jd.parser.ts](../src/core/parser/jd.parser.ts)
-2. **Score** → [scorer.ts](../src/core/scoring/scorer.ts) with [weights.ts](../src/core/scoring/weights.ts)
-3. **Rules** → [rule.engine.ts](../src/core/rules/rule.engine.ts) applies penalties
-4. **Suggest** → [suggestion.engine.ts](../src/core/suggestions/suggestion.engine.ts)
+1. Parse resume/job description text → extract structured data
+2. Calculate deterministic scores (skills/experience/keywords/education)
+3. Apply rule-based penalties (missing sections, keyword stuffing)
+4. Generate suggestions → optionally enhance with LLM
+5. Return score (0-100), breakdown, keywords, suggestions, warnings
 
-Final score = base score - rule penalties (clamped 0-100). All scoring is deterministic and explainable.
+**Key Components:**
 
-## Key Patterns
+- `src/index.ts` - Main `analyzeResume()` entry point
+- `src/core/parser/` - Text parsing (resumes/JDs) with section detection
+- `src/core/rules/rule.engine.ts` - Penalty system for ATS violations
+- `src/core/scoring/` - Weighted scoring calculations
+- `src/core/suggestions/` - Actionable improvement suggestions
+- `src/llm/` - Optional LLM enhancement (isolated, backward-compatible)
+- `src/profiles/` - Industry-specific skill sets and aliases
 
-### Skill Normalization
+## Critical Workflows
 
-Skills are normalized via aliases ([profiles/index.ts](../src/profiles/index.ts)) - always use `normalizeSkills()` from [utils/skills.ts](../src/utils/skills.ts). Example: `"js" → "javascript"`, `"k8s" → "kubernetes"`.
+- **Build**: `npm run build` (tsup bundles to ESM/CJS)
+- **Test**: `npm run test` (vitest) - focus on deterministic scoring tests
+- **Dev UI**: `npm run dev` (tsx ui/server.ts) - Express server on port 3005
+- **Type Check**: `npm run type-check` (tsc --noEmit)
+
+## Project-Specific Patterns
 
 ### Configuration System
 
-- `ATSConfig` (partial) → `resolveConfig()` → `ResolvedATSConfig` (fully defaulted)
-- Weights auto-normalize to sum to 1.0 in [weights.ts](../src/core/scoring/weights.ts)
-- Rules are user-extensible functions with `condition(context) => boolean`
+Use `resolveConfig()` from `src/core/scoring/weights.ts` to merge user config with defaults. Always pass resolved config to parsers/engines.
 
-### Scoring Components
-
-Four weighted components ([scorer.ts](../src/core/scoring/scorer.ts)):
-
-- **Skills**: Required (70%) + Optional (30%) coverage
-- **Experience**: Years (75%) + Role titles (25%)
-- **Keywords**: Token-based matching with density checks
-- **Education**: Degree level comparison
-
-### Rule System
-
-Default rules in [rule.engine.ts](../src/core/rules/rule.engine.ts) check:
-
-- Missing sections (summary/experience/skills/education)
-- Table-like structures (ATS-unfriendly)
-- Keyword stuffing (density > `config.keywordDensity.max`)
-- Custom user rules via `config.rules`
-
-## Development Commands
-
-```bash
-npm run build      # tsup → dist/ (ESM + CJS + types)
-npm test           # vitest run
-npm run test:watch # vitest with UI
-npm run type-check # tsc --noEmit
+```typescript
+const resolvedConfig = resolveConfig(input.config ?? ({} as ATSConfig));
 ```
 
-Tests in [tests/analyzeResume.test.ts](../tests/analyzeResume.test.ts) focus on end-to-end scoring scenarios.
+### Skill Normalization
 
-## Type System Boundaries
+Skills are normalized using aliases from `src/profiles/index.ts`. Always use `normalizeSkills()` from `src/utils/skills.ts` for consistent matching.
 
-- **Input**: `AnalyzeResumeInput` (raw text + optional config)
-- **Parser Output**: `ParsedResume` / `ParsedJobDescription` (structured data)
-- **Scorer Output**: `ScoreComputation` (with breakdown + artifacts)
-- **Final Output**: `ATSAnalysisResult` (score + suggestions + warnings)
+### Section Detection
 
-All types in [src/types/](../src/types/).
+Resumes use section aliases (e.g., "work experience" → "experience"). See `SECTION_ALIASES` in `src/core/parser/resume.parser.ts`.
 
-## Adding Features
+### Rule Engine
 
-- **New rule**: Add to `config.rules` array with `condition()` function
-- **New profile**: Add to [profiles/index.ts](../src/profiles/index.ts) with mandatorySkills/optionalSkills
-- **New skill alias**: Extend `defaultSkillAliases` object
-- **New penalty**: Check [rule.engine.ts](../src/core/rules/rule.engine.ts) for penalty structure
+Rules apply penalties via `RuleEngine.evaluate()`. Context includes parsed data + scoring results. Rules are configurable via `ATSConfig.rules[]`.
+
+### LLM Integration (Optional)
+
+LLM enhancement is isolated in `src/llm/`. Use `LLMManager` with budget controls. Failures gracefully fall back to deterministic suggestions.
+
+### Testing Conventions
+
+Tests focus on end-to-end `analyzeResume()` calls with realistic resume/JD text. Mock LLM calls for deterministic testing. See `tests/analyzeResume.test.ts` for examples.
+
+## Integration Points
+
+- **UI Server**: `ui/server.ts` implements minimal OpenAI client for web interface
+- **Exports**: All public APIs exported from `src/index.ts`
+- **Types**: Centralized in `src/types/` with re-exports
+- **Utils**: Pure functions in `src/utils/` (dates, text, skills)
+
+## Common Pitfalls
+
+- Don't modify deterministic scores when adding LLM features
+- Always use resolved config, never raw user input
+- Skills must be normalized before comparison
+- Rules operate on parsed data + scoring context
+- LLM calls are optional and should fail gracefully

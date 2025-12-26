@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Pranavraut033/resume-builder"
+    "url": "https://github.com/Pranavraut033/ats-checker"
   },
   "bugs": {
-    "url": "https://github.com/Pranavraut033/resume-builder/issues"
+    "url": "https://github.com/Pranavraut033/ats-checker/issues"
   },
-  "homepage": "https://github.com/Pranavraut033/resume-builder#readme",
+  "homepage": "https://github.com/Pranavraut033/ats-checker#readme",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -48,14 +48,18 @@
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "dev": "tsx ui/server.ts"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
+    "@types/express": "^4.17.21",
     "@types/node": "^25.0.3",
     "@vitest/ui": "^4.0.16",
+    "express": "^4.18.2",
+    "tsx": "^4.7.0",
     "tsup": "^8.3.0",
     "typescript": "^5.6.3",
     "vitest": "^4.0.16"

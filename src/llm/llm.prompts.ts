@@ -51,11 +51,23 @@ Return ONLY valid JSON.`,
 
   /**
    * User prompt for suggestion enhancement
+   * IMPORTANT: Includes strict JSON schema to ensure consistent output across all LLM providers
    */
   suggestionEnhancementUser: (suggestions: string[]) => `Enhance these suggestions for clarity and actionability:
 ${suggestions.map((s) => `- ${s}`).join("\n")}
 
-Make them specific and measurable where possible.`,
+Make them specific and measurable where possible.
+
+CRITICAL: You MUST return ONLY valid JSON in this exact format (no markdown, no extra text):
+{
+  "suggestions": [
+    {
+      "original": "the original suggestion text",
+      "enhanced": "your improved, more actionable version",
+      "actionable": true
+    }
+  ]
+}`,
 
   /**
    * System prompt for JD clarification
