@@ -85,6 +85,10 @@ npm run dev      # Start web UI at http://localhost:3000
 
 ## Documentation
 
+**Live Docs** (hosted on GitHub Pages):
+- https://Pranavraut033.github.io/ats-checker/docs/
+
+**Local Docs** (in repository):
 - [Configuration Guide](docs/configuration.md)
 - [LLM Integration](docs/llm-integration.md)
 - [Web Interface](docs/ui.md)
