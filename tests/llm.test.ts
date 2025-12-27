@@ -151,8 +151,10 @@ describe("LLMManager", () => {
 
   it("fails gracefully on timeout", async () => {
     vi.mocked(mockClient.createCompletion).mockImplementation(
-      () => {
-        const p = new Promise((_, reject) => globalThis.setTimeout(() => reject(new Error("Timeout")), 100));
+      (_input: any) => {
+        const p = new Promise<{ content: unknown; usage?: { total_tokens?: number } }>((_, reject) =>
+          globalThis.setTimeout(() => reject(new Error("Timeout")), 100)
+        );
         // Attach local catch to avoid unhandled rejections in test harness
         void p.catch(() => { });
         return p;
@@ -232,7 +234,7 @@ describe("LLMManager", () => {
   it("does not produce unhandledRejection when client settles after timeout", async () => {
     let unhandled = false;
     let lastReason: unknown = undefined;
-    const handler = (reason) => {
+    const handler = (reason: unknown) => {
       unhandled = true;
       lastReason = reason;
       // Log to help debugging in CI
@@ -243,8 +245,8 @@ describe("LLMManager", () => {
 
     // client that resolves after a long delay (longer than timeout)
     vi.mocked(mockClient.createCompletion).mockImplementation(
-      () => {
-        const p = new Promise((res) => setTimeout(() => res({ content: JSON.stringify({ suggestions: [] }), usage: { total_tokens: 10 } }), 200));
+      (_input: any) => {
+        const p = new Promise<{ content: unknown; usage?: { total_tokens?: number } }>((res) => setTimeout(() => res({ content: JSON.stringify({ suggestions: [] }), usage: { total_tokens: 10 } }), 200));
         // Avoid unhandled rejections if this settles after manager returns
         void p.catch(() => { });
         return p;
