@@ -59,9 +59,9 @@ Configure detection of keyword stuffing or underuse.
 ```typescript
 config: {
   keywordDensity: {
-    min: 0.001,        // Minimum density threshold
-    max: 0.05,         // Maximum before penalty
-    overusePenalty: 5  // Points deducted for stuffing
+    min: 0.0025,       // Minimum density threshold (default)
+    max: 0.04,         // Maximum before penalty (default)
+    overusePenalty: 5  // Points deducted for stuffing (default)
   }
 }
 ```
@@ -107,9 +107,25 @@ Allow partial keyword matches (e.g., "Java" matches "JavaScript").
 
 ```typescript
 config: {
-  allowPartialMatches: true  // default: false
+  allowPartialMatches: true  // default: true
 }
 ```
+
+## Defaults & Resolution
+
+All user input is merged with sane defaults using `resolveConfig()` and weights are normalized to sum to 1.0.
+
+Default values:
+- **Weights**: skills 0.3, experience 0.3, keywords 0.25, education 0.15
+- **Keyword Density**: min 0.0025, max 0.04, overusePenalty 5
+- **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6
+- **Partial Matches**: `allowPartialMatches: true`
+- **Skill Aliases**: merged from built-in `defaultSkillAliases` + your overrides
+- **Profile**: `softwareEngineerProfile` unless overridden
+
+See implementation in [src/core/scoring/weights.ts](../src/core/scoring/weights.ts).
+
+For rule customization, refer to [Rules Engine](rules.md).
 
 ## Complete Example
 

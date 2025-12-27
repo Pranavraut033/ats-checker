@@ -24,6 +24,32 @@ console.log(result.breakdown.skills); // 85
 console.log(result.suggestions); // ["Add more specific JavaScript frameworks", ...]
 ```
 
+### LLM (Async) Usage
+
+For AI-enhanced suggestions while keeping scores deterministic, use the async API:
+
+```typescript
+import { analyzeResumeAsync } from "@pranavraut033/ats-checker";
+
+const myLLMClient = /* implement LLMClient (OpenAI/Anthropic/local) */;
+
+const result = await analyzeResumeAsync({
+  resumeText: "...",
+  jobDescription: "...",
+  llm: {
+    client: myLLMClient,
+    models: { default: "gpt-4o-mini" },
+    limits: { maxCalls: 3, maxTokensPerCall: 1000, maxTotalTokens: 5000 },
+    enable: { suggestions: true }
+  }
+});
+
+console.log(result.score);        // unchanged by LLM
+console.log(result.suggestions);  // enhanced wording/context
+```
+
+Note: Passing `llm` to `analyzeResume` (sync) will add a warning and skip enhancement. Prefer `analyzeResumeAsync` for LLM features.
+
 ## Configuration
 
 Adjust scoring priorities, define skill synonyms, and add custom rules:
@@ -35,16 +61,62 @@ const result = analyzeResume({
   config: {
     weights: { skills: 0.4, experience: 0.3, keywords: 0.2, education: 0.1 },
     skillAliases: { "javascript": ["js", "ecmascript"] },
-    rules: [{
-      id: "no-tables",
-      penalty: 10,
-      condition: (context) => context.resume.hasTables
-    }]
+    rules: [
+      {
+        id: "min-years",
+        penalty: 5,
+        warning: "Less than 3 years experience",
+        condition: (ctx) => (ctx.resume.experienceYears ?? 0) < 3
+      },
+      {
+        id: "require-contact",
+        penalty: 2,
+        warning: "Add phone/email to contact info",
+        condition: (ctx) => !ctx.resume.contactInfo?.phone || !ctx.resume.contactInfo?.email
+      }
+    ]
   }
 });
 ```
 
 See [Configuration](docs/configuration.md) for complete options.
+
+### Configuration Defaults
+
+- Weights: skills 0.3, experience 0.3, keywords 0.25, education 0.15 (normalized)
+- Keyword density: min 0.0025, max 0.04, overusePenalty 5
+- Section penalties: summary 4, experience 10, skills 8, education 6
+- Partial matches: `allowPartialMatches: true`
+
+All user config is merged via `resolveConfig()` and weights are normalized to sum to 1.0.
+
+### Custom Rules
+
+Add penalties/warnings via rule conditions:
+
+```typescript
+const result = analyzeResume({
+  resumeText: "...",
+  jobDescription: "...",
+  config: {
+    rules: [
+      {
+        id: "min-years",
+        penalty: 5,
+        warning: "Less than 3 years experience",
+        condition: (ctx) => (ctx.resume.experienceYears ?? 0) < 3
+      },
+      {
+        id: "require-contact",
+        penalty: 2,
+        warning: "Add phone/email to contact info",
+        condition: (ctx) => !ctx.resume.contactInfo?.phone || !ctx.resume.contactInfo?.email
+      }
+    ]
+  }
+});
+```
+See [Rules Engine](docs/rules.md) for default rules and context fields.
 
 ## Features
 
@@ -57,7 +129,7 @@ See [Configuration](docs/configuration.md) for complete options.
 
 ## API
 
-### `analyzeResume(input: AnalyzeResumeInput): AnalyzeResumeResult`
+### `analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult`
 
 Analyzes a resume against a job description.
 
@@ -80,7 +152,7 @@ Analyzes a resume against a job description.
 npm install
 npm run build    # Build to dist/
 npm test         # Run tests
-npm run dev      # Start web UI at http://localhost:3000
+npm run dev      # Start web UI at http://localhost:3005
 ```
 
 ## Documentation

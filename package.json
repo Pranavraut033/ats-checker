@@ -1,6 +1,6 @@
 {
   "name": "@pranavraut033/ats-checker",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Deterministic, configurable ATS (Applicant Tracking System) compatibility checker with no external dependencies. Analyze resumes, generate scores, and get actionable suggestions.",
   "license": "MIT",
   "author": {

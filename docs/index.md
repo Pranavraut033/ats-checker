@@ -38,9 +38,10 @@ const result = analyzeResume({
     weights: { skills: 0.4, experience: 0.3, keywords: 0.2, education: 0.1 },
     skillAliases: { "javascript": ["js", "ecmascript"] },
     rules: [{
-      id: "no-tables",
-      penalty: 10,
-      condition: (context) => context.resume.hasTables
+      id: "min-years",
+      penalty: 5,
+      warning: "Less than 3 years experience",
+      condition: (context) => (context.resume.experienceYears ?? 0) < 3
     }]
   }
 });
@@ -66,10 +67,11 @@ Try the library in action:
 - **[Configuration](configuration.md)** - Complete configuration options
 - **[LLM Integration](llm-integration.md)** - AI-powered suggestions
 - **[UI Guide](ui.md)** - Web interface documentation
+ - **[Rules Engine](rules.md)** - Default rules and customization
 
 ## 🔧 API Reference
 
-### `analyzeResume(input: AnalyzeResumeInput): AnalyzeResumeResult`
+### `analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult`
 
 Analyzes a resume against a job description.
 

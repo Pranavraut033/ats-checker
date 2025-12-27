@@ -62,6 +62,11 @@ console.log(result.score);        // Same as without LLM
 console.log(result.suggestions);  // Enhanced by AI
 ```
 
+### Sync vs Async
+
+- `analyzeResume` (sync): deterministic analysis only. If `llm` is provided, enhancement is skipped and a warning is added.
+- `analyzeResumeAsync` (async): performs LLM calls when `enable.suggestions` is true, within budgets; suggestions may be enhanced.
+
 ## Configuration
 
 ### LLMConfig
@@ -166,6 +171,8 @@ If LLM calls fail or timeout:
 - Suggestions fall back to deterministic versions
 - A warning is added to the result
 - No impact on the ATS score
+
+You can inspect accumulated warnings to see budget/timeouts: `result.warnings`.
 
 ## Cost Considerations
 
