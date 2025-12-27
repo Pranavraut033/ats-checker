@@ -18,7 +18,7 @@ Thank you for your interest in contributing to ats-checker! We welcome contribut
 npm install
 npm run build
 npm test
-npm run dev  # for UI testing
+npm run dev  # serve UI at http://localhost:3005
 ```
 
 ## Guidelines

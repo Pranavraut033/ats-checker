@@ -1,6 +1,6 @@
 {
   "name": "@pranavraut033/ats-checker",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Deterministic, configurable ATS (Applicant Tracking System) compatibility checker with no external dependencies. Analyze resumes, generate scores, and get actionable suggestions.",
   "license": "MIT",
   "author": {
@@ -58,6 +58,7 @@
     "build": "tsup && npm run build:ui",
     "build:ui": "mkdir -p ui/public/dist && cp dist/index.mjs ui/public/dist/ && cp dist/index.d.ts ui/public/dist/",
     "serve": "npx http-server ui/public -p 3005",
+    "dev": "npm run serve",
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit"

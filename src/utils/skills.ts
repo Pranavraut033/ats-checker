@@ -18,19 +18,6 @@ export function normalizeSkills(skills: string[], aliases: SkillAliases): string
   return unique(skills.map((skill) => normalizeSkill(skill, aliases)));
 }
 
-export function expandAliases(skills: string[], aliases: SkillAliases): string[] {
-  const expanded: string[] = [];
-  for (const skill of skills) {
-    const canonical = normalizeSkill(skill, aliases);
-    expanded.push(canonical);
-    const aliasList = aliases[canonical];
-    if (aliasList) {
-      expanded.push(...aliasList.map((alias) => alias.toLowerCase()));
-    }
-  }
-  return unique(expanded);
-}
-
 export function skillMatched(candidate: string, targetSkills: Set<string>, aliases: SkillAliases): boolean {
   const normalizedCandidate = normalizeSkill(candidate, aliases);
   if (targetSkills.has(normalizedCandidate)) {

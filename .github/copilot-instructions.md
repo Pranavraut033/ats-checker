@@ -24,7 +24,7 @@ This is a zero-dependency TypeScript library for ATS (Applicant Tracking System)
 
 - **Build**: `npm run build` (tsup bundles to ESM/CJS)
 - **Test**: `npm run test` (vitest) - focus on deterministic scoring tests
-- **Dev UI**: `npm run dev` (tsx ui/server.ts) - Express server on port 3005
+- **Dev UI**: `npm run dev` (serves `ui/public` static UI at http://localhost:3005)
 - **Type Check**: `npm run type-check` (tsc --noEmit)
 
 ## Project-Specific Patterns

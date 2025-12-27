@@ -41,11 +41,18 @@ const ACTION_VERBS = [
   "increased",
 ];
 
+function escapeRegExp(input: string): string {
+  // Escape characters that have special meaning in regular expressions
+  return input.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+}
+
 function detectSection(line: string): ResumeSection | null {
-  const normalized = line.toLowerCase();
+  // Normalize and trim line before matching
+  const normalized = line.trim().toLowerCase();
   for (const [section, aliases] of Object.entries(SECTION_ALIASES)) {
     for (const alias of aliases) {
-      const headerPattern = new RegExp(`^${alias}(\s*:)?$`, "i");
+      const safeAlias = escapeRegExp(alias);
+      const headerPattern = new RegExp(`^${safeAlias}(\\s*:)?$`, "i");
       if (headerPattern.test(normalized)) {
         return section as ResumeSection;
       }

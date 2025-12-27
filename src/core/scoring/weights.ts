@@ -31,7 +31,15 @@ const DEFAULT_SECTION_PENALTIES: Required<SectionPenaltyConfig> = {
 function normalizeWeights(weights: ATSWeights): NormalizedWeights {
   const total = weights.skills + weights.experience + weights.keywords + weights.education;
   if (total === 0) {
-    return { ...weights, normalizedTotal: 1 };
+    // Guard against misconfigured zero weights by falling back to equal distribution
+    const equal = 1 / 4;
+    return {
+      skills: equal,
+      experience: equal,
+      keywords: equal,
+      education: equal,
+      normalizedTotal: 1,
+    };
   }
   return {
     skills: weights.skills / total,

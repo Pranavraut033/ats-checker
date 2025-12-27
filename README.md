@@ -32,6 +32,10 @@ console.log(result.suggestions); // ["Add more specific JavaScript frameworks", 
 
 ### LLM (Async) Usage
 
+Note: `expandAliases()` is deprecated — prefer `normalizeSkills()` or `skillMatched()` for normalizing and matching skill names.
+
+
+
 For AI-enhanced suggestions while keeping scores deterministic, use the async API:
 
 ```typescript
