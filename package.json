@@ -7,6 +7,16 @@
     "name": "Pranav Raut",
     "url": "https://github.com/Pranavraut033"
   },
+  "contributors": [
+    {
+      "name": "Pranav Raut",
+      "url": "https://github.com/Pranavraut033"
+    }
+  ],
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Pranavraut033"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/Pranavraut033/ats-checker"

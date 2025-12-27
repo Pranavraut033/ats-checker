@@ -1,5 +1,11 @@
 # ats-checker
 
+[![npm version](https://img.shields.io/npm/v/@pranavraut033/ats-checker.svg)](https://www.npmjs.com/package/@pranavraut033/ats-checker)
+[![npm downloads](https://img.shields.io/npm/dm/@pranavraut033/ats-checker.svg)](https://www.npmjs.com/package/@pranavraut033/ats-checker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://github.com/Pranavraut033/ats-checker/actions/workflows/deploy.yml/badge.svg)](https://github.com/Pranavraut033/ats-checker/actions/workflows/deploy.yml)
+[![Tests](https://github.com/Pranavraut033/ats-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavraut033/ats-checker/actions/workflows/ci.yml)
+
 A zero-dependency TypeScript library for evaluating resume compatibility with Applicant Tracking Systems (ATS). It parses resumes and job descriptions, calculates a deterministic score from 0 to 100, and provides actionable feedback to improve match rates.
 
 ## Installation
@@ -165,6 +171,10 @@ npm run dev      # Start web UI at http://localhost:3005
 - [LLM Integration](docs/llm-integration.md)
 - [Web Interface](docs/ui.md)
 - [Architecture](docs/architecture.md)
+
+## Contributing
+
+Contributions are welcome! Please see the [Contributing Guide](https://github.com/Pranavraut033/ats-checker/blob/main/CONTRIBUTING.md) for details.
 
 ## License
 
