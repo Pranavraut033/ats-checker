@@ -74,9 +74,14 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
   return {
     score: finalScore,
     breakdown: scoring.breakdown,
+    matchedSkills: scoring.matchedSkills,
+    missingSkills: scoring.missingSkills,
     matchedKeywords: scoring.matchedKeywords,
     missingKeywords: scoring.missingKeywords,
     overusedKeywords: scoring.overusedKeywords,
+    experienceGap: scoring.experienceGap,
+    detectedSections: parsedResume.detectedSections,
+    parsedExperienceYears: parsedResume.totalExperienceYears,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };
@@ -114,18 +119,12 @@ function enhanceSuggestionsWithLLM(
 }
 
 /**
- * Async version: Analyze a resume with full LLM support
- * This version properly handles async LLM calls
+ * @deprecated The LLM layer only rewrites suggestion text and adds non-determinism.
+ * Prefer `analyzeResume` (sync, deterministic) and call your own LLM on the result if needed.
+ * This function will be removed in a future major version.
  *
  * @param input Resume, job description, and optional LLM config
  * @returns Promise<ATSAnalysisResult>
- *
- * @example
- * const result = await analyzeResumeAsync({
- *   resumeText,
- *   jobDescription,
- *   llm: { client, limits: {...}, enable: { suggestions: true } }
- * });
  */
 export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATSAnalysisResult> {
   // First pass: deterministic v1 logic
@@ -171,9 +170,14 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
   return {
     score: finalScore,
     breakdown: scoring.breakdown,
+    matchedSkills: scoring.matchedSkills,
+    missingSkills: scoring.missingSkills,
     matchedKeywords: scoring.matchedKeywords,
     missingKeywords: scoring.missingKeywords,
     overusedKeywords: scoring.overusedKeywords,
+    experienceGap: scoring.experienceGap,
+    detectedSections: parsedResume.detectedSections,
+    parsedExperienceYears: parsedResume.totalExperienceYears,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };

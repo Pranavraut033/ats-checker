@@ -49,6 +49,13 @@ export interface ATSConfig {
   keywordDensity?: KeywordDensityConfig;
   sectionPenalties?: SectionPenaltyConfig;
   allowPartialMatches?: boolean;
+  /**
+   * ISO date string (e.g. "2024-06-01") used as the "today" reference when
+   * computing duration for open-ended date ranges ("Present"/"Current"/"Now").
+   * Omit to use the actual current date (live/production behaviour).
+   * Set to a fixed value in tests or batch processing to guarantee determinism.
+   */
+  referenceDate?: string;
 }
 
 export interface NormalizedWeights extends ATSWeights {
@@ -64,6 +71,8 @@ export interface ResolvedATSConfig {
   keywordDensity: KeywordDensityConfig;
   sectionPenalties: Required<SectionPenaltyConfig>;
   allowPartialMatches: boolean;
+  /** Resolved reference date for "Present" duration calculations. */
+  referenceDate?: Date;
 }
 
 export interface RuleContext {

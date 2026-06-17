@@ -1,7 +1,9 @@
 import { ATSProfile, SkillAliases } from "../types/config";
 
 export const defaultSkillAliases: SkillAliases = {
-  javascript: ["js", "node", "node.js", "nodejs"],
+  // ponytail: "node" split from javascript — Node.js runtime !== JS language
+  javascript: ["js"],
+  node: ["node.js", "nodejs"],
   typescript: ["ts"],
   react: ["reactjs", "react.js"],
   "c++": ["cpp"],

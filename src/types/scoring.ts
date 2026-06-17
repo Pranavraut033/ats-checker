@@ -18,9 +18,19 @@ export interface AnalyzeResumeInput {
 export interface ATSAnalysisResult {
   score: number;
   breakdown: ATSBreakdown;
+  /** Skills found in the resume that satisfy JD + profile requirements. */
+  matchedSkills: string[];
+  /** Required skills absent from the resume. */
+  missingSkills: string[];
   matchedKeywords: string[];
   missingKeywords: string[];
   overusedKeywords: string[];
   suggestions: string[];
   warnings: string[];
+  /** Years below the JD's minimum experience requirement; 0 when the requirement is met. */
+  experienceGap: number;
+  /** Resume sections the parser successfully detected (e.g. "summary", "skills"). */
+  detectedSections: string[];
+  /** Total years of experience parsed from the resume's date ranges. */
+  parsedExperienceYears: number;
 }

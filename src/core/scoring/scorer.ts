@@ -2,7 +2,7 @@ import { ParsedJobDescription, ParsedResume } from "../../types/parser";
 import { ATSAnalysisResult, ATSBreakdown } from "../../types/scoring";
 import { ResolvedATSConfig } from "../../types/config";
 import { clamp, countFrequencies, tokenize, unique } from "../../utils/text";
-import { normalizeSkills } from "../../utils/skills";
+import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 
 const REQUIRED_SKILL_WEIGHT = 0.7;
 const OPTIONAL_SKILL_WEIGHT = 0.3;
@@ -16,7 +16,7 @@ interface ScoringArtifacts {
 }
 
 export interface ScoreComputation extends ATSAnalysisResult {
-  missingSkills: string[];
+  // missingSkills / matchedSkills inherited from ATSAnalysisResult
   missingExperienceYears: number;
   educationScore: number;
 }
@@ -25,7 +25,7 @@ function scoreSkills(
   resume: ParsedResume,
   job: ParsedJobDescription,
   config: ResolvedATSConfig
-): { score: number; missing: string[] } {
+): { score: number; matched: string[]; missing: string[] } {
   const profileRequired = config.profile?.mandatorySkills ?? [];
   const profileOptional = config.profile?.optionalSkills ?? [];
 
@@ -49,8 +49,9 @@ function scoreSkills(
     100
   );
 
-  const missing = [...required].filter((skill) => !resumeSkills.has(skill));
-  return { score, missing };
+  const matched = [...required].filter((skill) => resumeSkills.has(skill)).sort();
+  const missing = [...required].filter((skill) => !resumeSkills.has(skill)).sort();
+  return { score, matched, missing };
 }
 
 function scoreExperience(
@@ -80,12 +81,17 @@ function scoreKeywords(
   job: ParsedJobDescription,
   config: ResolvedATSConfig
 ): { score: number } & ScoringArtifacts {
-  const jobKeywordSet = new Set(job.keywords.map((value) => value.toLowerCase()));
+  // Normalize both sides through the alias map so e.g. "js" ↔ "javascript" match symmetrically
+  const jobKeywordSet = new Set(
+    job.keywords.map((k) => normalizeSkill(k, config.skillAliases))
+  );
   if (jobKeywordSet.size === 0) {
     return { score: 100, matchedKeywords: [], missingKeywords: [], overusedKeywords: [] };
   }
 
-  const resumeTokens = tokenize(resume.normalizedText);
+  const resumeTokens = tokenize(resume.normalizedText).map((t) =>
+    normalizeSkill(t, config.skillAliases)
+  );
   const resumeTokenSet = new Set(resumeTokens);
   const matchedKeywords = [...jobKeywordSet].filter((keyword) => resumeTokenSet.has(keyword));
   const missingKeywords = [...jobKeywordSet].filter((keyword) => !resumeTokenSet.has(keyword));
@@ -100,11 +106,12 @@ function scoreKeywords(
     return density > config.keywordDensity.max;
   });
 
+  // Sort for canonical, input-order-independent output
   return {
     score,
-    matchedKeywords: unique(matchedKeywords),
-    missingKeywords: unique(missingKeywords),
-    overusedKeywords: unique(overusedKeywords),
+    matchedKeywords: unique(matchedKeywords).sort(),
+    missingKeywords: unique(missingKeywords).sort(),
+    overusedKeywords: unique(overusedKeywords).sort(),
   };
 }
 
@@ -149,12 +156,17 @@ export function calculateScore(
   return {
     score: clamp(Number(weightedScore.toFixed(2)), 0, 100),
     breakdown,
+    matchedSkills: skillsResult.matched,
+    missingSkills: skillsResult.missing,
     matchedKeywords: keywordResult.matchedKeywords,
     missingKeywords: keywordResult.missingKeywords,
     overusedKeywords: keywordResult.overusedKeywords,
     suggestions: [],
     warnings: [],
-    missingSkills: skillsResult.missing,
+    // detectedSections / parsedExperienceYears / experienceGap: filled by index.ts
+    experienceGap: experienceResult.missingYears,
+    detectedSections: [],
+    parsedExperienceYears: 0,
     missingExperienceYears: experienceResult.missingYears,
     educationScore,
   };

@@ -57,7 +57,7 @@ function monthsBetween(start: ParsedDateToken, end: ParsedDateToken): number {
   return (end.year - start.year) * 12 + (endMonth - startMonth + 1);
 }
 
-export function parseDateRange(text: string): ParsedDateRange | null {
+export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRange | null {
   const normalized = text.trim();
   const rangeMatch = normalized.match(/([A-Za-z]{3,9}\s+\d{4}|\d{4})\s*(?:-|to|–|—)\s*(Present|Current|Now|[A-Za-z]{3,9}\s+\d{4}|\d{4})/i);
   if (!rangeMatch) {
@@ -70,9 +70,11 @@ export function parseDateRange(text: string): ParsedDateRange | null {
   if (!startToken) {
     return null;
   }
+  // ponytail: referenceDate injected for determinism; falls back to Date.now() in live use
+  const ref = referenceDate ?? new Date();
   const endTokenResolved: ParsedDateToken = endToken ?? {
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
+    year: ref.getFullYear(),
+    month: ref.getMonth() + 1,
   };
   const durationInMonths = monthsBetween(startToken, endTokenResolved);
   return {

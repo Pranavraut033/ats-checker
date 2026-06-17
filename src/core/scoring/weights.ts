@@ -69,6 +69,7 @@ export function resolveConfig(config: ATSConfig = {}): ResolvedATSConfig {
       ...(config.sectionPenalties ?? {}),
     },
     allowPartialMatches: config.allowPartialMatches ?? true,
+    referenceDate: config.referenceDate ? new Date(config.referenceDate) : undefined,
   };
 
   return resolved;

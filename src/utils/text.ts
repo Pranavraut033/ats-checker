@@ -36,7 +36,8 @@ export function normalizeWhitespace(text: string): string {
 }
 
 export function normalizeForComparison(text: string): string {
-  return normalizeWhitespace(text).toLowerCase();
+  // NFKC folds fullwidth/accented chars before lowercasing (locale-independent)
+  return normalizeWhitespace(text).normalize("NFKC").toLowerCase();
 }
 
 export function splitLines(text: string): string[] {
@@ -47,11 +48,14 @@ export function splitLines(text: string): string[] {
     .filter(Boolean);
 }
 
+// Tech-aware token pattern: alnum start, optional internal . # + - / chars, alnum-or-symbol end.
+// Preserves c#, c++, node.js, ci/cd, full-stack, a/b as single tokens; drops lone single chars.
+// ponytail: custom regex beats any NLP lib here — domain-specific, no dep, fully deterministic
+const TECH_TOKEN_RE = /[a-z0-9][a-z0-9.#+\-/]*[a-z0-9#+]/g;
+
 export function tokenize(text: string): string[] {
-  return normalizeForComparison(text)
-    .split(/[^a-z0-9+]+/i)
-    .map((word) => word.trim())
-    .filter((word) => word.length > 1 && !STOP_WORDS.has(word));
+  const normalized = normalizeForComparison(text);
+  return (normalized.match(TECH_TOKEN_RE) ?? []).filter((t) => !STOP_WORDS.has(t));
 }
 
 export function unique(values: string[]): string[] {

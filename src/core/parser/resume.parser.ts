@@ -106,7 +106,7 @@ function parseActionVerbs(text: string): string[] {
   return ACTION_VERBS.filter((verb) => words.includes(verb));
 }
 
-function parseExperience(sectionContent: string | undefined): {
+function parseExperience(sectionContent: string | undefined, referenceDate?: Date): {
   entries: ParsedExperienceEntry[];
   rangesInMonths: number[];
   jobTitles: string[];
@@ -120,7 +120,7 @@ function parseExperience(sectionContent: string | undefined): {
   const jobTitles: string[] = [];
 
   for (const line of lines) {
-    const range = parseDateRange(line);
+    const range = parseDateRange(line, referenceDate);
     if (range) {
       const previous = entries[entries.length - 1];
       if (previous && !previous.dates) {
@@ -166,7 +166,7 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
   const { sections, detected } = extractSections(resumeText);
   const skills = parseSkills(sections.skills, config.skillAliases);
   const actionVerbs = parseActionVerbs(normalizedText);
-  const experienceData = parseExperience(sections.experience);
+  const experienceData = parseExperience(sections.experience, config.referenceDate);
   const educationEntries = parseEducation(sections.education);
   const totalExperienceYears = sumExperienceYears(
     experienceData.entries
