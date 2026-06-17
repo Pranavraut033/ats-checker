@@ -1,4 +1,7 @@
-# LLM Integration
+# LLM Integration (deprecated)
+
+!!! warning "Deprecated"
+    `analyzeResumeAsync` and the LLM integration layer are deprecated. The recommended pattern is to call `analyzeResume` (sync, deterministic) and run your own LLM pass on `result.suggestions` if you want AI-enhanced wording. This page is kept for reference only.
 
 ats-checker supports optional AI enhancement for suggestions while keeping the core ATS score deterministic and unchanged.
 

@@ -47,14 +47,14 @@ const result = analyzeResume({
         description: "Require at least 3 years experience",
         penalty: 5,
         warning: "Less than 3 years experience",
-        condition: (ctx) => (ctx.resume.experienceYears ?? 0) < 3,
+        condition: (ctx) => ctx.resume.totalExperienceYears < 3,
       },
       {
-        id: "require-contact",
-        description: "Require phone and email in contact info",
-        penalty: 2,
-        warning: "Add phone/email to contact info",
-        condition: (ctx) => !ctx.resume.contactInfo?.phone || !ctx.resume.contactInfo?.email,
+        id: "missing-summary",
+        description: "Require a summary section",
+        penalty: 4,
+        warning: "Add a professional summary section",
+        condition: (ctx) => !ctx.resume.detectedSections.includes("summary"),
       },
       {
         id: "limit-overuse",
@@ -62,9 +62,9 @@ const result = analyzeResume({
         penalty: 3,
         warning: "Reduce repeated keywords",
         condition: (ctx) => (ctx.overusedKeywords?.length ?? 0) > 3,
-      }
-    ]
-  }
+      },
+    ],
+  },
 });
 ```
 

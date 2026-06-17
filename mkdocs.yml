@@ -66,7 +66,7 @@ nav:
     - Architecture: architecture.md
     - Configuration: configuration.md
     - Rules Engine: rules.md
-    - LLM Integration: llm-integration.md
+    - LLM Integration (deprecated): llm-integration.md
     - UI Guide: ui.md
 
 extra:

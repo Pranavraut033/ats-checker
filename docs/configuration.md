@@ -101,6 +101,18 @@ config: {
 
 Rules receive a `RuleContext` with parsed resume/job data, current breakdown, and matched keywords.
 
+## Reference Date
+
+Freeze the "Present"/"Now"/"Current" end date used in experience date ranges. Without this, experience years are calculated relative to `new Date()` — meaning the same resume produces a slightly different score each month. Set it to an ISO date string for fully reproducible scoring.
+
+```typescript
+config: {
+  referenceDate: "2026-01-01"  // all "Present" ranges end here
+}
+```
+
+Useful for: testing, CI pipelines, caching scores, or any context where you need identical output for identical input.
+
 ## Partial Matches
 
 Allow partial keyword matches (e.g., "Java" matches "JavaScript").

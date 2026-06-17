@@ -7,21 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
-      .spinner {
-        animation: spin 1s linear infinite;
-      }
+      .spinner { animation: spin 1s linear infinite; }
     </style>
   </head>
-  <body
-    class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen p-5"
-  >
+  <body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen p-5">
     <!-- Navigation Bar -->
     <nav class="max-w-6xl mx-auto mb-8">
       <div class="flex items-center justify-between">
@@ -29,24 +21,12 @@
           <div class="text-white text-3xl">🎯</div>
           <div>
             <h1 class="text-white font-bold text-xl">ATS Checker</h1>
-            <p class="text-indigo-100 text-xs">Resume Analysis Tool</p>
+            <p class="text-indigo-100 text-xs">Deterministic Resume Analysis</p>
           </div>
         </div>
         <div class="flex items-center gap-6">
-          <a
-            href="./docs/"
-            target="_blank"
-            class="text-white hover:text-indigo-200 text-sm font-medium transition"
-          >
-            📚 Docs ↗
-          </a>
-          <a
-            href="https://github.com/Pranavraut033/ats-checker"
-            target="_blank"
-            class="text-white hover:text-indigo-200 text-sm font-medium transition"
-          >
-            GitHub ↗
-          </a>
+          <a href="./docs/" target="_blank" class="text-white hover:text-indigo-200 text-sm font-medium transition">📚 Docs ↗</a>
+          <a href="https://github.com/Pranavraut033/ats-checker" target="_blank" class="text-white hover:text-indigo-200 text-sm font-medium transition">GitHub ↗</a>
         </div>
       </div>
     </nav>
@@ -55,22 +35,15 @@
       <div class="text-center text-white mb-8">
         <h2 class="text-4xl font-bold mb-3">Optimize Your Resume</h2>
         <p class="text-lg opacity-90 max-w-2xl mx-auto">
-          Get instant ATS compatibility scoring and actionable insights to
-          improve your resume's chances of passing applicant tracking systems.
+          Get instant ATS compatibility scoring and actionable insights. 100% client-side — your data never leaves your browser.
         </p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        <div
-          class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition"
-        >
+        <div class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition">
           <div class="flex items-center gap-2 mb-4">
             <span class="text-2xl">📄</span>
-            <h2
-              class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1"
-            >
-              Resume
-            </h2>
+            <h2 class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1">Resume</h2>
           </div>
           <textarea
             id="resume"
@@ -85,16 +58,10 @@
           </button>
         </div>
 
-        <div
-          class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition"
-        >
+        <div class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition">
           <div class="flex items-center gap-2 mb-4">
             <span class="text-2xl">💼</span>
-            <h2
-              class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1"
-            >
-              Job Description
-            </h2>
+            <h2 class="text-xl font-bold text-gray-800 border-b-2 border-indigo-500 pb-2 flex-1">Job Description</h2>
           </div>
           <textarea
             id="jobDescription"
@@ -110,88 +77,21 @@
         </div>
       </div>
 
-      <div
-        class="bg-white rounded-lg p-6 shadow-xl mb-5 border-t-4 border-indigo-500"
-      >
-        <div class="flex items-center gap-2 mb-6">
-          <span class="text-2xl">⚙️</span>
-          <h2 class="text-2xl font-bold text-gray-800">Analysis Options</h2>
-        </div>
-
-        <!-- Security Notice -->
+      <div class="bg-white rounded-lg p-6 shadow-xl mb-5 border-t-4 border-indigo-500">
         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg">
-          <p
-            class="text-sm text-blue-800 font-semibold mb-2 flex items-center gap-2"
-          >
-            <span>🔒</span> Privacy & Security Guaranteed
+          <p class="text-sm text-blue-800 font-semibold mb-1 flex items-center gap-2">
+            <span>🔒</span> Privacy Guaranteed
           </p>
           <p class="text-xs text-blue-700">
-            100% client-side processing. Your resume, job description, and API
-            key never leave your device.
-            <a
-              href="https://github.com/Pranavraut033/ats-checker"
-              target="_blank"
-              class="font-semibold underline hover:text-blue-600"
-              >View the open-source code</a
-            >.
+            100% client-side — no server, no API key, no data leaves your device.
+            <a href="https://github.com/Pranavraut033/ats-checker" target="_blank" class="font-semibold underline hover:text-blue-600">View source</a>.
           </p>
-        </div>
-
-        <div class="bg-gray-50 p-5 rounded-lg mb-6 border border-gray-200">
-          <label
-            class="flex items-center gap-3 mb-4 cursor-pointer text-gray-800"
-          >
-            <input type="checkbox" id="useLLM" class="cursor-pointer w-4 h-4" />
-            <span class="font-semibold"
-              >🤖 Enable AI-Powered Suggestions (optional)</span
-            >
-          </label>
-
-          <div id="llmOptions" class="hidden border-t pt-4">
-            <p class="text-xs text-gray-600 mb-4">
-              Use OpenAI to generate enhanced, AI-powered suggestions.
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                class="text-indigo-600 hover:underline font-semibold"
-                >Get a free API key</a
-              >
-              (free tier available).
-            </p>
-            <div class="mb-3">
-              <label class="text-xs font-semibold text-gray-700 block mb-2"
-                >OpenAI API Key</label
-              >
-              <input
-                type="password"
-                id="apiKey"
-                placeholder="sk-..."
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              />
-            </div>
-            <p
-              class="text-xs text-amber-700 bg-amber-50 p-3 rounded mb-3 border border-amber-200"
-            >
-              ⚠️ <strong>Security Tip:</strong> Use a test/development API key
-              with limited permissions. Never use your main production key.
-            </p>
-            <label
-              class="flex items-center gap-2 cursor-pointer text-xs text-gray-600 hover:text-gray-800"
-            >
-              <input
-                type="checkbox"
-                id="showApiKey"
-                class="cursor-pointer w-3 h-3"
-              />
-              <span>👁️ Show API key</span>
-            </label>
-          </div>
         </div>
 
         <div class="flex gap-3">
           <button
-            class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:-translate-y-1 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed text-lg"
-            onclick="analyzeResume()"
+            class="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:-translate-y-1 active:translate-y-0 text-lg"
+            onclick="runAnalysis()"
           >
             ✨ Analyze Resume
           </button>
@@ -206,47 +106,18 @@
 
       <div id="resultsSection"></div>
 
-      <!-- Branded Footer -->
       <footer class="mt-16 pt-8 border-t border-white border-opacity-20">
-        <div
-          class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-white text-sm"
-        >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-white text-sm">
           <div>
-            <h3 class="font-bold mb-2 flex items-center gap-2">
-              <span>🎯</span> ATS Checker
-            </h3>
-            <p class="text-indigo-100 text-xs">
-              Open-source tool to optimize resumes for Applicant Tracking
-              Systems
-            </p>
+            <h3 class="font-bold mb-2 flex items-center gap-2"><span>🎯</span> ATS Checker</h3>
+            <p class="text-indigo-100 text-xs">Open-source, zero-dependency library for deterministic resume analysis.</p>
           </div>
           <div>
             <h3 class="font-bold mb-2">🔗 Links</h3>
             <ul class="text-xs text-indigo-100 space-y-1">
-              <li>
-                <a
-                  href="./docs/"
-                  target="_blank"
-                  class="hover:text-white underline"
-                  >📚 Documentation</a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://github.com/Pranavraut033/ats-checker"
-                  target="_blank"
-                  class="hover:text-white underline"
-                  >GitHub Repository</a
-                >
-              </li>
-              <li>
-                <a
-                  href="https://www.npmjs.com/package/@pranavraut033/ats-checker"
-                  target="_blank"
-                  class="hover:text-white underline"
-                  >NPM Package</a
-                >
-              </li>
+              <li><a href="./docs/" target="_blank" class="hover:text-white underline">📚 Documentation</a></li>
+              <li><a href="https://github.com/Pranavraut033/ats-checker" target="_blank" class="hover:text-white underline">GitHub Repository</a></li>
+              <li><a href="https://www.npmjs.com/package/@pranavraut033/ats-checker" target="_blank" class="hover:text-white underline">NPM Package</a></li>
             </ul>
           </div>
           <div>
@@ -254,120 +125,24 @@
             <ul class="text-xs text-indigo-100 space-y-1">
               <li>✅ Zero Dependencies</li>
               <li>✅ 100% Client-Side</li>
+              <li>✅ Deterministic Scoring</li>
               <li>✅ Open Source (MIT)</li>
             </ul>
           </div>
         </div>
-
-        <div
-          class="text-center text-white text-xs opacity-60 border-t border-white border-opacity-20 pt-6"
-        >
-          <p>
-            🔐 <strong>Privacy First:</strong> Built by
-            <a
-              href="https://github.com/Pranavraut033"
-              target="_blank"
-              class="hover:opacity-100 underline"
-              >@Pranavraut033</a
-            >
-          </p>
-          <p class="mt-2">
-            Made with ❤️ for job seekers •
-            <a
-              href="https://github.com/Pranavraut033/ats-checker/blob/main/LICENSE"
-              target="_blank"
-              class="hover:opacity-100 underline"
-              >MIT License</a
-            >
-          </p>
+        <div class="text-center text-white text-xs opacity-60 border-t border-white border-opacity-20 pt-6">
+          <p>Built by <a href="https://github.com/Pranavraut033" target="_blank" class="hover:opacity-100 underline">@Pranavraut033</a></p>
+          <p class="mt-2">Made with ❤️ for job seekers • <a href="https://github.com/Pranavraut033/ats-checker/blob/main/LICENSE" target="_blank" class="hover:opacity-100 underline">MIT License</a></p>
         </div>
       </footer>
     </div>
 
     <script type="module">
-      import { analyzeResumeAsync } from "./dist/index.mjs";
-
-      /**
-       * Minimal OpenAI client implementing the library's LLMClient interface
-       */
-      class OpenAIClient {
-        constructor(apiKey) {
-          this.apiKey = apiKey;
-        }
-
-        async createCompletion(input) {
-          console.log(
-            `[OpenAI] Calling ${input.model} with ${input.messages.length} messages`
-          );
-
-          const resp = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${this.apiKey}`,
-              },
-              body: JSON.stringify({
-                model: input.model || "gpt-4o-mini",
-                messages: input.messages,
-                response_format: { type: "json_object" },
-                max_tokens: input.max_tokens || 2000,
-                temperature: 0.2,
-              }),
-            }
-          );
-
-          if (!resp.ok) {
-            const text = await resp.text();
-            console.error(`[OpenAI] Error ${resp.status}: ${text}`);
-            throw new Error(`OpenAI API error ${resp.status}: ${text}`);
-          }
-
-          const data = await resp.json();
-          const contentStr = data?.choices?.[0]?.message?.content ?? "{}";
-          const usage = data?.usage ?? {};
-
-          console.log(`[OpenAI] Response received, parsing JSON...`);
-
-          // Parse JSON string from OpenAI into actual object
-          let parsedContent;
-          try {
-            parsedContent =
-              typeof contentStr === "string"
-                ? JSON.parse(contentStr)
-                : contentStr;
-            console.log(`[OpenAI] Parsed content:`, parsedContent);
-          } catch (e) {
-            console.error(
-              `[OpenAI] JSON parse error:`,
-              e,
-              `Raw content:`,
-              contentStr
-            );
-            parsedContent = {};
-          }
-
-          return { content: parsedContent, usage };
-        }
-      }
-
-      const useLLMCheckbox = document.getElementById("useLLM");
-      const apiKeyInput = document.getElementById("apiKey");
-      const llmOptions = document.getElementById("llmOptions");
-      const showApiKeyCheckbox = document.getElementById("showApiKey");
-
-      useLLMCheckbox.addEventListener("change", () => {
-        llmOptions.style.display = useLLMCheckbox.checked ? "block" : "none";
-      });
-
-      showApiKeyCheckbox.addEventListener("change", () => {
-        apiKeyInput.type = showApiKeyCheckbox.checked ? "text" : "password";
-      });
+      import { analyzeResume } from "./dist/index.mjs";
 
       window.loadSampleResume = function () {
-        const sample = `Summary
-Experienced full-stack engineer with 5+ years building scalable web applications. Passionate about clean code and user-centric design.
+        document.getElementById("resume").value = `Summary
+Experienced full-stack engineer with 5+ years building scalable web applications.
 
 Skills
 JavaScript, TypeScript, React, Node.js, SQL, GraphQL, Docker, AWS, Git, CSS
@@ -377,310 +152,212 @@ Senior Software Engineer at TechCorp (Jan 2021 - Present)
 - Led development of React-based dashboard used by 10k+ users
 - Optimized API performance, reducing response time by 40%
 - Mentored 3 junior developers on best practices
-- Architected microservices migration reducing infrastructure costs by 30%
 
 Full Stack Developer at StartupInc (Mar 2019 - Dec 2020)
-- Built and deployed 5+ production applications using React and Node.js
-- Implemented GraphQL APIs improving query efficiency
-- Set up Docker containers and AWS deployment pipelines
-
-Frontend Developer at WebAgency (Jun 2018 - Feb 2019)
-- Developed responsive websites with React and CSS
-- Improved site performance through code splitting and lazy loading
+- Built and deployed production applications using React and Node.js
+- Implemented GraphQL APIs and set up Docker + AWS pipelines
 
 Education
 B.S. Computer Science, University of Technology (2018)`;
-        document.getElementById("resume").value = sample;
       };
 
       window.loadSampleJD = function () {
-        const sample = `Frontend Engineer - React Specialist
-
-About the Role:
-We're looking for an experienced Frontend Engineer to join our growing team. You'll work on our next-generation web platform serving millions of users.
+        document.getElementById("jobDescription").value = `Frontend Engineer - React Specialist
 
 Requirements:
 - 4+ years of professional software development experience
 - Strong expertise in React and TypeScript
 - Experience with Node.js and REST/GraphQL APIs
 - Proficiency in CSS and responsive design
-- Experience with Git and CI/CD pipelines
-- Strong problem-solving and communication skills
 - Bachelor's degree in Computer Science or related field
 
 Preferred Qualifications:
 - Experience with Docker and AWS
-- Knowledge of performance optimization techniques
-- Familiarity with testing frameworks (Jest, React Testing Library)
-- Open source contributions
-
-We offer:
-- Competitive salary and benefits
-- Remote work options
-- Professional development budget
-- Collaborative team environment`;
-        document.getElementById("jobDescription").value = sample;
+- Knowledge of performance optimization techniques`;
       };
 
-      window.analyzeResume = async function () {
-        const resume = document.getElementById("resume").value.trim();
-        const jobDescription = document
-          .getElementById("jobDescription")
-          .value.trim();
+      window.runAnalysis = function () {
+        const resumeText = document.getElementById("resume").value.trim();
+        const jobDescription = document.getElementById("jobDescription").value.trim();
 
-        if (!resume || !jobDescription) {
+        if (!resumeText || !jobDescription) {
           showError("Please provide both resume and job description");
           return;
         }
 
-        const resultsSection = document.getElementById("resultsSection");
-        resultsSection.innerHTML =
+        document.getElementById("resultsSection").innerHTML =
           '<div class="flex items-center justify-center p-10"><div class="w-10 h-10 border-4 border-gray-300 border-t-indigo-500 rounded-full spinner"></div></div>';
 
         try {
-          const useLLM = document.getElementById("useLLM").checked;
-          const apiKey = document.getElementById("apiKey").value;
-
-          // Build input config - note: library expects 'resumeText' not 'resume'
-          const input = {
-            resumeText: resume,
-            jobDescription,
-          };
-
-          // Add LLM config if requested (requires valid API key)
-          if (useLLM && apiKey) {
-            console.log("[Analysis] Configuring LLM with OpenAI key");
-            const llmClient = new OpenAIClient(apiKey);
-            input.llm = {
-              client: llmClient,
-              models: { default: "gpt-4o-mini", thinking: "o1-mini" },
-              limits: {
-                maxCalls: 3,
-                maxTokensPerCall: 2000,
-                maxTotalTokens: 5000,
-              },
-              enable: { suggestions: true },
-              timeoutMs: 25000,
-            };
-          }
-
-          console.log("[Analysis] Starting analysis...");
-          const result = await analyzeResumeAsync(input);
-          console.log(
-            `[Analysis] Complete. Suggestions count: ${
-              result.suggestions?.length || 0
-            }`
-          );
-
+          const result = analyzeResume({ resumeText, jobDescription });
           displayResults(result);
         } catch (error) {
-          console.error("Analysis error:", error);
-          showError(
-            `Error: ${error instanceof Error ? error.message : "Unknown error"}`
-          );
+          showError(`Error: ${error instanceof Error ? error.message : String(error)}`);
         }
       };
 
+      function scoreColor(score) {
+        return score >= 75 ? "green" : score >= 50 ? "yellow" : "red";
+      }
+
+      function tagList(items, colorClass) {
+        if (!items || items.length === 0) return '<p class="text-gray-400 text-sm italic">None</p>';
+        return `<div class="flex flex-wrap gap-2">${items.map(
+          (t) => `<span class="bg-${colorClass}-100 text-${colorClass}-800 px-3 py-1 rounded-full text-xs font-semibold">${t}</span>`
+        ).join("")}</div>`;
+      }
+
       function displayResults(data) {
-        const resultsSection = document.getElementById("resultsSection");
+        const c = scoreColor(data.score);
+        const gradients = {
+          green: { outer: "from-green-400 to-emerald-600", text: "from-green-500 to-emerald-600", label: "text-green-600" },
+          yellow: { outer: "from-yellow-400 to-orange-500", text: "from-yellow-500 to-orange-600", label: "text-yellow-600" },
+          red: { outer: "from-red-400 to-rose-600", text: "from-red-500 to-rose-600", label: "text-red-600" },
+        };
+        const g = gradients[c];
+        const verdict = data.score >= 75
+          ? "🎉 Excellent! Your resume is ATS-friendly"
+          : data.score >= 50
+          ? "⚠️ Good, but room for improvement"
+          : "❌ Needs significant improvements";
 
         let html = `<div class="mt-8">
-          <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <span>📊</span> Your Results
-          </h2>
-          
-          <!-- Main ATS Score - Center of Attention -->
+          <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2"><span>📊</span> Results</h2>
+
+          <!-- Score -->
           <div class="mb-6 flex justify-center">
-            <div class="bg-gradient-to-br ${
-              data.score >= 75
-                ? "from-green-400 to-emerald-600"
-                : data.score >= 50
-                ? "from-yellow-400 to-orange-500"
-                : "from-red-400 to-rose-600"
-            } rounded-xl p-1 shadow-xl transform hover:scale-105 transition-transform duration-300 max-w-sm w-full">
+            <div class="bg-gradient-to-br ${g.outer} rounded-xl p-1 shadow-xl max-w-sm w-full">
               <div class="bg-white rounded-lg p-6 text-center">
-                <div class="text-sm font-semibold text-gray-600 mb-1">Your ATS Score</div>
-                <div class="text-6xl font-extrabold my-4 bg-gradient-to-r ${
-                  data.score >= 75
-                    ? "from-green-500 to-emerald-600"
-                    : data.score >= 50
-                    ? "from-yellow-500 to-orange-600"
-                    : "from-red-500 to-rose-600"
-                } bg-clip-text text-transparent">${Math.round(data.score)}</div>
+                <div class="text-sm font-semibold text-gray-600 mb-1">ATS Score</div>
+                <div class="text-6xl font-extrabold my-4 bg-gradient-to-r ${g.text} bg-clip-text text-transparent">${Math.round(data.score)}</div>
                 <div class="text-sm text-gray-600 font-medium">out of 100</div>
-                <div class="mt-3 text-xs font-semibold ${
-                  data.score >= 75
-                    ? "text-green-600"
-                    : data.score >= 50
-                    ? "text-yellow-600"
-                    : "text-red-600"
-                }">${
-          data.score >= 75
-            ? "🎉 Excellent! Your resume is ATS-friendly"
-            : data.score >= 50
-            ? "⚠️ Good, but room for improvement"
-            : "❌ Needs significant improvements"
-        }</div>
+                <div class="mt-3 text-xs font-semibold ${g.label}">${verdict}</div>
               </div>
             </div>
           </div>
 
-          <!-- Breakdown Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">`;
+          <!-- Breakdown -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">`;
 
-        // Removed old score card HTML here
-
-        // Breakdown Cards
-        const breakdown = data.breakdown;
-        const categories = [
-          { label: "Skills", key: "skills" },
-          { label: "Experience", key: "experience" },
-          { label: "Keywords", key: "keywords" },
-          { label: "Education", key: "education" },
-        ];
-
-        categories.forEach((category) => {
-          const score = breakdown[category.key];
+        [
+          { label: "Skills", key: "skills", icon: "🛠️" },
+          { label: "Experience", key: "experience", icon: "📅" },
+          { label: "Keywords", key: "keywords", icon: "🔑" },
+          { label: "Education", key: "education", icon: "🎓" },
+        ].forEach(({ label, key, icon }) => {
+          const s = data.breakdown[key];
           html += `
-            <div class="bg-white rounded-lg p-6 shadow-xl">
-              <div class="text-sm font-semibold text-gray-800 mb-3">${
-                category.label
-              }</div>
-              <div class="text-3xl font-bold text-indigo-500 my-3">${Math.round(
-                score
-              )}</div>
-              <div class="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full" style="width: ${score}%"></div>
+            <div class="bg-white rounded-lg p-5 shadow-xl">
+              <div class="text-xs font-semibold text-gray-500 mb-1">${icon} ${label}</div>
+              <div class="text-3xl font-bold text-indigo-500 my-2">${Math.round(s)}</div>
+              <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full" style="width:${s}%"></div>
               </div>
-            </div>
-          `;
+            </div>`;
         });
 
         html += `</div>`;
 
-        // Matched Keywords
-        if (data.matchedKeywords && data.matchedKeywords.length > 0) {
+        // Experience meta row
+        html += `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            <div class="bg-white rounded-lg p-5 shadow-xl">
+              <div class="text-xs font-semibold text-gray-500 mb-1">📆 Experience Parsed</div>
+              <div class="text-2xl font-bold text-indigo-500">${data.parsedExperienceYears.toFixed(1)} yrs</div>
+              ${data.experienceGap > 0
+                ? `<div class="text-xs text-red-600 mt-1">Gap: ${data.experienceGap.toFixed(1)} yrs below requirement</div>`
+                : `<div class="text-xs text-green-600 mt-1">✅ Meets requirement</div>`}
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-xl">
+              <div class="text-xs font-semibold text-gray-500 mb-2">📋 Detected Sections</div>
+              <div class="flex flex-wrap gap-1">${
+                (data.detectedSections || []).length
+                  ? data.detectedSections.map(s => `<span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs">${s}</span>`).join("")
+                  : `<span class="text-gray-400 text-xs italic">None detected</span>`
+              }</div>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-xl">
+              <div class="text-xs font-semibold text-gray-500 mb-1">🎯 Skill Coverage</div>
+              <div class="text-2xl font-bold text-indigo-500">${data.matchedSkills.length} / ${data.matchedSkills.length + data.missingSkills.length}</div>
+              <div class="text-xs text-gray-500 mt-1">required skills matched</div>
+            </div>
+          </div>`;
+
+        // Skills
+        if (data.matchedSkills.length + data.missingSkills.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">✅</span>
-                <h3 class="text-lg font-bold text-gray-800">Matched Keywords <span class="text-sm text-indigo-600">(${
-                  data.matchedKeywords.length
-                })</span></h3>
+              <div class="flex items-center gap-2 mb-4"><span class="text-2xl">🛠️</span><h3 class="text-lg font-bold text-gray-800">Skills</h3></div>
+              <div class="mb-3">
+                <div class="text-xs font-semibold text-green-700 mb-2">✅ Matched (${data.matchedSkills.length})</div>
+                ${tagList(data.matchedSkills, "green")}
               </div>
-              <div class="flex flex-wrap gap-2">
-                ${data.matchedKeywords
-                  .map(
-                    (kw) =>
-                      `<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
-                  )
-                  .join("")}
-              </div>
-            </div>
-          `;
+              ${data.missingSkills.length > 0 ? `
+              <div class="mt-3">
+                <div class="text-xs font-semibold text-red-700 mb-2">❌ Missing (${data.missingSkills.length})</div>
+                ${tagList(data.missingSkills, "red")}
+              </div>` : ""}
+            </div>`;
         }
 
-        // Missing Keywords
-        if (data.missingKeywords && data.missingKeywords.length > 0) {
+        // Keywords
+        if (data.matchedKeywords.length + data.missingKeywords.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">❌</span>
-                <h3 class="text-lg font-bold text-gray-800">Missing Keywords <span class="text-sm text-red-600">(${
-                  data.missingKeywords.length
-                })</span></h3>
+              <div class="flex items-center gap-2 mb-4"><span class="text-2xl">🔑</span><h3 class="text-lg font-bold text-gray-800">Keywords</h3></div>
+              <div class="mb-3">
+                <div class="text-xs font-semibold text-green-700 mb-2">✅ Matched (${data.matchedKeywords.length})</div>
+                ${tagList(data.matchedKeywords, "green")}
               </div>
-              <div class="flex flex-wrap gap-2">
-                ${data.missingKeywords
-                  .map(
-                    (kw) =>
-                      `<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
-                  )
-                  .join("")}
-              </div>
-            </div>
-          `;
+              ${data.missingKeywords.length > 0 ? `
+              <div class="mt-3">
+                <div class="text-xs font-semibold text-red-700 mb-2">❌ Missing (${data.missingKeywords.length})</div>
+                ${tagList(data.missingKeywords, "red")}
+              </div>` : ""}
+              ${data.overusedKeywords && data.overusedKeywords.length > 0 ? `
+              <div class="mt-3">
+                <div class="text-xs font-semibold text-yellow-700 mb-2">⚠️ Overused (${data.overusedKeywords.length})</div>
+                ${tagList(data.overusedKeywords, "yellow")}
+              </div>` : ""}
+            </div>`;
         }
 
         // Suggestions
         if (data.suggestions && data.suggestions.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">💡</span>
-                <h3 class="text-lg font-bold text-gray-800">Suggestions <span class="text-sm text-indigo-600">(${
-                  data.suggestions.length
-                })</span></h3>
-              </div>
+              <div class="flex items-center gap-2 mb-4"><span class="text-2xl">💡</span><h3 class="text-lg font-bold text-gray-800">Suggestions <span class="text-sm text-indigo-600">(${data.suggestions.length})</span></h3></div>
               <ul class="space-y-3">
-                ${data.suggestions
-                  .map(
-                    (s, i) =>
-                      `<li class="p-3 bg-blue-50 border-l-4 border-indigo-500 rounded"><span class="font-semibold text-indigo-700">${
-                        i + 1
-                      }.</span> <span class="text-gray-700">${s}</span></li>`
-                  )
-                  .join("")}
+                ${data.suggestions.map((s, i) =>
+                  `<li class="p-3 bg-blue-50 border-l-4 border-indigo-500 rounded"><span class="font-semibold text-indigo-700">${i + 1}.</span> <span class="text-gray-700">${s}</span></li>`
+                ).join("")}
               </ul>
-            </div>
-          `;
+            </div>`;
         }
 
         // Warnings
         if (data.warnings && data.warnings.length > 0) {
           html += `
             <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">⚠️</span>
-                <h3 class="text-lg font-bold text-gray-800">Warnings <span class="text-sm text-yellow-600">(${
-                  data.warnings.length
-                })</span></h3>
-              </div>
-              <ul class="space-y-3">
-                ${data.warnings
-                  .map(
-                    (w) =>
-                      `<li class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded text-yellow-800"><strong>•</strong> ${w}</li>`
-                  )
-                  .join("")}
+              <div class="flex items-center gap-2 mb-4"><span class="text-2xl">⚠️</span><h3 class="text-lg font-bold text-gray-800">Warnings <span class="text-sm text-yellow-600">(${data.warnings.length})</span></h3></div>
+              <ul class="space-y-2">
+                ${data.warnings.map(w =>
+                  `<li class="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded text-yellow-800 text-sm">• ${w}</li>`
+                ).join("")}
               </ul>
-            </div>
-          `;
-        }
-
-        // Overused Keywords
-        if (data.overusedKeywords && data.overusedKeywords.length > 0) {
-          html += `
-            <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
-              <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">🔁</span>
-                <h3 class="text-lg font-bold text-gray-800">Potentially Overused Keywords</h3>
-              </div>
-              <div class="flex flex-wrap gap-2">
-                ${data.overusedKeywords
-                  .map(
-                    (kw) =>
-                      `<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">${kw}</span>`
-                  )
-                  .join("")}
-              </div>
-            </div>
-          `;
+            </div>`;
         }
 
         html += `</div>`;
-        resultsSection.innerHTML = html;
+        document.getElementById("resultsSection").innerHTML = html;
       }
 
       window.showError = function (message) {
-        const resultsSection = document.getElementById("resultsSection");
-        resultsSection.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-6 rounded-lg mt-8 flex items-start gap-3">
-          <span class="text-2xl">❌</span>
-          <div>
-            <h3 class="font-bold mb-1">Analysis Failed</h3>
-            <p class="text-sm">${message}</p>
-          </div>
-        </div>`;
+        document.getElementById("resultsSection").innerHTML = `
+          <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-6 rounded-lg mt-8 flex items-start gap-3">
+            <span class="text-2xl">❌</span>
+            <div><h3 class="font-bold mb-1">Analysis Failed</h3><p class="text-sm">${message}</p></div>
+          </div>`;
       };
 
       window.clearAll = function () {

@@ -1,114 +1,111 @@
 # ATS Checker
 
-A zero-dependency TypeScript library for evaluating resume compatibility with Applicant Tracking Systems (ATS). It parses resumes and job descriptions, calculates a deterministic score from 0 to 100, and provides actionable feedback to improve match rates.
+Zero-dependency TypeScript library that scores a resume against a job description and explains why — skills coverage, keyword overlap, experience match, and education — with no randomness, no LLM, and no external calls.
 
-## 🚀 Quick Start
-
-### Installation
+## Quick Start
 
 ```bash
 npm install @pranavraut033/ats-checker
 ```
 
-### Basic Usage
-
 ```typescript
 import { analyzeResume } from "@pranavraut033/ats-checker";
 
 const result = analyzeResume({
-  resumeText: `John Doe
-Software Engineer with 5 years of experience in JavaScript and React.`,
-  jobDescription: `We are looking for a software engineer with JavaScript experience.`
+  resumeText: `
+    Software Engineer with 5 years of experience.
+    Skills: JavaScript, TypeScript, React, Node.js, SQL
+    Experience: Senior Engineer at ExampleCorp (Jan 2020 - Present)
+    Education: B.S. Computer Science
+  `,
+  jobDescription: `
+    Frontend engineer role. Must have React, TypeScript, accessibility best practices.
+    Preferred: GraphQL. 3+ years required. Bachelor's degree required.
+  `,
+  config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score); // 78
-console.log(result.breakdown.skills); // 85
-console.log(result.suggestions); // ["Add more specific JavaScript frameworks", ...]
+console.log(result.score);           // e.g. 72.45
+console.log(result.matchedSkills);   // ["javascript", "node", "react", "typescript"]
+console.log(result.missingSkills);   // ["accessibility best practices", "graphql"]
+console.log(result.experienceGap);   // 0 (requirement met)
+console.log(result.suggestions);     // ["Add GraphQL to your skills section", ...]
 ```
 
-### Configuration
+## Features
 
-Adjust scoring priorities, define skill synonyms, and add custom rules:
+- **Deterministic** — same input always produces the same score; pin it with `referenceDate` to freeze "Present" date math
+- **Explainable** — breakdown by category plus matched and missing skill/keyword lists
+- **Configurable** — adjust weights, add skill aliases, define custom penalty rules
+- **Deterministic-only core** — `analyzeResumeAsync` (LLM path) is deprecated; `analyzeResume` is the primary API
+- **Zero dependencies** — no runtime deps; ships ESM + CJS
 
-```typescript
-const result = analyzeResume({
-  resumeText: "...",
-  jobDescription: "...",
-  config: {
-    weights: { skills: 0.4, experience: 0.3, keywords: 0.2, education: 0.1 },
-    skillAliases: { "javascript": ["js", "ecmascript"] },
-    rules: [{
-      id: "min-years",
-      penalty: 5,
-      warning: "Less than 3 years experience",
-      condition: (context) => (context.resume.experienceYears ?? 0) < 3
-    }]
-  }
-});
-```
+## Live Demo
 
-## ✨ Features
-
-- **Deterministic Scoring** - Based on skills, experience, keywords, and education
-- **ATS Issue Detection** - Identifies missing sections or keyword overuse
-- **Customizable** - Adjustable scoring weights and validation rules
-- **LLM Integration** - Optional AI-enhanced suggestions
-- **Web Interface** - Built-in testing UI (`npm run dev`)
-- **Zero Dependencies** - Core library has no external dependencies
-
-## 🎯 Live Demo
-
-Try the library in action:  
 **[Launch Demo →](https://pranavraut033.github.io/ats-checker/)**
 
-## 📚 Documentation
+## Output Reference
 
-- **[Architecture](architecture.md)** - System design and core components
-- **[Configuration](configuration.md)** - Complete configuration options
-- **[LLM Integration](llm-integration.md)** - AI-powered suggestions
-- **[UI Guide](ui.md)** - Web interface documentation
- - **[Rules Engine](rules.md)** - Default rules and customization
+`analyzeResume()` returns an `ATSAnalysisResult`:
 
-## 🔧 API Reference
+| Field | Type | Description |
+|---|---|---|
+| `score` | `number` | Overall ATS score 0–100 after rule penalties |
+| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `education` |
+| `matchedSkills` | `string[]` | Required skills found in the resume |
+| `missingSkills` | `string[]` | Required skills absent from the resume |
+| `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
+| `missingKeywords` | `string[]` | JD keywords absent from the resume (sorted) |
+| `overusedKeywords` | `string[]` | Keywords exceeding density threshold (sorted) |
+| `suggestions` | `string[]` | Deterministic improvement recommendations |
+| `warnings` | `string[]` | Parse warnings and section alerts |
+| `experienceGap` | `number` | Years below JD minimum; `0` when met |
+| `detectedSections` | `string[]` | Resume sections the parser found |
+| `parsedExperienceYears` | `number` | Total years from resume date ranges |
 
-### `analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult`
+**Scoring formula:**  
+`score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
 
-Analyzes a resume against a job description.
+## Documentation
+
+- **[Architecture](architecture.md)** — pipeline internals and module map
+- **[Configuration](configuration.md)** — all config options with defaults
+- **[Rules Engine](rules.md)** — built-in rules and custom rule API
+- **[LLM Integration (deprecated)](llm-integration.md)** — `analyzeResumeAsync` reference
+
+## API Reference
+
+### `analyzeResume(input): ATSAnalysisResult`
 
 **Input:**
 
-- `resumeText: string` - The full text of the resume
-- `jobDescription: string` - The job description text
-- `config?: ATSConfig` - Optional configuration overrides
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `resumeText` | `string` | ✅ | Full text of the resume |
+| `jobDescription` | `string` | ✅ | Job description text |
+| `config` | `ATSConfig` | — | Optional configuration |
 
-**Output:**
+### Built-in Profiles
 
-- `score: number` - Overall ATS score (0-100)
-- `breakdown: ATSBreakdown` - Component scores
-- `matchedKeywords: string[]` - Keywords found in both
-- `missingKeywords: string[]` - Important keywords not in resume
-- `suggestions: string[]` - Improvement recommendations
-- `warnings: string[]` - Issues detected
-
-## 💻 Development
-
-```bash
-npm install          # Install dependencies
-npm run build        # Build to dist/
-npm test             # Run tests
-npm run dev          # Start web UI at http://localhost:3005
+```typescript
+import {
+  softwareEngineerProfile,
+  dataScientistProfile,
+  productManagerProfile,
+  defaultSkillAliases,
+} from "@pranavraut033/ats-checker";
 ```
 
-## 📄 License
+## Development
 
-MIT
-
-## 🔗 Links
-
-- **[GitHub Repository](https://github.com/Pranavraut033/ats-checker)**
-- **[NPM Package](https://www.npmjs.com/package/@pranavraut033/ats-checker)**
-- **[Live Demo](https://pranavraut033.github.io/ats-checker/)**
+```bash
+npm install
+npm run build       # tsup → ESM + CJS in dist/
+npm test            # vitest (single pass)
+npm run type-check  # tsc --noEmit
+npm run dev         # static demo UI at http://localhost:3005
+```
 
 ---
 
-Made with ❤️ by [Pranav Virendra Raut](https://www.linkedin.com/in/pranav-raut)
+Made with ❤️ by [Pranav Raut](https://github.com/Pranavraut033)
