@@ -1,0 +1,144 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden snapshot — fixed score with pinned referenceDate > backend JD vs backend resume: score is stable 1`] = `
+{
+  "breakdown": {
+    "education": 100,
+    "experience": 75,
+    "keywords": 40,
+    "skills": 8.57142857142857,
+  },
+  "detectedSections": [
+    "summary",
+    "skills",
+    "experience",
+    "education",
+  ],
+  "experienceGap": 0,
+  "matchedKeywords": [
+    "backend",
+    "docker",
+    "engineer",
+    "experience",
+    "python",
+    "sql",
+  ],
+  "matchedSkills": [],
+  "missingKeywords": [
+    "3+",
+    "3+ years required",
+    "backend engineer role",
+    "docker preferred",
+    "must have python and sql experience",
+    "preferred",
+    "required",
+    "role",
+    "years",
+  ],
+  "missingSkills": [
+    "3+ years required",
+    "backend engineer role",
+    "docker preferred",
+    "javascript",
+    "must have python and sql experience",
+    "node",
+    "react",
+    "typescript",
+  ],
+  "overusedKeywords": [
+    "backend",
+    "docker",
+    "engineer",
+    "experience",
+    "python",
+    "sql",
+  ],
+  "parsedExperienceYears": 4,
+  "score": 20.07,
+  "suggestions": [
+    "Highlight these required skills: 3+ years required, backend engineer role, docker preferred, javascript, must have python and sql experience, node...",
+    "Incorporate job-specific keywords: 3+, 3+ years required, backend engineer role, docker preferred, must have python and sql experience, preferred...",
+    "Avoid keyword stuffing for: backend, docker, engineer, experience, python, sql",
+    "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+  ],
+  "warnings": [
+    "Keyword stuffing detected for: backend, docker, engineer, experience, python, sql (penalty 30)",
+  ],
+}
+`;
+
+exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD vs full-stack resume: score is stable 1`] = `
+{
+  "breakdown": {
+    "education": 0,
+    "experience": 75,
+    "keywords": 20.833333333333336,
+    "skills": 32.99999999999999,
+  },
+  "detectedSections": [
+    "summary",
+    "skills",
+    "experience",
+    "education",
+  ],
+  "experienceGap": 0,
+  "matchedKeywords": [
+    "engineer",
+    "experience",
+    "react",
+    "typescript",
+    "years",
+  ],
+  "matchedSkills": [
+    "javascript",
+    "node",
+    "react",
+    "typescript",
+  ],
+  "missingKeywords": [
+    "3+",
+    "accessibility",
+    "accessibility best practices",
+    "bachelor",
+    "bachelor's degree required",
+    "best",
+    "degree",
+    "frontend",
+    "graphql",
+    "must have 3+ years experience",
+    "need",
+    "practices",
+    "preferred",
+    "preferred: graphql",
+    "required",
+    "requirements",
+    "requirements: react",
+    "we",
+    "we need a frontend engineer",
+  ],
+  "missingSkills": [
+    "accessibility best practices",
+    "bachelor's degree required",
+    "must have 3+ years experience",
+    "preferred: graphql",
+    "requirements: react",
+    "we need a frontend engineer",
+  ],
+  "overusedKeywords": [
+    "engineer",
+    "react",
+  ],
+  "parsedExperienceYears": 6.08,
+  "score": 27.61,
+  "suggestions": [
+    "Highlight these required skills: accessibility best practices, bachelor's degree required, must have 3+ years experience, preferred: graphql, requirements: react, we need a frontend engineer",
+    "Incorporate job-specific keywords: 3+, accessibility, accessibility best practices, bachelor, bachelor's degree required, best...",
+    "Avoid keyword stuffing for: engineer, react",
+    "State your education credentials matching: bachelor",
+    "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+  ],
+  "warnings": [
+    "Keyword stuffing detected for: engineer, react (penalty 10)",
+  ],
+}
+`;
