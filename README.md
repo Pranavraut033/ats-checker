@@ -82,7 +82,8 @@ console.log(result.suggestions);      // ["Add GraphQL to your skills section", 
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
 | `detectedSections` | `string[]` | Resume sections the parser found |
-| `parsedExperienceYears` | `number` | Total years from resume date ranges |
+| `parsedExperienceYears` | `number` | Total years from resume date ranges (overlap-deduplicated) |
+| `experienceEntries` | `ParsedExperienceEntry[]` | Parsed job entries: `title`, `company`, `dates` (with `start`/`end`/`durationInMonths`) |
 
 **Scoring formula:**  
 `score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
