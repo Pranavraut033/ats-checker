@@ -283,6 +283,28 @@ Preferred Qualifications:
             </div>
           </div>`;
 
+        // Experience entries
+        if (data.experienceEntries && data.experienceEntries.length > 0) {
+          html += `
+            <div class="bg-white rounded-lg p-6 shadow-xl mt-5">
+              <div class="flex items-center gap-2 mb-4"><span class="text-2xl">📅</span><h3 class="text-lg font-bold text-gray-800">Experience Entries <span class="text-sm text-indigo-600">(${data.experienceEntries.length})</span></h3></div>
+              <ul class="space-y-3">
+                ${data.experienceEntries.map(e => {
+                  const dateRange = e.dates
+                    ? `${e.dates.start ?? ""}${e.dates.end ? ` – ${e.dates.end}` : ""}${e.dates.durationInMonths ? ` · ${(e.dates.durationInMonths / 12).toFixed(1)} yrs` : ""}`
+                    : "";
+                  return `<li class="flex items-start gap-3 p-3 bg-indigo-50 rounded border-l-4 border-indigo-400">
+                    <div class="flex-1">
+                      <div class="font-semibold text-gray-800 text-sm">${e.title ?? "Role"}</div>
+                      ${e.company ? `<div class="text-xs text-gray-500">${e.company}</div>` : ""}
+                      ${dateRange ? `<div class="text-xs text-indigo-600 mt-0.5">${dateRange}</div>` : ""}
+                    </div>
+                  </li>`;
+                }).join("")}
+              </ul>
+            </div>`;
+        }
+
         // Skills
         if (data.matchedSkills.length + data.missingSkills.length > 0) {
           html += `
