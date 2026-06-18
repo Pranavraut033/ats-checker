@@ -102,15 +102,19 @@ const resumeText = await extractTextFromPDF(uint8ArrayOrArrayBuffer);
 
 Returns a normalized string ready to pass as `resumeText`. Text-layer PDFs only.
 
-If the PDF exports poorly (scanned/image resume, or a multi-column layout that collapses to one line), `analyzeResume` emits an actionable message in `result.warnings` — always check it after PDF input:
+**Multi-column layouts are handled automatically** using glyph x/y positions to detect and separate columns before joining lines. Single-column and two-column resumes both parse cleanly.
+
+For PDFs that can't be recovered (scanned/image resumes with no text layer, or near-empty extractions), `analyzeResume` emits an actionable message in `result.warnings`:
 
 ```typescript
 const result = analyzeResume({ resumeText, jobDescription: "..." });
 if (result.warnings.length) {
   console.warn(result.warnings);
-  // e.g. "Resume text has no line breaks — export as single-column PDF or paste plain text."
+  // e.g. "Almost no text was extracted — the resume may be a scanned/image PDF."
 }
 ```
+
+If section detection still fails after extraction (fewer than 2 sections found in a long document), a suggestion is also added to `result.suggestions` advising the user to export as single-column PDF.
 
 ### Built-in Profiles
 

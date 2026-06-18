@@ -206,13 +206,15 @@ const result = analyzeResume({ resumeText, jobDescription: "..." });
 
 `extractTextFromPDF` accepts a `Uint8Array` or `ArrayBuffer` and returns a plain `string`. Works in Node.js and the browser (text-layer PDFs only).
 
-If the PDF exports poorly — scanned/image resumes or multi-column layouts that flatten to a single line — `analyzeResume` will surface an actionable message in `result.warnings` telling the user to export as single-column or paste plain text instead. Always check `result.warnings` after parsing a PDF:
+**Multi-column layouts are handled automatically.** The extractor uses glyph x/y coordinates to detect column boundaries and process each column independently, so a two-column resume parses cleanly without interleaved text.
+
+For PDFs that can't be recovered — scanned/image resumes or exports with no text layer — `analyzeResume` surfaces an actionable message in `result.warnings`. Always check it after PDF input:
 
 ```typescript
 const result = analyzeResume({ resumeText, jobDescription: "..." });
 if (result.warnings.length) {
   console.warn("Parsing issues:", result.warnings);
-  // e.g. "Resume text has no line breaks — the PDF layout likely didn't export cleanly..."
+  // e.g. "Almost no text was extracted — the resume may be a scanned/image PDF."
 }
 ```
 

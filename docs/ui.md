@@ -48,12 +48,19 @@ The interface provides:
 
 ## Usage
 
-1. **Enter Resume** - Paste your resume text
+1. **Enter Resume** - Paste your resume text, or click **Upload PDF** to extract it from a PDF file
 2. **Enter Job Description** - Add the target job posting
 3. **Load Samples** - Use sample buttons for quick testing
 4. **Analyze** - Click "Analyze Resume" to see results
 5. **Review Results** - Check score, breakdown, and recommendations
 6. **(Optional) Enable LLM** - Add OpenAI API key for AI-powered suggestions
+
+### PDF Upload
+
+Click **Upload PDF** to load a resume directly from a `.pdf` file. Extraction runs in the browser via `pdfjs-dist` — no server involved.
+
+- **Single-column and two-column layouts** are handled automatically. The extractor uses glyph x/y coordinates to detect column boundaries, so section headers in a two-column resume don't merge with sidebar content.
+- **Scanned / image PDFs** have no text layer and will extract as near-empty. A warning surfaces in the results and a suggestion advises exporting as single-column PDF or pasting plain text instead.
 
 ## Results Display
 
