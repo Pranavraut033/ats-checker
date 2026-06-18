@@ -56,6 +56,17 @@ export class SuggestionEngine {
       );
     }
 
+    // Long raw text but few detected sections → likely a multi-column PDF that
+    // didn't parse cleanly even after line reconstruction
+    if (
+      input.resume.detectedSections.length < 2 &&
+      input.resume.raw.trim().length > 300
+    ) {
+      suggestions.push(
+        "Your resume may use a multi-column layout. Export as a single-column PDF or paste plain text — most ATS systems and this parser work best with a linear layout."
+      );
+    }
+
     return { suggestions, warnings };
   }
 }
