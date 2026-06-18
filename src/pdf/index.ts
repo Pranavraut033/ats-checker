@@ -30,18 +30,11 @@ export async function extractTextFromPDF(
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
 
-    // Group items into lines by y-coordinate; within each line sort by x so
-    // multi-column layouts read left-to-right instead of interleaved.
-    // ponytail: x-bucketing handles 2-column resumes; true n-column needs
-    // gap analysis on the x distribution — upgrade if section detection still fails.
-    const Y_TOLERANCE = 2;
-    type LineItem = { x: number; str: string };
-    const lineMap: Map<number, LineItem[]> = new Map();
-    const lineOrder: number[] = [];
+    type RawItem = { x: number; y: number; str: string };
+    const items: RawItem[] = [];
 
     for (const item of content.items) {
-      if (!("str" in item)) continue;
-      const str = item.str;
+      if (!("str" in item) || !item.str.trim()) continue;
       const transform: number[] | undefined = Array.isArray(
         (item as { transform?: number[] }).transform
       )
@@ -49,52 +42,86 @@ export async function extractTextFromPDF(
         : undefined;
 
       if (!transform) {
-        // No positional info (e.g. unit-test mocks) — append to last line or start one
-        if (lineOrder.length === 0) {
-          lineOrder.push(0);
-          lineMap.set(0, []);
-        }
-        const key = lineOrder[lineOrder.length - 1];
-        lineMap.get(key)!.push({ x: 0, str });
-        continue;
+        // No positional info (unit-test mocks) — treat as single-column item
+        items.push({ x: 0, y: 0, str: item.str });
+      } else {
+        items.push({ x: transform[4], y: transform[5], str: item.str });
       }
-
-      const rawX = transform[4];
-      const rawY = transform[5];
-
-      // Find an existing line bucket within y-tolerance
-      let bucketKey: number | undefined;
-      for (const key of lineOrder) {
-        if (Math.abs(key - rawY) <= Y_TOLERANCE) {
-          bucketKey = key;
-          break;
-        }
-      }
-      if (bucketKey === undefined) {
-        bucketKey = rawY;
-        lineOrder.push(rawY);
-        lineMap.set(rawY, []);
-      }
-      lineMap.get(bucketKey)!.push({ x: rawX, str });
     }
 
-    // pdfjs y=0 is bottom of page — sort descending so top of page comes first
-    lineOrder.sort((a, b) => b - a);
+    // Detect column boundary: find the largest x-gap among item start positions.
+    // If it exceeds COLUMN_GAP_THRESHOLD, split into left / right columns and
+    // process each independently so headers in different columns don't merge.
+    // ponytail: single largest-gap heuristic handles the common 2-column resume;
+    // n-column needs k-means on x-distribution — upgrade if this proves insufficient.
+    // Column boundary heuristic: the largest gap in item x-positions.
+    // Real PDF column gutters show as a gap >>80px; normal word spacing is <50px.
+    // ponytail: magic number calibrated to PranavRaut2026.pdf (104px gap); raise
+    // if single-column PDFs with wide indentation start getting falsely split.
+    const COLUMN_GAP_THRESHOLD = 80;
+    const xPositions = [...new Set(items.map((it) => Math.round(it.x)))].sort(
+      (a, b) => a - b
+    );
 
-    const pageText = lineOrder
-      .map((key) =>
-        (lineMap.get(key) ?? [])
-          .sort((a, b) => a.x - b.x)      // left-to-right within line
-          .map((it) => it.str)
-          .join(" ")
-          .replace(/[^\S\n]+/g, " ")
-          .trim()
-      )
-      .filter(Boolean)
-      .join("\n");
+    let columnBoundary: number | null = null;
+    let maxGap = 0;
+    for (let j = 1; j < xPositions.length; j++) {
+      const gap = xPositions[j] - xPositions[j - 1];
+      if (gap > maxGap) {
+        maxGap = gap;
+        columnBoundary = (xPositions[j - 1] + xPositions[j]) / 2;
+      }
+    }
+    if (maxGap < COLUMN_GAP_THRESHOLD) columnBoundary = null;
 
-    pages.push(pageText);
+    const columns =
+      columnBoundary !== null
+        ? [
+            items.filter((it) => it.x < columnBoundary!),
+            items.filter((it) => it.x >= columnBoundary!),
+          ]
+        : [items];
+
+    const columnTexts = columns.map((col) => renderColumn(col));
+    pages.push(columnTexts.filter(Boolean).join("\n"));
   }
 
   return pages.join("\n");
+}
+
+function renderColumn(items: Array<{ x: number; y: number; str: string }>): string {
+  const Y_TOLERANCE = 2;
+  const lineMap: Map<number, Array<{ x: number; str: string }>> = new Map();
+  const lineOrder: number[] = [];
+
+  for (const { x, y, str } of items) {
+    let bucketKey: number | undefined;
+    for (const key of lineOrder) {
+      if (Math.abs(key - y) <= Y_TOLERANCE) {
+        bucketKey = key;
+        break;
+      }
+    }
+    if (bucketKey === undefined) {
+      bucketKey = y;
+      lineOrder.push(y);
+      lineMap.set(y, []);
+    }
+    lineMap.get(bucketKey)!.push({ x, str });
+  }
+
+  // pdfjs y=0 is bottom of page — sort descending so top comes first
+  lineOrder.sort((a, b) => b - a);
+
+  return lineOrder
+    .map((key) =>
+      (lineMap.get(key) ?? [])
+        .sort((a, b) => a.x - b.x)
+        .map((it) => it.str)
+        .join(" ")
+        .replace(/[^\S\n]+/g, " ")
+        .trim()
+    )
+    .filter(Boolean)
+    .join("\n");
 }

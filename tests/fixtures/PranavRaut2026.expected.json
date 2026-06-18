@@ -1,0 +1,16 @@
+{
+  "detectedSections": ["summary", "experience", "skills", "education"],
+  "skills": [
+    "typescript", "javascript", "node.js", "python",
+    "react", "next.js", "vue.js", "postgresql", "mongodb", "redis",
+    "docker", "graphql"
+  ],
+  "totalExperienceYearsMin": 4,
+  "textSnippets": [
+    "Full-stack developer",
+    "DefiEdge",
+    "Next.js",
+    "TypeScript",
+    "Docker"
+  ]
+}

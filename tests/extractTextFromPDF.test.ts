@@ -64,7 +64,8 @@ describe("extractTextFromPDF", () => {
               items: [
                 { str: "EXPERIENCE", transform: [1, 0, 0, 1, 50, 700] },
                 { str: "Software Engineer", transform: [1, 0, 0, 1, 50, 650] },
-                { str: "at ExampleCorp", transform: [1, 0, 0, 1, 200, 650] },
+                // x=100 keeps within-column gap <150px so column detection doesn't fire
+                { str: "at ExampleCorp", transform: [1, 0, 0, 1, 100, 650] },
               ],
             }),
         }),
