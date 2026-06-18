@@ -39,6 +39,7 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 - **Configurable** — adjust weights, add skill aliases, define custom penalty rules
 - **Deterministic-only core** — `analyzeResumeAsync` (LLM path) is deprecated; `analyzeResume` is the primary API
 - **Zero dependencies** — no runtime deps; ships ESM + CJS
+- **PDF input** — optional `/pdf` subpath for extracting text from PDF resumes
 
 ## Live Demo
 
@@ -84,6 +85,32 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | `resumeText` | `string` | ✅ | Full text of the resume |
 | `jobDescription` | `string` | ✅ | Job description text |
 | `config` | `ATSConfig` | — | Optional configuration |
+
+### `extractTextFromPDF(data): Promise<string>`
+
+Extracts plain text from a PDF buffer. Import from the `/pdf` subpath; requires `pdfjs-dist` installed separately.
+
+```typescript
+import { extractTextFromPDF } from "@pranavraut033/ats-checker/pdf";
+
+const resumeText = await extractTextFromPDF(uint8ArrayOrArrayBuffer);
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `data` | `Uint8Array \| ArrayBuffer` | Raw PDF bytes |
+
+Returns a normalized string ready to pass as `resumeText`. Text-layer PDFs only.
+
+If the PDF exports poorly (scanned/image resume, or a multi-column layout that collapses to one line), `analyzeResume` emits an actionable message in `result.warnings` — always check it after PDF input:
+
+```typescript
+const result = analyzeResume({ resumeText, jobDescription: "..." });
+if (result.warnings.length) {
+  console.warn(result.warnings);
+  // e.g. "Resume text has no line breaks — export as single-column PDF or paste plain text."
+}
+```
 
 ### Built-in Profiles
 

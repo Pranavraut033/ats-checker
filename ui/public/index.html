@@ -50,12 +50,20 @@
             placeholder="Paste your resume here..."
             class="w-full h-64 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-vertical mb-3 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
           ></textarea>
-          <button
-            class="w-full bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-200 px-5 py-3 rounded-lg font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
-            onclick="loadSampleResume()"
-          >
-            📋 Load Sample
-          </button>
+          <div class="flex gap-2">
+            <button
+              class="flex-1 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 border border-indigo-200 px-5 py-3 rounded-lg font-semibold hover:from-indigo-100 hover:to-purple-100 transition"
+              onclick="loadSampleResume()"
+            >
+              📋 Load Sample
+            </button>
+            <label
+              class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-200 px-5 py-3 rounded-lg font-semibold hover:from-purple-100 hover:to-indigo-100 transition cursor-pointer"
+            >
+              <span id="pdfBtnLabel">📎 Upload PDF</span>
+              <input type="file" accept=".pdf" class="hidden" onchange="handlePDFUpload(event)" />
+            </label>
+          </div>
         </div>
 
         <div class="bg-white rounded-lg p-6 shadow-xl hover:shadow-2xl transition">
@@ -137,8 +145,37 @@
       </footer>
     </div>
 
+    <script type="importmap">
+      {
+        "imports": {
+          "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.mjs",
+          "pdfjs-dist/build/pdf.worker.mjs": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.mjs"
+        }
+      }
+    </script>
     <script type="module">
       import { analyzeResume } from "./dist/index.mjs";
+
+      window.handlePDFUpload = async function (event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const label = document.getElementById("pdfBtnLabel");
+        label.textContent = "⏳ Extracting…";
+        try {
+          const { extractTextFromPDF } = await import("./dist/pdf/index.mjs");
+          const { GlobalWorkerOptions } = await import("pdfjs-dist");
+          GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.mjs";
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const text = await extractTextFromPDF(bytes);
+          document.getElementById("resume").value = text;
+          label.textContent = "✅ PDF loaded";
+        } catch (err) {
+          label.textContent = "📎 Upload PDF";
+          showError("PDF extraction failed: " + (err instanceof Error ? err.message : String(err)));
+        }
+        // reset file input so the same file can be re-uploaded
+        event.target.value = "";
+      };
 
       window.loadSampleResume = function () {
         document.getElementById("resume").value = `Summary

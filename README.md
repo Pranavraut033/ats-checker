@@ -19,6 +19,7 @@ Zero-dependency TypeScript library that scores a resume against a job descriptio
 - **Explainable** — breakdown by category (skills / experience / keywords / education) plus matched and missing skill/keyword lists
 - **Configurable** — adjust weights, add skill aliases, define custom penalty rules
 - **Zero dependencies** — core library has no runtime deps; ships ESM + CJS
+- **PDF input** — optional `/pdf` subpath extracts resume text from a PDF buffer (requires `pdfjs-dist` peer dep)
 - **Built-in profiles** — software engineer, data scientist, product manager out of the box
 
 ---
@@ -180,6 +181,39 @@ const result = analyzeResume({
   jobDescription: "...",
   config: { profile: softwareEngineerProfile },
 });
+```
+
+---
+
+## PDF Input
+
+Extract text from a PDF resume before passing it to `analyzeResume`. This uses `pdfjs-dist` as an optional peer dependency — the core library stays zero-dep.
+
+```bash
+npm install pdfjs-dist
+```
+
+```typescript
+import { extractTextFromPDF } from "@pranavraut033/ats-checker/pdf";
+import { analyzeResume } from "@pranavraut033/ats-checker";
+import { readFileSync } from "fs";
+
+const bytes = readFileSync("resume.pdf");
+const resumeText = await extractTextFromPDF(bytes);
+
+const result = analyzeResume({ resumeText, jobDescription: "..." });
+```
+
+`extractTextFromPDF` accepts a `Uint8Array` or `ArrayBuffer` and returns a plain `string`. Works in Node.js and the browser (text-layer PDFs only).
+
+If the PDF exports poorly — scanned/image resumes or multi-column layouts that flatten to a single line — `analyzeResume` will surface an actionable message in `result.warnings` telling the user to export as single-column or paste plain text instead. Always check `result.warnings` after parsing a PDF:
+
+```typescript
+const result = analyzeResume({ resumeText, jobDescription: "..." });
+if (result.warnings.length) {
+  console.warn("Parsing issues:", result.warnings);
+  // e.g. "Resume text has no line breaks — the PDF layout likely didn't export cleanly..."
+}
 ```
 
 ---
