@@ -1,34 +1,23 @@
 export const STOP_WORDS = new Set([
-  "the",
-  "and",
-  "or",
-  "a",
-  "an",
-  "of",
-  "for",
-  "to",
-  "with",
-  "in",
-  "on",
-  "at",
-  "by",
-  "from",
-  "as",
-  "is",
-  "are",
-  "be",
-  "this",
-  "that",
-  "it",
-  "was",
-  "were",
-  "will",
-  "can",
-  "should",
-  "must",
-  "have",
-  "has",
-  "had",
+  // articles / prepositions / conjunctions
+  "the", "and", "or", "a", "an", "of", "for", "to", "with", "in", "on", "at",
+  "by", "from", "as", "into", "onto", "upon", "via", "per", "plus",
+  // verbs / modals
+  "is", "are", "be", "was", "were", "will", "can", "should", "must", "have",
+  "has", "had", "do", "does", "did", "get", "give", "go", "use", "see",
+  "help", "work", "build", "show", "need", "want", "make", "let",
+  // pronouns / determiners
+  "it", "its", "this", "that", "these", "those", "we", "our", "you", "your",
+  "they", "their", "us", "who", "what", "which", "how",
+  // common English fillers that leak into JDs
+  "no", "not", "all", "any", "also", "more", "well", "very", "highly",
+  "across", "over", "under", "within", "about", "out", "up", "down",
+  "new", "if", "so", "such", "both", "each", "one", "many", "only",
+  // JD/HR boilerplate — never skills
+  "years", "year", "experience", "required", "requirement", "requirements",
+  "preferred", "role", "degree", "practices", "best", "skills", "team",
+  "field", "related", "relevant", "desired", "strong", "solid", "good",
+  "first", "based", "day", "week", "month", "time", "fast", "open", "dynamic",
 ]);
 
 export function normalizeWhitespace(text: string): string {
@@ -55,7 +44,14 @@ const TECH_TOKEN_RE = /[a-z0-9][a-z0-9.#+\-/]*[a-z0-9#+]/g;
 
 export function tokenize(text: string): string[] {
   const normalized = normalizeForComparison(text);
-  return (normalized.match(TECH_TOKEN_RE) ?? []).filter((t) => !STOP_WORDS.has(t));
+  // Require at least one letter: drops bare numbers (100, 3+, 50%) and keeps c#, 3d, node.js
+  return (normalized.match(TECH_TOKEN_RE) ?? []).filter(
+    (t) => /[a-z]/.test(t) && !STOP_WORDS.has(t)
+  );
+}
+
+export function escapeRegExp(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function unique(values: string[]): string[] {

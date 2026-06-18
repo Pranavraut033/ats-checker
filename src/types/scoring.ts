@@ -1,5 +1,6 @@
 import { ATSConfig } from "./config";
 import type { LLMConfig } from "./llm";
+import type { ParsedExperienceEntry } from "./parser";
 
 export interface ATSBreakdown {
   skills: number;
@@ -33,4 +34,6 @@ export interface ATSAnalysisResult {
   detectedSections: string[];
   /** Total years of experience parsed from the resume's date ranges. */
   parsedExperienceYears: number;
+  /** Parsed experience entries from the resume, with titles and date ranges. */
+  experienceEntries: ParsedExperienceEntry[];
 }

@@ -11,6 +11,11 @@ export interface ParsedDateRange {
   start?: string;
   end?: string;
   durationInMonths?: number;
+  /** Numeric year/month of the start and end, for overlap-aware summing. */
+  startYear?: number;
+  startMonth?: number;
+  endYear?: number;
+  endMonth?: number;
 }
 
 export interface ParsedExperienceEntry {

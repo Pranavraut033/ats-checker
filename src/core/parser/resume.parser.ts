@@ -2,6 +2,7 @@ import { ResolvedATSConfig } from "../../types/config";
 import { ParsedExperienceEntry, ParsedResume, ResumeSection } from "../../types/parser";
 import { parseDateRange, sumExperienceYears } from "../../utils/dates";
 import {
+  escapeRegExp,
   normalizeForComparison,
   normalizeWhitespace,
   splitLines,
@@ -41,10 +42,6 @@ const ACTION_VERBS = [
   "increased",
 ];
 
-function escapeRegExp(input: string): string {
-  // Escape characters that have special meaning in regular expressions
-  return input.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
-}
 
 function detectSection(line: string): ResumeSection | null {
   // Normalize and trim line before matching
@@ -168,11 +165,19 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
   const actionVerbs = parseActionVerbs(normalizedText);
   const experienceData = parseExperience(sections.experience, config.referenceDate);
   const educationEntries = parseEducation(sections.education);
-  const totalExperienceYears = sumExperienceYears(
+  let totalExperienceYears = sumExperienceYears(
     experienceData.entries
       .map((entry) => entry.dates)
       .filter((range): range is NonNullable<typeof range> => Boolean(range))
   );
+  // ponytail: fallback heuristic — scan summary/full text for "N+ years" when no dated ranges parsed
+  if (totalExperienceYears === 0) {
+    const textToScan = sections.summary ?? normalizedText;
+    const yearsMatch = textToScan.match(/(\d{1,2})\+?\s*years?/i);
+    if (yearsMatch) {
+      totalExperienceYears = Number.parseInt(yearsMatch[1], 10);
+    }
+  }
 
   const requiredSections: ResumeSection[] = ["summary", "experience", "skills", "education"];
   const warnings: string[] = [];

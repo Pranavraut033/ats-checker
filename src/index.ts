@@ -82,6 +82,7 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
     experienceGap: scoring.experienceGap,
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,
+    experienceEntries: parsedResume.experience,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };
@@ -178,6 +179,7 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
     experienceGap: scoring.experienceGap,
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,
+    experienceEntries: parsedResume.experience,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };

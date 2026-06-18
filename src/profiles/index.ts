@@ -18,6 +18,30 @@ export const defaultSkillAliases: SkillAliases = {
   kubernetes: ["k8s"],
   html: ["html5"],
   css: ["css3"],
+  // ML / data science
+  pytorch: ["torch"],
+  tensorflow: ["tf"],
+  "scikit-learn": ["sklearn"],
+  pandas: [],
+  numpy: [],
+  fastapi: [],
+  flask: [],
+  django: [],
+  // data / infra
+  kafka: [],
+  redis: [],
+  elasticsearch: ["elastic"],
+  spark: ["apache spark"],
+  // common pure-letter tech skills (no symbol chars)
+  accessibility: ["a11y"],
+  frontend: ["front-end"],
+  backend: ["back-end"],
+  security: ["cybersecurity"],
+  testing: ["unittest", "pytest"],
+  microservices: [],
+  agile: ["scrum"],
+  blockchain: [],
+  devops: [],
 };
 
 export const softwareEngineerProfile: ATSProfile = {

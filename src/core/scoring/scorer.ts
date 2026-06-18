@@ -163,10 +163,11 @@ export function calculateScore(
     overusedKeywords: keywordResult.overusedKeywords,
     suggestions: [],
     warnings: [],
-    // detectedSections / parsedExperienceYears / experienceGap: filled by index.ts
+    // detectedSections / parsedExperienceYears / experienceGap / experienceEntries: filled by index.ts
     experienceGap: experienceResult.missingYears,
     detectedSections: [],
     parsedExperienceYears: 0,
+    experienceEntries: [],
     missingExperienceYears: experienceResult.missingYears,
     educationScore,
   };

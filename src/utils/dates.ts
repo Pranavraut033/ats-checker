@@ -43,6 +43,15 @@ function parseDateToken(raw: string): ParsedDateToken | null {
       return { year, month };
     }
   }
+  // MM/YYYY format (e.g. 10/2022)
+  const slashMatch = cleaned.match(/^(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const month = Number.parseInt(slashMatch[1], 10);
+    const year = Number.parseInt(slashMatch[2], 10);
+    if (month >= 1 && month <= 12 && !Number.isNaN(year)) {
+      return { year, month };
+    }
+  }
   const yearMatch = cleaned.match(/(20\d{2}|19\d{2})/);
   if (yearMatch) {
     const year = Number.parseInt(yearMatch[1], 10);
@@ -59,7 +68,9 @@ function monthsBetween(start: ParsedDateToken, end: ParsedDateToken): number {
 
 export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRange | null {
   const normalized = text.trim();
-  const rangeMatch = normalized.match(/([A-Za-z]{3,9}\s+\d{4}|\d{4})\s*(?:-|to|–|—)\s*(Present|Current|Now|[A-Za-z]{3,9}\s+\d{4}|\d{4})/i);
+  const rangeMatch = normalized.match(
+    /(\d{1,2}\/\d{4}|[A-Za-z]{3,9}\s+\d{4}|\d{4})\s*(?:-|to|–|—)\s*(Present|Current|Now|\d{1,2}\/\d{4}|[A-Za-z]{3,9}\s+\d{4}|\d{4})/i
+  );
   if (!rangeMatch) {
     return null;
   }
@@ -82,12 +93,46 @@ export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRa
     start: rangeMatch[1],
     end: isPresent ? "present" : rangeMatch[2],
     durationInMonths: durationInMonths > 0 ? durationInMonths : undefined,
+    startYear: startToken.year,
+    startMonth: startToken.month,
+    endYear: endTokenResolved.year,
+    endMonth: endTokenResolved.month,
   };
 }
 
 export function sumExperienceYears(ranges: ParsedDateRange[]): number {
-  const months = ranges
-    .map((range) => range.durationInMonths ?? 0)
-    .reduce((total, value) => total + value, 0);
+  // If all ranges carry year/month data, merge overlapping intervals first so
+  // concurrent roles (freelance + full-time) aren't double-counted.
+  const withBounds = ranges.filter(
+    (r) => r.startYear !== undefined && r.endYear !== undefined
+  );
+  if (withBounds.length === ranges.length && ranges.length > 0) {
+    const toIndex = (year: number, month: number) => year * 12 + month;
+    const intervals = withBounds
+      .map((r) => ({
+        s: toIndex(r.startYear!, r.startMonth ?? 1),
+        e: toIndex(r.endYear!, r.endMonth ?? 12),
+      }))
+      .sort((a, b) => a.s - b.s);
+
+    let totalMonths = 0;
+    let curStart = intervals[0].s;
+    let curEnd = intervals[0].e;
+    for (let i = 1; i < intervals.length; i++) {
+      const { s, e } = intervals[i];
+      if (s <= curEnd) {
+        curEnd = Math.max(curEnd, e);
+      } else {
+        totalMonths += curEnd - curStart + 1;
+        curStart = s;
+        curEnd = e;
+      }
+    }
+    totalMonths += curEnd - curStart + 1;
+    return Number((totalMonths / 12).toFixed(2));
+  }
+
+  // Fallback: naive sum (no overlap detection possible without bounds)
+  const months = ranges.reduce((total, r) => total + (r.durationInMonths ?? 0), 0);
   return Number((months / 12).toFixed(2));
 }
