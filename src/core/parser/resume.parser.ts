@@ -181,6 +181,20 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
 
   const requiredSections: ResumeSection[] = ["summary", "experience", "skills", "education"];
   const warnings: string[] = [];
+
+  // ponytail: flag flattened/empty extraction (common with multi-column or scanned PDFs)
+  // so the user fixes the source rather than trusting a garbage parse
+  const lineCount = splitLines(resumeText).length;
+  if (resumeText.trim().length < 100) {
+    warnings.push(
+      "Almost no text was extracted — the resume may be a scanned/image PDF. Upload a text-based PDF or paste the text directly."
+    );
+  } else if (lineCount <= 2) {
+    warnings.push(
+      "Resume text has no line breaks — the PDF layout likely didn't export cleanly (common with multi-column designs). Export as a single-column PDF or paste plain text for accurate parsing."
+    );
+  }
+
   for (const section of requiredSections) {
     if (!detected.includes(section)) {
       warnings.push(`${section} section not detected`);
