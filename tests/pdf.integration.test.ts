@@ -20,6 +20,8 @@ const minimalConfig = {
   keywordDensity: { min: 0.0025, max: 0.04, overusePenalty: 5 },
   sectionPenalties: { missingSummary: 4, missingExperience: 10, missingSkills: 8, missingEducation: 6 },
   allowPartialMatches: true,
+  // Pinned so "Present" doesn't drift totalExperienceYears as real time passes.
+  referenceDate: new Date("2026-06-22"),
 } as any;
 
 const expected = JSON.parse(
@@ -38,8 +40,11 @@ describe("real PDF — PranavRaut2026 (two-column layout)", () => {
   });
 
   it("extracts non-empty text with line breaks", () => {
-    expect(resumeText.length).toBeGreaterThan(500);
-    expect(resumeText).toContain("\n");
+    // Real extraction for this fixture is ~5000 chars across ~108 lines; bounds set
+    // well below that so a genuine extraction regression (near-empty/garbled output)
+    // fails, without pinning to brittle exact text-extraction output.
+    expect(resumeText.length).toBeGreaterThan(3000);
+    expect(resumeText.split("\n").length).toBeGreaterThan(50);
   });
 
   it("contains expected text snippets", () => {
@@ -63,9 +68,8 @@ describe("real PDF — PranavRaut2026 (two-column layout)", () => {
     }
   });
 
-  it("parses at least the expected years of experience", () => {
-    expect(parsed.totalExperienceYears).toBeGreaterThanOrEqual(
-      expected.totalExperienceYearsMin
-    );
+  it("parses the exact expected years of experience for the pinned reference date", () => {
+    expect(parsed.totalExperienceYears).toBe(6.17);
+    expect(parsed.totalExperienceYears).toBeGreaterThanOrEqual(expected.totalExperienceYearsMin);
   });
 });

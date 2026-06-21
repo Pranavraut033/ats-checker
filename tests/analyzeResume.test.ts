@@ -15,10 +15,17 @@ B.S. Computer Science`;
 Preferred: GraphQL. Must have 3+ years experience. Bachelor's degree required.`;
 
   it("produces a balanced score and identifies missing keywords", () => {
-    const result = analyzeResume({ resumeText, jobDescription });
+    const result = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { referenceDate: "2026-01-01" },
+    });
 
-    expect(result.score).toBeGreaterThan(0);
-    expect(result.score).toBeLessThan(100);
+    expect(result.score).toBe(48.44);
+    expect(result.breakdown.skills).toBeCloseTo(50, 5);
+    expect(result.breakdown.experience).toBe(75);
+    expect(result.breakdown.keywords).toBe(43.75);
+    expect(result.breakdown.education).toBe(100);
     expect(result.matchedKeywords).toContain("react");
     expect(result.missingKeywords).toContain("accessibility");
     expect(result.suggestions.some((suggestion) => suggestion.includes("keywords"))).toBe(true);
@@ -37,10 +44,12 @@ B.S. Computer Science`;
     const result = analyzeResume({
       resumeText: stuffedResume,
       jobDescription: "Looking for React developer with JavaScript experience.",
+      config: { referenceDate: "2026-01-01" },
     });
 
-    expect(result.overusedKeywords).toContain("react");
-    expect(result.score).toBeLessThan(90);
+    expect(result.overusedKeywords).toEqual(["react"]);
+    expect(result.score).toBe(68);
+    expect(result.warnings).toContain("Keyword stuffing detected for: react (penalty 5)");
     expect(result.suggestions.some((suggestion) => suggestion.includes("stuffing"))).toBe(true);
   });
 
@@ -72,6 +81,6 @@ B.S. Computer Science`;
     });
 
     expect(result.warnings).toContain("Clarify experience duration");
-    expect(result.score).toBeLessThan(100);
+    expect(result.score).toBe(23.25);
   });
 });

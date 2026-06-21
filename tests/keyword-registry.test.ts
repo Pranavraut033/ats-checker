@@ -7,17 +7,21 @@ describe("keyword weighting", () => {
   it("a missing required keyword drops the score more than a missing body-only keyword", () => {
     const resumeWithBoth = `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`;
 
+    // Same keyword set (javascript, react) in both JDs — only react's classification
+    // (required vs. body-only mention) differs, isolating the weighting variable.
     const missingRequired = analyzeResume({
       resumeText: resumeWithBoth,
-      jobDescription: `Requirements: javascript, react. The team values a positive workplace.`,
+      jobDescription: `Requirements: javascript, react.`,
     });
     const missingBodyOnly = analyzeResume({
       resumeText: resumeWithBoth,
-      jobDescription: `Requirements: javascript. The team values a positive workplace and great culture.`,
+      jobDescription: `Requirements: javascript.\nThe team also works with react.`,
     });
 
-    expect(missingRequired.missingKeywords).toContain("react");
-    expect(missingRequired.breakdown.keywords).toBeLessThan(missingBodyOnly.breakdown.keywords);
+    expect(missingRequired.missingKeywords).toEqual(["react"]);
+    expect(missingBodyOnly.missingKeywords).toEqual(["react"]);
+    expect(missingRequired.breakdown.keywords).toBe(50);
+    expect(missingBodyOnly.breakdown.keywords).toBe(75);
   });
 });
 

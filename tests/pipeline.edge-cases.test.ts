@@ -12,7 +12,7 @@ describe("ATS pipeline edge cases", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.breakdown.skills).toBeGreaterThan(0);
+    expect(result.breakdown.skills).toBe(35);
     expect(result.matchedKeywords).toContain("node");
     // Optional not present
     expect(result.missingKeywords).toContain("graphql");
@@ -24,7 +24,7 @@ describe("ATS pipeline edge cases", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.breakdown.experience).toBeGreaterThan(0);
+    expect(result.breakdown.experience).toBe(64.5);
     // Should indicate missing years (rounded to 2 decimals)
     expect(result.suggestions.some(s => s.toLowerCase().includes("clarify at least"))).toBe(true);
   });
@@ -43,22 +43,22 @@ describe("ATS pipeline edge cases", () => {
     const resumeText = `Skills\nJavaScript, React\nExperience\nEngineer (2024 - Present)`; // Missing summary and education
     const jobDescription = `Need engineer`;
 
-    const result = analyzeResume({ resumeText, jobDescription });
+    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
     // Warnings should include missing sections
     expect(result.warnings.some(w => w.includes("summary section missing"))).toBe(true);
     expect(result.warnings.some(w => w.includes("education section missing"))).toBe(true);
-    expect(result.score).toBeLessThan(100);
+    expect(result.score).toBeCloseTo(46.1, 5);
   });
 
   it("detects table-like formatting and applies penalty", () => {
     const resumeText = `Summary\nSkills | JavaScript | React\nExperience\nEngineer (2022 - Present) | Team | Impact\nEducation\nB.S.`;
     const jobDescription = `Need React`;
 
-    const result = analyzeResume({ resumeText, jobDescription });
+    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
     expect(result.warnings.some(w => w.toLowerCase().includes("table-like"))).toBe(true);
-    expect(result.score).toBeLessThan(100);
+    expect(result.score).toBe(41.5);
   });
 
   it("keyword density boundary: equals max does not overuse; above max does", () => {
@@ -97,12 +97,19 @@ describe("ATS pipeline edge cases", () => {
     const resumeText = `Summary\nEngineer\nSkills\nReact\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`;
     const jobDescription = `Requirements: React`;
 
-    const resultDefault = analyzeResume({ resumeText, jobDescription });
-    const resultWeighted = analyzeResume({ resumeText, jobDescription, config });
+    const resultDefault = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
+    const resultWeighted = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { ...config, referenceDate: "2026-01-01" },
+    });
 
-    // Scores are deterministic but weighting can change breakdown contributions; allow difference or equality
-    expect(resultWeighted.score).toBeGreaterThan(0);
-    expect(resultDefault.score).toBeGreaterThan(0);
+    // Same breakdown components in both cases — only the weights differ — so the
+    // aggregate score must change; this is what actually proves weighting is applied.
+    expect(resultDefault.breakdown).toEqual(resultWeighted.breakdown);
+    expect(resultDefault.score).toBe(62.75);
+    expect(resultWeighted.score).toBe(47.5);
+    expect(resultWeighted.score).not.toBe(resultDefault.score);
   });
 
   it("sync LLM path adds fallback warning when suggestions present", () => {
@@ -137,7 +144,11 @@ describe("ATS pipeline edge cases", () => {
       },
     });
 
-    expect(result.suggestions).toBeDefined();
-    expect(Array.isArray(result.suggestions)).toBe(true);
+    expect(result.suggestions).toEqual([
+      "Highlight these required skills: node, react, typescript",
+      "Incorporate job-specific keywords: react, typescript",
+      "Clarify at least 0.5 years of relevant experience with quantified achievements.",
+      "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+    ]);
   });
 });

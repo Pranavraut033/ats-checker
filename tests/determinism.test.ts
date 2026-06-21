@@ -109,8 +109,10 @@ describe("determinism — clock-independent experience scoring", () => {
     const early = analyzeResume({ ...baseInput, config: { referenceDate: "2021-01-01" } });
     const later = analyzeResume({ ...baseInput, config: { referenceDate: "2026-01-01" } });
 
-    // More years experience should yield a higher or equal experience score
-    expect(later.breakdown.experience).toBeGreaterThanOrEqual(early.breakdown.experience);
+    // 5 more years of experience must strictly raise the experience score
+    expect(later.breakdown.experience).toBeGreaterThan(early.breakdown.experience);
+    expect(early.breakdown.experience).toBe(27);
+    expect(later.breakdown.experience).toBe(75);
   });
 });
 
@@ -160,10 +162,6 @@ describe("golden snapshot — fixed score with pinned referenceDate", () => {
       jobDescription: JD_FRONTEND,
       config: { referenceDate: REFERENCE_DATE },
     });
-
-    // Sanity bounds — update only when algorithm changes are intentional
-    expect(result.score).toBeGreaterThan(0);
-    expect(result.score).toBeLessThan(100);
 
     // Snapshot pins the exact value; a diff here means algorithm changed
     expect(result).toMatchSnapshot();
