@@ -1,5 +1,6 @@
 import { ParsedDateRange } from "../types/parser";
 
+// ponytail: German/French month names added inline alongside English — same flat map.
 const MONTHS: Record<string, number> = {
   jan: 1,
   january: 1,
@@ -25,6 +26,32 @@ const MONTHS: Record<string, number> = {
   november: 11,
   dec: 12,
   december: 12,
+  // German
+  januar: 1,
+  jänner: 1,
+  februar: 2,
+  märz: 3,
+  maerz: 3,
+  mai: 5,
+  juni: 6,
+  juli: 7,
+  oktober: 10,
+  dezember: 12,
+  // French
+  janvier: 1,
+  février: 2,
+  fevrier: 2,
+  mars: 3,
+  avril: 4,
+  juin: 6,
+  juillet: 7,
+  août: 8,
+  aout: 8,
+  septembre: 9,
+  octobre: 10,
+  novembre: 11,
+  décembre: 12,
+  decembre: 12,
 };
 
 interface ParsedDateToken {
@@ -34,7 +61,8 @@ interface ParsedDateToken {
 
 function parseDateToken(raw: string): ParsedDateToken | null {
   const cleaned = raw.trim().toLowerCase();
-  const monthMatch = cleaned.match(/([a-z]{3,9})\s*(\d{4})/i);
+  // ponytail: à-ÿ range added so accented German/French month names (März, août) still match.
+  const monthMatch = cleaned.match(/([a-zà-ÿ]{3,9})\s*(\d{4})/i);
   if (monthMatch) {
     const monthName = monthMatch[1].toLowerCase();
     const year = Number.parseInt(monthMatch[2], 10);
@@ -68,15 +96,17 @@ function monthsBetween(start: ParsedDateToken, end: ParsedDateToken): number {
 
 export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRange | null {
   const normalized = text.trim();
+  // ponytail: localized range separators (German "bis", French "à"/"jusqu'à") and accented
+  // month names (à-ÿ) added inline alongside English so the same regex covers all three.
   const rangeMatch = normalized.match(
-    /(\d{1,2}\/\d{4}|[A-Za-z]{3,9}\s+\d{4}|\d{4})\s*(?:-|to|–|—)\s*(Present|Current|Now|\d{1,2}\/\d{4}|[A-Za-z]{3,9}\s+\d{4}|\d{4})/i
+    /(\d{1,2}\/\d{4}|[A-Za-zà-ÿ]{3,9}\s+\d{4}|\d{4})\s*(?:-|to|through|until|bis|jusqu'à|à|–|—)\s*(Present|Current|Now|Aktuell|Heute|Actuellement|Présent|\d{1,2}\/\d{4}|[A-Za-zà-ÿ]{3,9}\s+\d{4}|\d{4})/i
   );
   if (!rangeMatch) {
     return null;
   }
   const startToken = parseDateToken(rangeMatch[1]);
   const endRaw = rangeMatch[2];
-  const isPresent = /present|current|now/i.test(endRaw);
+  const isPresent = /present|current|now|aktuell|heute|actuellement|présent|actuel/i.test(endRaw);
   const endToken = isPresent ? undefined : parseDateToken(endRaw);
   if (!startToken) {
     return null;

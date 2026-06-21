@@ -153,7 +153,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "weak": 0,
   },
   "breakdown": {
-    "education": 0,
+    "education": 100,
     "experience": 75,
     "keywords": 43.75,
     "skills": 49.99999999999999,
@@ -287,12 +287,11 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "typescript",
   ],
   "parsedExperienceYears": 6.08,
-  "score": 33.44,
+  "score": 48.44,
   "suggestions": [
     "Highlight these required skills: accessibility, frontend, graphql",
     "Incorporate job-specific keywords: accessibility, frontend, graphql",
     "Avoid keyword stuffing for: engineer, react, typescript",
-    "State your education credentials matching: bachelor",
     "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
   ],
   "warnings": [

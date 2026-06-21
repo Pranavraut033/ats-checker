@@ -12,13 +12,17 @@ import {
 import { normalizeSkills } from "../../utils/skills";
 import { parseLanguageMentions } from "../../utils/languages";
 
+// ponytail: German/French aliases added inline alongside English — same flat list, no locale plumbing.
 const SECTION_ALIASES: Record<ResumeSection, string[]> = {
-  summary: ["summary", "profile", "about"],
-  experience: ["experience", "work experience", "professional experience", "employment"],
-  skills: ["skills", "technical skills", "technologies"],
-  education: ["education", "academics", "academic background"],
-  projects: ["projects", "portfolio"],
-  certifications: ["certifications", "licenses"]
+  summary: ["summary", "profile", "about", "zusammenfassung", "profil", "résumé", "à propos"],
+  experience: [
+    "experience", "work experience", "professional experience", "employment",
+    "erfahrung", "berufserfahrung", "expérience", "expérience professionnelle",
+  ],
+  skills: ["skills", "technical skills", "technologies", "fähigkeiten", "kenntnisse", "compétences"],
+  education: ["education", "academics", "academic background", "ausbildung", "formation", "études"],
+  projects: ["projects", "portfolio", "projekte", "projets"],
+  certifications: ["certifications", "licenses", "zertifizierungen", "certifications professionnelles"]
 };
 
 const STRONG_VERBS = [
@@ -112,9 +116,13 @@ function extractSections(text: string): {
 
 function parseSkills(sectionContent: string | undefined, aliases: ResolvedATSConfig["skillAliases"]): string[] {
   if (!sectionContent) return [];
-  const raw = sectionContent
-    .split(/[,;\n]/)
-    .map((skill) => skill.trim())
+  // ponytail: bullet-separated skill lists wrap across lines in PDF text extraction,
+  // so treat common bullet glyphs as the delimiter and fold newlines into spaces when present.
+  const hasBullets = /[•·‣▪○●◦]/.test(sectionContent);
+  const normalized = hasBullets ? sectionContent.replace(/\n/g, " ") : sectionContent;
+  const raw = normalized
+    .split(/[,;\n]|[•·‣▪○●◦]/)
+    .map((skill) => skill.trim().replace(/^[-•·‣▪○●◦\s]+|[-•·‣▪○●◦\s]+$/g, "").trim())
     .filter(Boolean);
   return normalizeSkills(raw, aliases);
 }
@@ -157,7 +165,7 @@ function parseExperience(sectionContent: string | undefined, referenceDate?: Dat
       continue;
     }
 
-    const titleMatch = line.match(/^(Senior|Lead|Principal|Staff|Software|Full\s*Stack|Frontend|Backend|Engineer|Developer|Manager|Analyst)[^,-]*/i);
+    const titleMatch = line.match(/^(Senior|Lead|Principal|Staff|VP|Director|Consultant|Architect|Software|Full\s*Stack|Frontend|Backend|Engineer|Developer|Manager|Analyst)[^,-]*/i);
     if (titleMatch) {
       const title = titleMatch[0].trim();
       jobTitles.push(title.toLowerCase());
@@ -203,7 +211,9 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
     const textToScan = sections.summary ?? normalizedText;
     const yearsMatch = textToScan.match(/(\d{1,2})\+?\s*years?/i);
     if (yearsMatch) {
-      totalExperienceYears = Number.parseInt(yearsMatch[1], 10);
+      const parsed = Number.parseInt(yearsMatch[1], 10);
+      // ponytail: cap at 60 — realistic max career length; ignore garbage matches like "97 years".
+      totalExperienceYears = parsed <= 60 ? parsed : 0;
     }
   }
 

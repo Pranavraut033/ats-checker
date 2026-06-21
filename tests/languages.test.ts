@@ -29,4 +29,20 @@ describe("language proficiency parsing", () => {
     expect(result.missingLanguages).toEqual([]);
     expect(result.matchedLanguages).toEqual([{ name: "german", level: "b2", levelRank: 4 }]);
   });
+
+  it("ranks German descriptive proficiency words against English ones", () => {
+    const found = parseLanguageMentions("German: fließend, English (elementary)");
+    expect(found).toEqual([
+      { name: "english", level: "elementary", levelRank: 1 },
+      { name: "german", level: "fließend", levelRank: 5 },
+    ]);
+  });
+
+  it("ranks French descriptive proficiency words against English ones", () => {
+    const found = parseLanguageMentions("French: courant, native English speaker");
+    expect(found).toEqual([
+      { name: "english", level: "native", levelRank: 6 },
+      { name: "french", level: "courant", levelRank: 5 },
+    ]);
+  });
 });

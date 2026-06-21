@@ -14,6 +14,7 @@ const LANGUAGE_ALIASES: Record<string, string> = {
 };
 
 // CEFR rank (1-6) plus common descriptive proficiency words mapped to the closest CEFR band.
+// ponytail: German/French descriptive words added inline alongside English — same flat map.
 const LEVEL_RANK: Record<string, number> = {
   a1: 1, a2: 2, b1: 3, b2: 4, c1: 5, c2: 6,
   basic: 1, elementary: 1,
@@ -22,6 +23,20 @@ const LEVEL_RANK: Record<string, number> = {
   professional: 4, "upper intermediate": 4, advanced: 4,
   fluent: 5,
   native: 6, "native speaker": 6, bilingual: 6,
+  // German
+  grundkenntnisse: 1,
+  gering: 2,
+  gut: 3,
+  fortgeschritten: 4,
+  fließend: 5,
+  muttersprache: 6, muttersprachler: 6,
+  // French
+  "débutant": 1, "élémentaire": 1,
+  "limité": 2,
+  "intermédiaire": 3,
+  "avancé": 4,
+  courant: 5,
+  natif: 6, "langue maternelle": 6, bilingue: 6,
 };
 
 const LANGUAGE_GROUP = KNOWN_LANGUAGES.join("|");
@@ -34,11 +49,19 @@ const LEVEL_GROUP = Object.keys(LEVEL_RANK)
 // Comma deliberately excluded from the separator class — it's used to delimit list items
 // ("German, native; Spanish, fluent"), and treating it as a level separator would let one
 // entry's level bleed onto the next ("Spanish, native English" misreading Spanish as native).
+// ponytail: plain \b fails on words with a leading/trailing accented letter (e.g. "élémentaire",
+// "avancé") because JS treats accented chars as non-word for \b purposes. Lookaround boundaries
+// scoped to the actual a-zà-ÿ alphabet used here sidestep that without a full Unicode regex.
+const BOUNDARY_START = "(?:^|(?<=[^a-zà-ÿ]))";
+const BOUNDARY_END = "(?:$|(?=[^a-zà-ÿ]))";
 const LANGUAGE_LEVEL_RE = new RegExp(
-  `\\b(${LANGUAGE_GROUP})\\b(?:\\s*[\\(:\\-]?\\s*(${LEVEL_GROUP}|[abc][12]))?`,
+  `\\b(${LANGUAGE_GROUP})\\b(?:\\s*[\\(:\\-]?\\s*(${BOUNDARY_START}(?:${LEVEL_GROUP})${BOUNDARY_END}|[abc][12]))?`,
   "gi"
 );
-const LEVEL_BEFORE_LANGUAGE_RE = new RegExp(`\\b(${LEVEL_GROUP})\\s+(?:in\\s+)?(${LANGUAGE_GROUP})\\b`, "gi");
+const LEVEL_BEFORE_LANGUAGE_RE = new RegExp(
+  `${BOUNDARY_START}(${LEVEL_GROUP})${BOUNDARY_END}\\s+(?:in\\s+)?(${LANGUAGE_GROUP})\\b`,
+  "gi"
+);
 
 function canonicalLanguage(name: string): string {
   const lower = name.toLowerCase();

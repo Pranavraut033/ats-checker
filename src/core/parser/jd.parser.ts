@@ -1,18 +1,23 @@
 import { ResolvedATSConfig, SkillAliases } from "../../types/config";
-import { ParsedJobDescription } from "../../types/parser";
+import { ParsedJobDescription, ParsedLanguage } from "../../types/parser";
 import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS } from "../../utils/text";
 import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 import { parseLanguageMentions } from "../../utils/languages";
 
-// Map any variant found in JD text to a canonical form that also appears in resume text
+// Map any variant found in JD text to a canonical form that also appears in resume text.
+// ponytail: German/French degree terms added inline alongside English — same flat list.
 const DEGREE_VARIANTS: [RegExp, string][] = [
-  [/\b(?:bachelor(?:'s)?|b\.s\.?|bs\.?|bsc\.?)\b/i, "bachelor"],
-  [/\b(?:master(?:'s)?|m\.s\.?|ms\.?|msc\.?)\b/i, "master"],
-  [/\b(?:phd|ph\.d\.?|doctorate)\b/i, "phd"],
+  [/\b(?:bachelor(?:'s)?|b\.s\.?|bs\.?|bsc\.?|licence)\b/i, "bachelor"],
+  [/\b(?:master(?:'s)?|m\.s\.?|ms\.?|msc\.?|diplom)\b/i, "master"],
+  [/\b(?:phd|ph\.d\.?|doctorate|doktor|doctorat)\b/i, "phd"],
   [/\bmba\b/i, "mba"],
   [/\bassociate(?:'s)?\b/i, "associate"],
 ];
 
+// ponytail: line-level regex match — JDs with word-wrap corruption (trigger phrase split
+// across two lines, e.g. copy-pasted from a columned layout) silently fall through to the
+// unweighted body-keyword bucket instead. See README caveat; upgrade path is LLM-assisted
+// section classification if this proves common in practice.
 function extractRequiredSkills(lines: string[]): string[] {
   const required: string[] = [];
   for (const line of lines) {
@@ -34,17 +39,19 @@ function extractPreferredSkills(lines: string[]): string[] {
 }
 
 function extractRoleKeywords(text: string): string[] {
-  const roleMatch = text.match(/(engineer|developer|manager|scientist|analyst|designer|architect)/i);
-  const titleTokens = roleMatch ? roleMatch[0].split(/\s+/) : [];
-  return unique(tokenize(titleTokens.join(" ") || text.split(/\n/)[0] || ""));
+  // ponytail: match every occurrence (not just the first) so multi-role JDs surface all titles.
+  const roleMatches = text.match(/(engineer|developer|manager|scientist|analyst|designer|architect|director|consultant|lead|vp)/gi) ?? [];
+  const fallback = roleMatches.length === 0 ? [text.split(/\n/)[0] ?? ""] : [];
+  return unique(tokenize([...roleMatches, ...fallback].join(" ")));
 }
 
 function extractMinExperience(text: string): number | undefined {
-  const match = text.match(/(\d{1,2})\+?\s+(?:years|yrs)/i);
-  if (match) {
-    return Number.parseInt(match[1], 10);
-  }
-  return undefined;
+  // ponytail: accept "yrs." and German/French year words alongside "years".
+  const match = text.match(/(\d{1,2})\+?\s*(?:years?|yrs\.?|jahre?|ans?|années?)/i);
+  if (!match) return undefined;
+  const parsed = Number.parseInt(match[1], 10);
+  // ponytail: cap at 60 — realistic max; ignore implausible matches.
+  return parsed <= 60 ? parsed : undefined;
 }
 
 // Case-preserving mirror of the tech-token pattern in utils/text.ts, so suggestions can quote
@@ -63,7 +70,22 @@ function collectKeywordSurfaceForms(rawText: string, aliases: SkillAliases): Rec
   return surfaceForms;
 }
 
-function extractEducationRequirements(text: string): string[] {
+const LANG_SECTION_RE = /^\s*(?:languages?|sprache|langue)s?\s*[:\-–—]?\s*/i;
+const LANG_REQUIREMENT_HINT_RE = /\b(fluent|required|must|need|speak|proficient|native|conversational|intermediate|advanced|professional|[abc][12])\b/i;
+
+// A language mention only counts as required if its line carries a requirement/level cue
+// or sits in a "Languages:" line — otherwise plain mentions ("our Berlin office") false-positive.
+function isLanguageRequired(lang: ParsedLanguage, jobDescription: string): boolean {
+  return splitLines(jobDescription).some((line) => {
+    const lower = line.toLowerCase();
+    if (!lower.includes(lang.name)) return false;
+    return LANG_SECTION_RE.test(line) || LANG_REQUIREMENT_HINT_RE.test(line);
+  });
+}
+
+// Shared with scorer.ts so resume abbreviations ("B.S.") normalize to the same
+// canonical degree names as JD requirements ("bachelor") before comparison.
+export function extractDegreeLevels(text: string): string[] {
   const found = new Set<string>();
   for (const [pattern, canonical] of DEGREE_VARIANTS) {
     if (pattern.test(text)) found.add(canonical);
@@ -118,10 +140,12 @@ export function parseJobDescription(
     roleKeywords,
     keywords,
     minExperienceYears: extractMinExperience(jobDescription),
-    educationRequirements: extractEducationRequirements(jobDescription),
+    educationRequirements: extractDegreeLevels(jobDescription),
     keywordSurfaceForms: collectKeywordSurfaceForms(jobDescription, config.skillAliases),
-    // ponytail: any language mention in the JD is treated as a requirement — good enough until
-    // JDs that merely *reference* a language (not require it) show up as false positives.
-    requiredLanguages: parseLanguageMentions(jobDescription),
+    // A language only counts as required if its mention carries a requirement/level cue
+    // or sits in a "Languages:" line — plain references ("our Berlin office") don't count.
+    requiredLanguages: parseLanguageMentions(jobDescription).filter((lang) =>
+      isLanguageRequired(lang, jobDescription)
+    ),
   };
 }

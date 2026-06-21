@@ -38,4 +38,34 @@ describe("resume parser section detection", () => {
     const parsed = parseResume(resume, minimalConfig);
     expect(parsed.detectedSections).toContain("experience");
   });
+
+  it("detects German section headers", () => {
+    const resume = `Zusammenfassung:\nSoftwareentwickler.\nFähigkeiten:\nJavaScript, React\nBerufserfahrung:\nEntwickler (2020 - heute)\nAusbildung:\nB.Sc.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.detectedSections).toContain("summary");
+    expect(parsed.detectedSections).toContain("skills");
+    expect(parsed.detectedSections).toContain("experience");
+    expect(parsed.detectedSections).toContain("education");
+  });
+
+  it("detects French section headers", () => {
+    const resume = `Résumé:\nDéveloppeur logiciel.\nCompétences:\nJavaScript, React\nExpérience professionnelle:\nDéveloppeur (2020 - present)\nFormation:\nLicence`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.detectedSections).toContain("summary");
+    expect(parsed.detectedSections).toContain("skills");
+    expect(parsed.detectedSections).toContain("experience");
+    expect(parsed.detectedSections).toContain("education");
+  });
+
+  it("parses skill lists using non-• bullet glyphs (▪, ·)", () => {
+    const resume = `Skills:\n▪ JavaScript\n▪ React\n· TypeScript`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.skills).toEqual(expect.arrayContaining(["javascript", "react", "typescript"]));
+  });
+
+  it("ignores implausible 'N years' fallback values", () => {
+    const resume = `Summary:\n97 years of experience.\nSkills:\nJavaScript\nExperience:\nEngineer\nEducation:\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.totalExperienceYears).toBe(0);
+  });
 });

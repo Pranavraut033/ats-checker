@@ -4,6 +4,7 @@ import { KeywordCategory, ResolvedATSConfig } from "../../types/config";
 import { clamp, countFrequencies, tokenize, unique } from "../../utils/text";
 import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 import { diffLanguages } from "../../utils/languages";
+import { extractDegreeLevels } from "../parser/jd.parser";
 
 const REQUIRED_SKILL_WEIGHT = 0.7;
 const OPTIONAL_SKILL_WEIGHT = 0.3;
@@ -188,10 +189,9 @@ function scoreEducation(resume: ParsedResume, job: ParsedJobDescription): number
   if (job.educationRequirements.length === 0) {
     return 100;
   }
-  const resumeEducationText = resume.educationEntries.join(" ");
-  const normalizedEducation = resumeEducationText.toLowerCase();
+  const resumeDegreeLevels = extractDegreeLevels(resume.educationEntries.join(" "));
   const matched = job.educationRequirements.filter((requirement) =>
-    normalizedEducation.includes(requirement.toLowerCase())
+    resumeDegreeLevels.includes(requirement)
   );
   if (matched.length === 0) {
     return 0;
