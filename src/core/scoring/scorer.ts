@@ -1,24 +1,37 @@
 import { ParsedJobDescription, ParsedResume } from "../../types/parser";
-import { ATSAnalysisResult, ATSBreakdown } from "../../types/scoring";
-import { ResolvedATSConfig } from "../../types/config";
+import { ATSAnalysisResult, ATSBreakdown, KeywordWeight } from "../../types/scoring";
+import { KeywordCategory, ResolvedATSConfig } from "../../types/config";
 import { clamp, countFrequencies, tokenize, unique } from "../../utils/text";
 import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import { diffLanguages } from "../../utils/languages";
 
 const REQUIRED_SKILL_WEIGHT = 0.7;
 const OPTIONAL_SKILL_WEIGHT = 0.3;
 const EXPERIENCE_YEARS_WEIGHT = 0.75;
 const EXPERIENCE_ROLE_WEIGHT = 0.25;
 
+const ALL_CATEGORIES: KeywordCategory[] = ["technical", "tool", "concept", "soft", "marketing", "domain"];
+
 interface ScoringArtifacts {
   matchedKeywords: string[];
   missingKeywords: string[];
   overusedKeywords: string[];
+  keywordsByCategory: ATSAnalysisResult["keywordsByCategory"];
+  keywordWeights: KeywordWeight[];
 }
 
 export interface ScoreComputation extends ATSAnalysisResult {
   // missingSkills / matchedSkills inherited from ATSAnalysisResult
   missingExperienceYears: number;
   educationScore: number;
+}
+
+function emptyCategoryBuckets(): ATSAnalysisResult["keywordsByCategory"] {
+  const buckets = {} as ATSAnalysisResult["keywordsByCategory"];
+  for (const category of ALL_CATEGORIES) {
+    buckets[category] = { matched: [], missing: [] };
+  }
+  return buckets;
 }
 
 function scoreSkills(
@@ -76,6 +89,18 @@ function scoreExperience(
   return { score, missingYears: Number(missingYears.toFixed(2)) };
 }
 
+// ponytail: linear location+freq weighting — no TF-IDF until needed.
+function keywordWeightOf(
+  keyword: string,
+  requiredSet: Set<string>,
+  preferredSet: Set<string>,
+  jdFrequencies: Record<string, number>
+): number {
+  const base = requiredSet.has(keyword) ? 3 : preferredSet.has(keyword) ? 2 : 1;
+  const freqBonus = Math.min((jdFrequencies[keyword] ?? 1) - 1, 3) * 0.25;
+  return base + freqBonus;
+}
+
 function scoreKeywords(
   resume: ParsedResume,
   job: ParsedJobDescription,
@@ -86,25 +111,67 @@ function scoreKeywords(
     job.keywords.map((k) => normalizeSkill(k, config.skillAliases))
   );
   if (jobKeywordSet.size === 0) {
-    return { score: 100, matchedKeywords: [], missingKeywords: [], overusedKeywords: [] };
+    return {
+      score: 100,
+      matchedKeywords: [],
+      missingKeywords: [],
+      overusedKeywords: [],
+      keywordsByCategory: emptyCategoryBuckets(),
+      keywordWeights: [],
+    };
   }
 
   const resumeTokens = tokenize(resume.normalizedText).map((t) =>
     normalizeSkill(t, config.skillAliases)
   );
   const resumeTokenSet = new Set(resumeTokens);
+  const resumeFrequencies = countFrequencies(resumeTokens);
+
+  const requiredSet = new Set(job.requiredSkills);
+  const preferredSet = new Set(job.preferredSkills);
+  const jdFrequencies = countFrequencies(
+    tokenize(job.normalizedText).map((t) => normalizeSkill(t, config.skillAliases))
+  );
+  const weightOf = (keyword: string) => keywordWeightOf(keyword, requiredSet, preferredSet, jdFrequencies);
+
   const matchedKeywords = [...jobKeywordSet].filter((keyword) => resumeTokenSet.has(keyword));
   const missingKeywords = [...jobKeywordSet].filter((keyword) => !resumeTokenSet.has(keyword));
 
-  const coverage = matchedKeywords.length / jobKeywordSet.size;
-  const score = clamp(coverage * 100, 0, 100);
+  // Weighted coverage: a missing required/high-frequency keyword costs more than a body-only one.
+  const totalWeight = [...jobKeywordSet].reduce((sum, keyword) => sum + weightOf(keyword), 0);
+  const matchedWeight = matchedKeywords.reduce((sum, keyword) => sum + weightOf(keyword), 0);
+  const score = clamp((matchedWeight / totalWeight) * 100, 0, 100);
 
-  const frequencies = countFrequencies(resumeTokens);
   const totalTokens = resumeTokens.length || 1;
   const overusedKeywords = matchedKeywords.filter((keyword) => {
-    const density = (frequencies[keyword] ?? 0) / totalTokens;
+    const density = (resumeFrequencies[keyword] ?? 0) / totalTokens;
     return density > config.keywordDensity.max;
   });
+
+  const keywordsByCategory = emptyCategoryBuckets();
+  for (const keyword of matchedKeywords) {
+    keywordsByCategory[config.categoryIndex.get(keyword) ?? "technical"].matched.push(keyword);
+  }
+  for (const keyword of missingKeywords) {
+    keywordsByCategory[config.categoryIndex.get(keyword) ?? "technical"].missing.push(keyword);
+  }
+  for (const bucket of Object.values(keywordsByCategory)) {
+    bucket.matched.sort();
+    bucket.missing.sort();
+  }
+
+  const keywordWeights: KeywordWeight[] = [...jobKeywordSet]
+    .map((term) => {
+      const weight = Number(weightOf(term).toFixed(2));
+      return {
+        term,
+        category: config.categoryIndex.get(term) ?? "technical",
+        jdWeight: weight,
+        resumeWeight: resumeFrequencies[term] ?? 0,
+        importance: weight,
+      };
+    })
+    .sort((a, b) => a.term.localeCompare(b.term));
 
   // Sort for canonical, input-order-independent output
   return {
@@ -112,6 +179,8 @@ function scoreKeywords(
     matchedKeywords: unique(matchedKeywords).sort(),
     missingKeywords: unique(missingKeywords).sort(),
     overusedKeywords: unique(overusedKeywords).sort(),
+    keywordsByCategory,
+    keywordWeights,
   };
 }
 
@@ -153,6 +222,18 @@ export function calculateScore(
     breakdown.keywords * config.weights.keywords +
     breakdown.education * config.weights.education;
 
+  const achievementStrength = {
+    strong: resume.achievements.filter((a) => a.strength === "strong").length,
+    weak: resume.achievements.filter((a) => a.strength === "weak").length,
+  };
+
+  // ponytail: language proficiency is informational, not part of the weighted score —
+  // promote to a breakdown component if a real JD weights it explicitly.
+  const { matched: matchedLanguages, missing: missingLanguages } = diffLanguages(
+    resume.languages,
+    job.requiredLanguages
+  );
+
   return {
     score: clamp(Number(weightedScore.toFixed(2)), 0, 100),
     breakdown,
@@ -161,6 +242,11 @@ export function calculateScore(
     matchedKeywords: keywordResult.matchedKeywords,
     missingKeywords: keywordResult.missingKeywords,
     overusedKeywords: keywordResult.overusedKeywords,
+    keywordsByCategory: keywordResult.keywordsByCategory,
+    keywordWeights: keywordResult.keywordWeights,
+    achievementStrength,
+    matchedLanguages,
+    missingLanguages,
     suggestions: [],
     warnings: [],
     // detectedSections / parsedExperienceYears / experienceGap / experienceEntries: filled by index.ts

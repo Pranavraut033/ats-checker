@@ -1,6 +1,6 @@
-import { ATSConfig } from "./config";
+import { ATSConfig, KeywordCategory } from "./config";
 import type { LLMConfig } from "./llm";
-import type { ParsedExperienceEntry } from "./parser";
+import type { ParsedExperienceEntry, ParsedLanguage } from "./parser";
 
 export interface ATSBreakdown {
   skills: number;
@@ -16,6 +16,17 @@ export interface AnalyzeResumeInput {
   llm?: LLMConfig;
 }
 
+export interface KeywordWeight {
+  term: string;
+  category: KeywordCategory;
+  /** Importance of this term in the job description (location + frequency based). */
+  jdWeight: number;
+  /** How often this term appears in the resume. */
+  resumeWeight: number;
+  /** Alias of jdWeight — how much this term matters for the role. */
+  importance: number;
+}
+
 export interface ATSAnalysisResult {
   score: number;
   breakdown: ATSBreakdown;
@@ -26,6 +37,16 @@ export interface ATSAnalysisResult {
   matchedKeywords: string[];
   missingKeywords: string[];
   overusedKeywords: string[];
+  /** Matched/missing keywords grouped by category (technical, tool, concept, soft, marketing, domain). */
+  keywordsByCategory: Record<KeywordCategory, { matched: string[]; missing: string[] }>;
+  /** Per-keyword JD importance and resume usage, for callers who want the raw numbers. */
+  keywordWeights: KeywordWeight[];
+  /** Count of resume achievement bullets classified as strong vs weak. */
+  achievementStrength: { strong: number; weak: number };
+  /** JD-required languages the resume meets or exceeds in proficiency. */
+  matchedLanguages: ParsedLanguage[];
+  /** JD-required languages absent from the resume, or below the required proficiency. */
+  missingLanguages: ParsedLanguage[];
   suggestions: string[];
   warnings: string[];
   /** Years below the JD's minimum experience requirement; 0 when the requirement is met. */

@@ -2,6 +2,10 @@
 
 exports[`golden snapshot — fixed score with pinned referenceDate > backend JD vs backend resume: score is stable 1`] = `
 {
+  "achievementStrength": {
+    "strong": 0,
+    "weak": 0,
+  },
   "breakdown": {
     "education": 100,
     "experience": 75,
@@ -29,6 +33,77 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     },
   ],
   "experienceGap": 0,
+  "keywordWeights": [
+    {
+      "category": "concept",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 1,
+      "term": "backend",
+    },
+    {
+      "category": "tool",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 1,
+      "term": "docker",
+    },
+    {
+      "category": "technical",
+      "importance": 1,
+      "jdWeight": 1,
+      "resumeWeight": 2,
+      "term": "engineer",
+    },
+    {
+      "category": "technical",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 1,
+      "term": "python",
+    },
+    {
+      "category": "tool",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 1,
+      "term": "sql",
+    },
+  ],
+  "keywordsByCategory": {
+    "concept": {
+      "matched": [
+        "backend",
+      ],
+      "missing": [],
+    },
+    "domain": {
+      "matched": [],
+      "missing": [],
+    },
+    "marketing": {
+      "matched": [],
+      "missing": [],
+    },
+    "soft": {
+      "matched": [],
+      "missing": [],
+    },
+    "technical": {
+      "matched": [
+        "engineer",
+        "python",
+      ],
+      "missing": [],
+    },
+    "tool": {
+      "matched": [
+        "docker",
+        "sql",
+      ],
+      "missing": [],
+    },
+  },
   "matchedKeywords": [
     "backend",
     "docker",
@@ -36,12 +111,14 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     "python",
     "sql",
   ],
+  "matchedLanguages": [],
   "matchedSkills": [
     "docker",
     "python",
     "sql",
   ],
   "missingKeywords": [],
+  "missingLanguages": [],
   "missingSkills": [
     "backend",
     "javascript",
@@ -71,10 +148,14 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
 
 exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD vs full-stack resume: score is stable 1`] = `
 {
+  "achievementStrength": {
+    "strong": 0,
+    "weak": 0,
+  },
   "breakdown": {
     "education": 0,
     "experience": 75,
-    "keywords": 50,
+    "keywords": 43.75,
     "skills": 49.99999999999999,
   },
   "detectedSections": [
@@ -98,11 +179,91 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     },
   ],
   "experienceGap": 0,
+  "keywordWeights": [
+    {
+      "category": "concept",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 0,
+      "term": "accessibility",
+    },
+    {
+      "category": "technical",
+      "importance": 1,
+      "jdWeight": 1,
+      "resumeWeight": 2,
+      "term": "engineer",
+    },
+    {
+      "category": "concept",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 0,
+      "term": "frontend",
+    },
+    {
+      "category": "tool",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 0,
+      "term": "graphql",
+    },
+    {
+      "category": "technical",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 2,
+      "term": "react",
+    },
+    {
+      "category": "technical",
+      "importance": 3,
+      "jdWeight": 3,
+      "resumeWeight": 1,
+      "term": "typescript",
+    },
+  ],
+  "keywordsByCategory": {
+    "concept": {
+      "matched": [],
+      "missing": [
+        "accessibility",
+        "frontend",
+      ],
+    },
+    "domain": {
+      "matched": [],
+      "missing": [],
+    },
+    "marketing": {
+      "matched": [],
+      "missing": [],
+    },
+    "soft": {
+      "matched": [],
+      "missing": [],
+    },
+    "technical": {
+      "matched": [
+        "engineer",
+        "react",
+        "typescript",
+      ],
+      "missing": [],
+    },
+    "tool": {
+      "matched": [],
+      "missing": [
+        "graphql",
+      ],
+    },
+  },
   "matchedKeywords": [
     "engineer",
     "react",
     "typescript",
   ],
+  "matchedLanguages": [],
   "matchedSkills": [
     "javascript",
     "node",
@@ -114,6 +275,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "frontend",
     "graphql",
   ],
+  "missingLanguages": [],
   "missingSkills": [
     "accessibility",
     "frontend",
@@ -125,7 +287,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "typescript",
   ],
   "parsedExperienceYears": 6.08,
-  "score": 35,
+  "score": 33.44,
   "suggestions": [
     "Highlight these required skills: accessibility, frontend, graphql",
     "Incorporate job-specific keywords: accessibility, frontend, graphql",

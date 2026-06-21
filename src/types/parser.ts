@@ -26,6 +26,21 @@ export interface ParsedExperienceEntry {
   description?: string;
 }
 
+export interface ParsedAchievement {
+  text: string;
+  strength: "strong" | "weak";
+  reason: string;
+}
+
+export interface ParsedLanguage {
+  /** Canonical lowercase language name, e.g. "german". */
+  name: string;
+  /** Raw level as written/normalized, e.g. "c1", "fluent", "native". */
+  level?: string;
+  /** CEFR-aligned rank 1 (A1/basic) – 6 (C2/native), for comparing proficiency. */
+  levelRank?: number;
+}
+
 export interface ParsedResume {
   raw: string;
   normalizedText: string;
@@ -34,10 +49,15 @@ export interface ParsedResume {
   skills: string[];
   jobTitles: string[];
   actionVerbs: string[];
+  /** Weak verbs (helped, worked, performed, ...) found in the resume text. */
+  weakVerbs: string[];
+  /** Experience bullets classified as strong/weak achievement statements. */
+  achievements: ParsedAchievement[];
   educationEntries: string[];
   experience: ParsedExperienceEntry[];
   totalExperienceYears: number;
   keywords: string[];
+  languages: ParsedLanguage[];
   warnings: string[];
 }
 
@@ -50,4 +70,7 @@ export interface ParsedJobDescription {
   keywords: string[];
   minExperienceYears?: number;
   educationRequirements: string[];
+  /** canonical keyword -> the surface form (original casing/spelling) the JD used. */
+  keywordSurfaceForms: Record<string, string>;
+  requiredLanguages: ParsedLanguage[];
 }

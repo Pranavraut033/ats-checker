@@ -1,7 +1,8 @@
-import { ResolvedATSConfig } from "../../types/config";
+import { ResolvedATSConfig, SkillAliases } from "../../types/config";
 import { ParsedJobDescription } from "../../types/parser";
 import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS } from "../../utils/text";
-import { normalizeSkills } from "../../utils/skills";
+import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import { parseLanguageMentions } from "../../utils/languages";
 
 // Map any variant found in JD text to a canonical form that also appears in resume text
 const DEGREE_VARIANTS: [RegExp, string][] = [
@@ -44,6 +45,22 @@ function extractMinExperience(text: string): number | undefined {
     return Number.parseInt(match[1], 10);
   }
   return undefined;
+}
+
+// Case-preserving mirror of the tech-token pattern in utils/text.ts, so suggestions can quote
+// the JD's actual spelling/casing ("JavaScript") instead of the lowercased canonical form.
+const SURFACE_TOKEN_RE = /[a-z0-9][a-z0-9.#+\-/]*[a-z0-9#+]/gi;
+
+function collectKeywordSurfaceForms(rawText: string, aliases: SkillAliases): Record<string, string> {
+  const matches = rawText.match(SURFACE_TOKEN_RE) ?? [];
+  const surfaceForms: Record<string, string> = {};
+  for (const match of matches) {
+    const canonical = normalizeSkill(match, aliases);
+    if (!(canonical in surfaceForms)) {
+      surfaceForms[canonical] = match;
+    }
+  }
+  return surfaceForms;
 }
 
 function extractEducationRequirements(text: string): string[] {
@@ -102,5 +119,9 @@ export function parseJobDescription(
     keywords,
     minExperienceYears: extractMinExperience(jobDescription),
     educationRequirements: extractEducationRequirements(jobDescription),
+    keywordSurfaceForms: collectKeywordSurfaceForms(jobDescription, config.skillAliases),
+    // ponytail: any language mention in the JD is treated as a requirement — good enough until
+    // JDs that merely *reference* a language (not require it) show up as false positives.
+    requiredLanguages: parseLanguageMentions(jobDescription),
   };
 }

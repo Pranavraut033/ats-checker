@@ -1,5 +1,8 @@
+import { ResolvedATSConfig } from "../../types/config";
 import { ParsedJobDescription, ParsedResume } from "../../types/parser";
 import { ATSAnalysisResult } from "../../types/scoring";
+import { normalizeSkill } from "../../utils/skills";
+import { tokenize, unique } from "../../utils/text";
 import { ScoreComputation } from "../scoring/scorer";
 
 interface SuggestionInput {
@@ -7,12 +10,32 @@ interface SuggestionInput {
   job: ParsedJobDescription;
   score: ScoreComputation;
   ruleWarnings: string[];
+  config: ResolvedATSConfig;
 }
 
 function formatList(values: string[], max = 6): string {
   const uniqueValues = Array.from(new Set(values));
   const trimmed = uniqueValues.slice(0, max);
   return trimmed.join(", ") + (uniqueValues.length > max ? "..." : "");
+}
+
+// Resume term whose canonical matches a JD keyword but whose surface form differs from the
+// JD's own wording — e.g. resume says "js", JD says "JavaScript". Capped to keep suggestions short.
+function buildAliasReplacementSuggestions(
+  resume: ParsedResume,
+  job: ParsedJobDescription,
+  config: ResolvedATSConfig
+): string[] {
+  const jobKeywordSet = new Set(job.keywords.map((k) => normalizeSkill(k, config.skillAliases)));
+  const replacements: string[] = [];
+  for (const token of unique(tokenize(resume.normalizedText))) {
+    const canonical = normalizeSkill(token, config.skillAliases);
+    const jdSurface = job.keywordSurfaceForms[canonical];
+    if (jdSurface && jobKeywordSet.has(canonical) && jdSurface.toLowerCase() !== token.toLowerCase()) {
+      replacements.push(`Replace "${token}" with "${jdSurface}" to match the job description's wording.`);
+    }
+  }
+  return unique(replacements).slice(0, 5);
 }
 
 export class SuggestionEngine {
@@ -31,6 +54,8 @@ export class SuggestionEngine {
         `Incorporate job-specific keywords: ${formatList(input.score.missingKeywords)}`
       );
     }
+
+    suggestions.push(...buildAliasReplacementSuggestions(input.resume, input.job, input.config));
 
     if (input.score.overusedKeywords.length > 0) {
       suggestions.push(
@@ -53,6 +78,26 @@ export class SuggestionEngine {
     if (input.resume.actionVerbs.length < 3) {
       suggestions.push(
         "Strengthen bullet points with impact verbs (led, built, improved, delivered)."
+      );
+    }
+
+    if (input.resume.weakVerbs.length > 0) {
+      suggestions.push(
+        `Replace weak verbs (${formatList(input.resume.weakVerbs)}) with stronger ones (e.g. led, built, optimized).`
+      );
+    }
+
+    if (input.score.missingLanguages.length > 0) {
+      const formatted = input.score.missingLanguages
+        .map((l) => (l.level ? `${l.name} (${l.level})` : l.name))
+        .join(", ");
+      suggestions.push(`Mention your proficiency in: ${formatted}`);
+    }
+
+    const weakAchievement = input.resume.achievements.find((a) => a.strength === "weak");
+    if (weakAchievement) {
+      suggestions.push(
+        `Strengthen "${weakAchievement.text}" — add scope/metrics, e.g. "Built and maintained scalable services handling 500k+ requests/day."`
       );
     }
 

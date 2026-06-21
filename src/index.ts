@@ -8,11 +8,11 @@ import { AnalyzeResumeInput, ATSAnalysisResult } from "./types/scoring";
 import { ATSConfig } from "./types/config";
 import { LLMConfig } from "./types/llm";
 import { clamp } from "./utils/text";
-import { defaultProfiles, defaultSkillAliases } from "./profiles";
+import { defaultKeywordRegistry, defaultProfiles, defaultSkillAliases } from "./profiles";
 import { LLMManager, LLMSchemas, LLMPrompts, adaptSuggestionEnhancementResponse } from "./llm";
 
 export * from "./types";
-export { defaultProfiles, defaultSkillAliases };
+export { defaultProfiles, defaultSkillAliases, defaultKeywordRegistry };
 export * from "./llm";
 
 /**
@@ -55,6 +55,7 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
     job: parsedJob,
     score: scoring,
     ruleWarnings: ruleResult.warnings,
+    config: resolvedConfig,
   });
 
   let suggestions = suggestionResult.suggestions;
@@ -79,6 +80,11 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
     matchedKeywords: scoring.matchedKeywords,
     missingKeywords: scoring.missingKeywords,
     overusedKeywords: scoring.overusedKeywords,
+    keywordsByCategory: scoring.keywordsByCategory,
+    keywordWeights: scoring.keywordWeights,
+    achievementStrength: scoring.achievementStrength,
+    matchedLanguages: scoring.matchedLanguages,
+    missingLanguages: scoring.missingLanguages,
     experienceGap: scoring.experienceGap,
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,
@@ -149,6 +155,7 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
     job: parsedJob,
     score: scoring,
     ruleWarnings: ruleResult.warnings,
+    config: resolvedConfig,
   });
 
   let suggestions = suggestionResult.suggestions;
@@ -176,6 +183,11 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
     matchedKeywords: scoring.matchedKeywords,
     missingKeywords: scoring.missingKeywords,
     overusedKeywords: scoring.overusedKeywords,
+    keywordsByCategory: scoring.keywordsByCategory,
+    keywordWeights: scoring.keywordWeights,
+    achievementStrength: scoring.achievementStrength,
+    matchedLanguages: scoring.matchedLanguages,
+    missingLanguages: scoring.missingLanguages,
     experienceGap: scoring.experienceGap,
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,

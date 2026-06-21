@@ -1,5 +1,5 @@
 import { ResolvedATSConfig } from "../../types/config";
-import { ParsedExperienceEntry, ParsedResume, ResumeSection } from "../../types/parser";
+import { ParsedAchievement, ParsedExperienceEntry, ParsedResume, ResumeSection } from "../../types/parser";
 import { parseDateRange, sumExperienceYears } from "../../utils/dates";
 import {
   escapeRegExp,
@@ -10,6 +10,7 @@ import {
   unique,
 } from "../../utils/text";
 import { normalizeSkills } from "../../utils/skills";
+import { parseLanguageMentions } from "../../utils/languages";
 
 const SECTION_ALIASES: Record<ResumeSection, string[]> = {
   summary: ["summary", "profile", "about"],
@@ -20,7 +21,7 @@ const SECTION_ALIASES: Record<ResumeSection, string[]> = {
   certifications: ["certifications", "licenses"]
 };
 
-const ACTION_VERBS = [
+const STRONG_VERBS = [
   "led",
   "managed",
   "built",
@@ -41,6 +42,26 @@ const ACTION_VERBS = [
   "reduced",
   "increased",
 ];
+
+const WEAK_VERBS = ["worked", "helped", "performed", "responsible", "assisted", "participated", "involved"];
+
+// ponytail: verb+metric heuristic — no sentence parsing until it misclassifies in practice.
+const METRIC_RE = /\d|%|\$|\bk\+|\bm\+/i;
+
+function classifyAchievement(line: string): ParsedAchievement {
+  const lower = line.toLowerCase();
+  const hasMetric = METRIC_RE.test(line);
+  const hasStrongVerb = STRONG_VERBS.some((verb) => new RegExp(`\\b${verb}\\b`).test(lower));
+  const hasWeakVerb = WEAK_VERBS.some((verb) => new RegExp(`\\b${verb}\\b`).test(lower));
+
+  if (hasStrongVerb && hasMetric) {
+    return { text: line, strength: "strong", reason: "strong verb + quantified impact" };
+  }
+  if (hasWeakVerb) {
+    return { text: line, strength: "weak", reason: "weak verb" };
+  }
+  return { text: line, strength: "weak", reason: "no quantified impact" };
+}
 
 
 function detectSection(line: string): ResumeSection | null {
@@ -98,23 +119,28 @@ function parseSkills(sectionContent: string | undefined, aliases: ResolvedATSCon
   return normalizeSkills(raw, aliases);
 }
 
-function parseActionVerbs(text: string): string[] {
+function parseActionVerbs(text: string): { strong: string[]; weak: string[] } {
   const words = tokenize(text);
-  return ACTION_VERBS.filter((verb) => words.includes(verb));
+  return {
+    strong: STRONG_VERBS.filter((verb) => words.includes(verb)),
+    weak: WEAK_VERBS.filter((verb) => words.includes(verb)),
+  };
 }
 
 function parseExperience(sectionContent: string | undefined, referenceDate?: Date): {
   entries: ParsedExperienceEntry[];
   rangesInMonths: number[];
   jobTitles: string[];
+  achievements: ParsedAchievement[];
 } {
   if (!sectionContent) {
-    return { entries: [], rangesInMonths: [], jobTitles: [] };
+    return { entries: [], rangesInMonths: [], jobTitles: [], achievements: [] };
   }
   const lines = splitLines(sectionContent);
   const entries: ParsedExperienceEntry[] = [];
   const rangesInMonths: number[] = [];
   const jobTitles: string[] = [];
+  const achievements: ParsedAchievement[] = [];
 
   for (const line of lines) {
     const range = parseDateRange(line, referenceDate);
@@ -137,6 +163,7 @@ function parseExperience(sectionContent: string | undefined, referenceDate?: Dat
       jobTitles.push(title.toLowerCase());
       const entry: ParsedExperienceEntry = { title, description: line };
       entries.push(entry);
+      achievements.push(classifyAchievement(line));
       continue;
     }
 
@@ -144,9 +171,10 @@ function parseExperience(sectionContent: string | undefined, referenceDate?: Dat
       const current = entries[entries.length - 1];
       current.description = [current.description, line].filter(Boolean).join(" ").trim();
     }
+    achievements.push(classifyAchievement(line));
   }
 
-  return { entries, rangesInMonths, jobTitles: unique(jobTitles) };
+  return { entries, rangesInMonths, jobTitles: unique(jobTitles), achievements };
 }
 
 function parseEducation(sectionContent: string | undefined): string[] {
@@ -208,11 +236,14 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
     sectionContent: sections,
     skills,
     jobTitles: experienceData.jobTitles,
-    actionVerbs,
+    actionVerbs: actionVerbs.strong,
+    weakVerbs: actionVerbs.weak,
+    achievements: experienceData.achievements,
     educationEntries,
     experience: experienceData.entries,
     totalExperienceYears,
     keywords: collectKeywords(normalizedText),
+    languages: parseLanguageMentions(resumeText),
     warnings,
   };
 }

@@ -10,6 +10,16 @@ export interface ATSWeights {
 
 export type SkillAliases = Record<string, string[]>;
 
+export type KeywordCategory = "technical" | "tool" | "concept" | "soft" | "marketing" | "domain";
+
+export interface KeywordEntry {
+  canonical: string;
+  aliases: string[];
+  category: KeywordCategory;
+}
+
+export type KeywordRegistry = KeywordEntry[];
+
 export interface ATSProfile {
   name: string;
   mandatorySkills: string[];
@@ -44,6 +54,8 @@ export interface ATSRule {
 export interface ATSConfig {
   weights?: Partial<ATSWeights>;
   skillAliases?: SkillAliases;
+  /** Categorized keyword/alias entries (technical, tool, concept, soft, marketing, domain). Merges over the default registry by canonical term. */
+  keywordRegistry?: KeywordRegistry;
   profile?: ATSProfile;
   rules?: ATSRule[];
   keywordDensity?: KeywordDensityConfig;
@@ -66,6 +78,9 @@ export interface NormalizedWeights extends ATSWeights {
 export interface ResolvedATSConfig {
   weights: NormalizedWeights;
   skillAliases: SkillAliases;
+  keywordRegistry: KeywordRegistry;
+  /** canonical term -> category, derived once from keywordRegistry. */
+  categoryIndex: Map<string, KeywordCategory>;
   profile?: ATSProfile;
   rules: ATSRule[];
   keywordDensity: KeywordDensityConfig;

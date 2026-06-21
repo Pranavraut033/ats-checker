@@ -6,7 +6,8 @@ import {
   ResolvedATSConfig,
   SectionPenaltyConfig,
 } from "../../types/config";
-import { defaultSkillAliases, softwareEngineerProfile } from "../../profiles";
+import { defaultKeywordRegistry, softwareEngineerProfile } from "../../profiles";
+import { buildCategoryIndex, deriveSkillAliases, mergeKeywordRegistries } from "../../utils/skills";
 
 const DEFAULT_WEIGHTS: ATSWeights = {
   skills: 0.3,
@@ -58,9 +59,13 @@ export function resolveConfig(config: ATSConfig = {}): ResolvedATSConfig {
     education: config.weights?.education ?? DEFAULT_WEIGHTS.education,
   };
 
+  const keywordRegistry = mergeKeywordRegistries(defaultKeywordRegistry, config.keywordRegistry ?? []);
+
   const resolved: ResolvedATSConfig = {
     weights: normalizeWeights(weights),
-    skillAliases: { ...defaultSkillAliases, ...(config.skillAliases ?? {}) },
+    skillAliases: { ...deriveSkillAliases(keywordRegistry), ...(config.skillAliases ?? {}) },
+    keywordRegistry,
+    categoryIndex: buildCategoryIndex(keywordRegistry),
     profile: config.profile ?? softwareEngineerProfile,
     rules: config.rules ?? [],
     keywordDensity: config.keywordDensity ?? DEFAULT_KEYWORD_DENSITY,
