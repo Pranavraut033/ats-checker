@@ -145,7 +145,11 @@ describe("LLMManager", () => {
 
     expect(result.success).toBe(true);
     expect(result.fallback).toBe(false);
-    expect(result.data).toBeDefined();
+    expect(result.data).toEqual({
+      suggestions: [
+        { original: "Add skills", enhanced: "Highlight these required skills", actionable: true },
+      ],
+    });
     expect(result.tokensUsed).toBe(150);
   });
 
@@ -170,7 +174,7 @@ describe("LLMManager", () => {
 
     expect(result.success).toBe(false);
     expect(result.fallback).toBe(true);
-    expect(result.error).toBeDefined();
+    expect(result.error).toContain("timeout");
   });
 
   it("fails on invalid JSON response", async () => {
@@ -270,13 +274,10 @@ describe("LLMManager", () => {
     expect(result.success).toBe(false);
     expect(result.fallback).toBe(true);
 
-    // Manager should either have observed the late rejection (warning) OR no
-    // unhandled rejection should have bubbled to the process. We allow either
-    // case to keep test robust across environments.
-    const mgr = new LLMManager({ ...config, timeoutMs: 50 });
-    const warnings = mgr.getWarnings();
-    expect(unhandled || warnings.length >= 0).toBe(true); // trivial pass but documents the check
-
+    // The whole point of this test: the late-settling client must not produce
+    // an unhandled rejection once the manager has already returned its fallback.
+    expect(unhandled).toBe(false);
+    expect(lastReason).toBeUndefined();
   });
 
   it("enforces budget limits", async () => {
@@ -326,7 +327,6 @@ describe("LLMManager", () => {
     await manager.callLLM("System", "User", LLMSchemas.suggestionEnhancement);
 
     const warnings = manager.getWarnings();
-    expect(warnings.length).toBeGreaterThan(0);
     expect(warnings[0]).toContain("Invalid JSON");
   });
 
@@ -426,12 +426,20 @@ B.S. Computer Science`;
     const jobDescription = "Looking for React engineer with 3+ years experience";
 
     // This should work exactly as v1 - no LLM involved
-    const result = analyzeResume({ resumeText, jobDescription });
+    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
-    expect(result.score).toBeGreaterThan(0);
-    expect(result.score).toBeLessThanOrEqual(100);
-    expect(result.breakdown).toBeDefined();
-    expect(result.suggestions).toBeDefined();
+    expect(result.score).toBe(68.25);
+    expect(result.breakdown).toEqual({
+      skills: 52.49999999999999,
+      experience: 75,
+      keywords: 100,
+      education: 100,
+    });
+    expect(result.suggestions).toEqual([
+      "Highlight these required skills: node",
+      "Avoid keyword stuffing for: engineer, react",
+      "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+    ]);
   });
 
   it("gracefully degrades when LLM disabled", async () => {
@@ -451,18 +459,21 @@ B.S. Computer Science`;
       },
     });
 
-    expect(result.score).toBeDefined();
-    expect(result.suggestions).toBeDefined();
+    expect(result.score).toBe(47.5);
+    expect(result.suggestions).toEqual([
+      "Highlight these required skills: javascript, node, react, typescript",
+      "Clarify at least 3 years of relevant experience with quantified achievements.",
+      "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+    ]);
     // Client should not have been called
     expect(mockClient.createCompletion).not.toHaveBeenCalled();
   });
 
-  it("skips LLM when no suggestions available", async () => {
+  it("calls the LLM when suggestions are available, even for a high-match resume", async () => {
     const mockClient: LLMClient = {
-      createCompletion: vi.fn(),
+      createCompletion: vi.fn(async () => ({ content: JSON.stringify({ suggestions: [] }) })),
     };
 
-    // High-match resume - likely no suggestions
     const result = await analyzeResumeAsync({
       resumeText: `Summary
 Senior React Engineer
@@ -478,10 +489,11 @@ B.S. Computer Science`,
         limits: { maxCalls: 10, maxTokensPerCall: 2000, maxTotalTokens: 50000 },
         enable: { suggestions: true },
       },
+      config: { referenceDate: "2026-01-01" },
     });
 
-    expect(result.score).toBeDefined();
-    // LLM may or may not be called depending on suggestion generation
-    // But if called, it should handle gracefully
+    expect(result.score).toBe(70.7);
+    // This resume has non-empty suggestions (keyword stuffing warning), so the LLM is invoked.
+    expect(mockClient.createCompletion).toHaveBeenCalled();
   });
 });

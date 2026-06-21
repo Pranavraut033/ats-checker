@@ -95,8 +95,10 @@ export class LLMManager {
       // is observing the rejection later in the lifecycle.
       const timeoutPromise = new Promise<never>((_, reject) => {
         const id = globalThis.setTimeout(() => reject(new Error(`LLM call timeout after ${this.timeoutMs}ms`)), this.timeoutMs);
-        // Clear timeout when client settles to avoid the timer firing after client finishes
-        void clientPromise!.finally(() => globalThis.clearTimeout(id));
+        // Clear timeout when client settles to avoid the timer firing after client finishes.
+        // .finally() re-throws the original rejection into a new promise, so it needs its
+        // own catch — clientPromise already having one doesn't cover this derived promise.
+        void clientPromise!.finally(() => globalThis.clearTimeout(id)).catch(() => { });
       });
       // Prevent accidental unhandled rejections from the timeout promise
       void timeoutPromise.catch(() => { });
