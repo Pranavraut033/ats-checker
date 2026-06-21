@@ -34,7 +34,9 @@ parseResume / parseJobDescription
 - `src/core/rules/rule.engine.ts` — pluggable penalty rules via `ATSConfig.rules[]`
 - `src/core/suggestions/` — deterministic suggestion generation
 - `src/llm/` — optional LLM layer; isolated so failures fall back to deterministic output
-- `src/profiles/` — industry skill sets and `defaultSkillAliases`
+- `src/profiles/` — `defaultKeywordRegistry` (categorized canonical/aliases/category entries) and derived `defaultSkillAliases`
+- `src/lang/en/`, `src/lang/de/` — installable `KeywordRegistry` packs exported as `./en` / `./de` subpaths; canonical terms stay English, aliases are localized
+- `src/utils/languages.ts` — `parseLanguageMentions()` (CEFR/descriptive spoken-language proficiency parsing) and `diffLanguages()` (rank comparison); informational only, never feeds `score`/`breakdown`
 - `src/types/` — all shared types; re-exported from `src/index.ts`
 
 **LLM integration** (`src/llm/`):
@@ -46,8 +48,9 @@ parseResume / parseJobDescription
 
 ## Key Patterns
 
-- **Always use `resolveConfig()`** before passing config to parsers/engines — never pass raw `ATSConfig`.
-- **Skills must be normalized** via `normalizeSkills()` from `src/utils/skills.ts` before comparison.
+- **Always use `resolveConfig()`** before passing config to parsers/engines — never pass raw `ATSConfig`. It merges `keywordRegistry` over `defaultKeywordRegistry` (by canonical term) and builds `categoryIndex`.
+- **Skills must be normalized** via `normalizeSkills()` from `src/utils/skills.ts` before comparison. `normalizeSkill()` is Map-cached per `skillAliases` object (`WeakMap`) — don't reintroduce a linear scan.
 - **Deterministic scores are immutable** — LLM paths may only touch `suggestions`, never `score` or `breakdown`.
+- **Keyword scoring is weighted**, not a flat coverage ratio — see `keywordWeightOf()` in `scorer.ts` (location: required > preferred > body, plus a frequency bonus).
 - Tests are end-to-end against `analyzeResume()` with realistic text; mock LLM for deterministic tests.
 - Build target is dual ESM/CJS (`tsup`); `dist/` is published, `ui/public/dist/` is the dev UI copy.

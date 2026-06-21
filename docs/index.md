@@ -36,7 +36,12 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 
 - **Deterministic** — same input always produces the same score; pin it with `referenceDate` to freeze "Present" date math
 - **Explainable** — breakdown by category plus matched and missing skill/keyword lists
-- **Configurable** — adjust weights, add skill aliases, define custom penalty rules
+- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain)
+- **Weighted keyword scoring** — JD keywords weighted by location (required > preferred > body) and frequency
+- **Alias-aware & achievement suggestions** — reword suggestions matching the JD's wording, plus strong/weak achievement-bullet feedback
+- **Multi-language keyword packs** — `/en` and `/de` subpaths; bring your own via `config.keywordRegistry`
+- **Language proficiency matching** — JD spoken-language requirements (CEFR `A1`–`C2` or words like "fluent"/"native") matched against resume mentions
+- **Configurable** — adjust weights, add skill aliases or a keyword registry, define custom penalty rules
 - **Deterministic-only core** — `analyzeResumeAsync` (LLM path) is deprecated; `analyzeResume` is the primary API
 - **Zero dependencies** — no runtime deps; ships ESM + CJS
 - **PDF input** — optional `/pdf` subpath for extracting text from PDF resumes
@@ -58,6 +63,11 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
 | `missingKeywords` | `string[]` | JD keywords absent from the resume (sorted) |
 | `overusedKeywords` | `string[]` | Keywords exceeding density threshold (sorted) |
+| `keywordsByCategory` | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category |
+| `keywordWeights` | `KeywordWeight[]` | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`) |
+| `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified strong vs weak |
+| `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
+| `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
 | `suggestions` | `string[]` | Deterministic improvement recommendations |
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
@@ -65,7 +75,7 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | `parsedExperienceYears` | `number` | Total years from resume date ranges |
 
 **Scoring formula:**  
-`score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
+`score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted. The `keywords` sub-score is a weighted coverage ratio — see [Configuration](configuration.md#keyword-registry--categories) for how weights are derived.
 
 ## Documentation
 
@@ -124,8 +134,38 @@ import {
   dataScientistProfile,
   productManagerProfile,
   defaultSkillAliases,
+  defaultKeywordRegistry,
 } from "@pranavraut033/ats-checker";
 ```
+
+### Multi-language Keyword Packs
+
+```typescript
+import en from "@pranavraut033/ats-checker/en"; // default registry
+import de from "@pranavraut033/ats-checker/de"; // seed set, German aliases
+
+const result = analyzeResume({
+  resumeText, jobDescription,
+  config: { keywordRegistry: de },
+});
+```
+
+See [Configuration → Keyword Registry & Categories](configuration.md#keyword-registry--categories).
+
+### Language Requirements
+
+Spoken-language requirements (not programming languages) are parsed from the JD — CEFR codes (`A1`–`C2`) or words like `fluent`/`native`/`professional` — and matched against language mentions in the resume.
+
+```typescript
+const result = analyzeResume({
+  resumeText: "Languages: German (C1)",
+  jobDescription: "German (B2) required.",
+});
+result.matchedLanguages; // [{ name: "german", level: "b2", levelRank: 4 }]
+result.missingLanguages; // []
+```
+
+See [Configuration → Language Requirements](configuration.md#language-requirements).
 
 ## Development
 

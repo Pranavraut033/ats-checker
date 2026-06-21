@@ -40,7 +40,9 @@ The interface provides:
 
 - **Real-time Analysis** - Instant ATS scoring in your browser
 - **Visual Breakdown** - Component scores for skills, experience, keywords, education
-- **Keyword Insights** - Matched and missing keywords with color coding
+- **Keyword Insights** - Matched and missing keywords with color coding, plus a category breakdown (technical, tool, concept, soft, marketing, domain)
+- **Achievement Strength** - Strong vs weak experience-bullet count, based on verb + quantified-impact detection
+- **Language Requirements** - Required spoken languages (CEFR or fluency level) matched against the resume's stated proficiency
 - **AI Suggestions** - Optional OpenAI-powered recommendations
 - **Warnings** - Detection of ATS issues (keyword stuffing, missing sections, etc.)
 - **Sample Data** - Pre-loaded examples for quick testing
@@ -81,12 +83,22 @@ Individual scores for:
 - **Matched** - Green tags for keywords found in both documents
 - **Missing** - Red tags for important keywords to add
 - **Overused** - Yellow tags for keywords appearing too frequently
+- **By Category** - The same matched/missing keywords regrouped into technical, tool, concept, soft, marketing, and domain panels (categories with no keywords are hidden)
+
+### Achievement Strength
+A green/red bar showing the ratio of strong to weak experience bullets, where "strong" means a bullet pairs an impact verb (built, led, optimized, ...) with a quantified result (a number, `%`, `$`, or `k+`/`m+`).
+
+### Language Requirements
+Required languages (parsed from the JD as CEFR codes or words like "fluent"/"native") shown against what the resume states — green for met/exceeded, red for missing or below the required level.
 
 ### Suggestions
 Actionable advice like:
 - "Add 'React' to your skills section"
 - "Include more JavaScript experience details"
 - "Consider adding a summary section"
+- "Replace "js" with "JavaScript" to match the job description's wording"
+- "Strengthen "Worked with Node.js" — add scope/metrics, e.g. ..."
+- "Mention your proficiency in: german (b2)"
 
 AI-powered suggestions are enhanced when LLM is enabled.
 

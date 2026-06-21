@@ -35,6 +35,61 @@ config: {
 
 When "js" appears in a resume, it's treated as "javascript" for scoring.
 
+## Keyword Registry & Categories
+
+The built-in `defaultKeywordRegistry` is a list of `{ canonical, aliases, category }` entries — `skillAliases` is derived from it for backward compatibility. Each entry's `category` is one of: `technical`, `tool`, `concept`, `soft`, `marketing`, `domain`.
+
+```typescript
+config: {
+  keywordRegistry: [
+    { canonical: "rust", aliases: ["rustlang"], category: "technical" },
+    { canonical: "javascript", aliases: ["js", "ecmascript"], category: "technical" }, // overrides default entry
+  ]
+}
+```
+
+Entries merge over `defaultKeywordRegistry` by `canonical` term — your entries win on conflict, everything else from the default registry is kept. Categories drive `result.keywordsByCategory`, which groups matched/missing keywords for display.
+
+### Keyword Weighting
+
+Within `scoreKeywords`, each JD keyword gets a weight based on:
+- **Location**: required (`3`) > preferred (`2`) > body-only (`1`)
+- **Frequency**: a small bonus when the JD repeats the term
+
+The `keywords` sub-score is `sum(weight of matched) / sum(weight of all) × 100` — missing a required keyword costs more than missing a body-only one. Per-keyword weights are exposed in `result.keywordWeights` (`jdWeight`/`importance`, and `resumeWeight` — how often it appears in the resume).
+
+### Multi-language Packs
+
+Categorized registries for other languages ship as subpath exports (canonical terms stay English so scoring/profiles are unaffected; the pack supplies localized aliases):
+
+```typescript
+import de from "@pranavraut033/ats-checker/de";
+config: { keywordRegistry: de }
+```
+
+See [src/lang/](../src/lang/) for available packs (`en`, `de`).
+
+## Language Requirements
+
+Spoken-language requirements (English, German, Spanish, etc. — distinct from the keyword registry, which is for tech/domain terms) are parsed automatically from free text — no config needed. Both the JD parser and resume parser scan for:
+
+- CEFR codes: `A1`, `A2`, `B1`, `B2`, `C1`, `C2`
+- Descriptive levels: `basic`/`elementary`, `conversational`/`intermediate`, `professional`/`advanced`, `fluent`, `native`/`bilingual`
+
+Any language mentioned in the JD is treated as required. A resume language counts as a match only if its level rank is equal to or higher than the JD's:
+
+```typescript
+const result = analyzeResume({
+  resumeText: "Languages: German (C1), fluent Spanish",
+  jobDescription: "German (B2) required. Native English speaker preferred.",
+});
+
+result.matchedLanguages; // [{ name: "german", level: "b2", levelRank: 4 }]
+result.missingLanguages; // [{ name: "english", level: "native", levelRank: 6 }]
+```
+
+This does not feed into `breakdown` or `score` — it's informational, surfaced via `result.matchedLanguages`/`result.missingLanguages` and a suggestion when a required language is missing or under-leveled. See [src/utils/languages.ts](../src/utils/languages.ts) for the supported language/level list.
+
 ## Industry Profiles
 
 Define required skills and minimum experience for specific roles.
@@ -133,6 +188,8 @@ Default values:
 - **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6
 - **Partial Matches**: `allowPartialMatches: true`
 - **Skill Aliases**: merged from built-in `defaultSkillAliases` + your overrides
+- **Keyword Registry**: merged from `defaultKeywordRegistry` + your `keywordRegistry` entries (by canonical term), then `skillAliases` layered on top
+- **Language Requirements**: parsed automatically from JD/resume text, no config — see [Language Requirements](#language-requirements)
 - **Profile**: `softwareEngineerProfile` unless overridden
 
 See implementation in [src/core/scoring/weights.ts](../src/core/scoring/weights.ts).

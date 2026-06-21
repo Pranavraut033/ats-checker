@@ -17,7 +17,13 @@ Zero-dependency TypeScript library that scores a resume against a job descriptio
 
 - **Deterministic** — same input always produces the same score; pin it with `referenceDate` to freeze "Present" date math
 - **Explainable** — breakdown by category (skills / experience / keywords / education) plus matched and missing skill/keyword lists
-- **Configurable** — adjust weights, add skill aliases, define custom penalty rules
+- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain); results are grouped by category
+- **Weighted keyword scoring** — JD keywords are weighted by where they appear (required > preferred > body) and how often, so a missing "required" keyword costs more than a missing body-only one
+- **Alias-aware suggestions** — flags resume terms that should be reworded to match the JD's own wording (e.g. "js" → "JavaScript")
+- **Achievement strength** — classifies resume experience bullets as strong/weak (verb + quantified impact) and suggests rewrites
+- **Multi-language keyword packs** — `/en` and `/de` subpaths ship categorized keyword registries; install more by passing your own `keywordRegistry`
+- **Language proficiency matching** — detects spoken-language requirements in the JD (CEFR `A1`–`C2` or words like "fluent"/"native") and flags resume gaps below the required level
+- **Configurable** — adjust weights, add skill aliases or a custom keyword registry, define custom penalty rules
 - **Zero dependencies** — core library has no runtime deps; ships ESM + CJS
 - **PDF input** — optional `/pdf` subpath extracts resume text from a PDF buffer (requires `pdfjs-dist` peer dep)
 - **Built-in profiles** — software engineer, data scientist, product manager out of the box
@@ -79,6 +85,11 @@ console.log(result.suggestions);      // ["Add GraphQL to your skills section", 
 | `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
 | `missingKeywords` | `string[]` | JD keywords absent from the resume (sorted) |
 | `overusedKeywords` | `string[]` | Keywords exceeding density threshold (sorted) |
+| `keywordsByCategory` | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category |
+| `keywordWeights` | `KeywordWeight[]` | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`) |
+| `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified as strong vs weak achievement statements |
+| `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
+| `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
 | `suggestions` | `string[]` | Deterministic improvement recommendations |
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
@@ -88,6 +99,8 @@ console.log(result.suggestions);      // ["Add GraphQL to your skills section", 
 
 **Scoring formula:**  
 `score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
+
+The `keywords` sub-score is a **weighted** coverage ratio, not a flat count: each JD keyword gets a weight from its location (required > preferred > body text) and frequency, so missing a required keyword drops the score more than missing one mentioned once in the body.
 
 ---
 
@@ -105,6 +118,9 @@ const result = analyzeResume({
 
     // Additional skill synonyms merged over built-in defaults
     skillAliases: { javascript: ["js", "ecmascript"] },
+
+    // Categorized keyword/alias entries; merges over the default registry by canonical term
+    keywordRegistry: [{ canonical: "rust", aliases: ["rustlang"], category: "technical" }],
 
     // Industry profile: sets mandatory/optional skills and minExperience
     profile: {
@@ -156,14 +172,68 @@ See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/config
 
 ---
 
-## Built-in Skill Aliases
+## Keyword Registry, Categories & Aliases
 
-Common tech synonyms are pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, etc. Extend or override via `config.skillAliases`.
+Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). Common tech synonyms are pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, etc.
 
 ```typescript
-import { defaultSkillAliases } from "@pranavraut033/ats-checker";
-// { javascript: ["js"], node: ["node.js", "nodejs"], typescript: ["ts"], ... }
+import { defaultKeywordRegistry, defaultSkillAliases } from "@pranavraut033/ats-checker";
+// defaultKeywordRegistry: [{ canonical: "javascript", aliases: ["js"], category: "technical" }, ...]
+// defaultSkillAliases: { javascript: ["js"], node: ["node.js", "nodejs"], ... }  (derived, back-compat)
 ```
+
+Extend or override the registry via `config.keywordRegistry` — entries merge over the defaults by canonical term:
+
+```typescript
+const result = analyzeResume({
+  resumeText: "...",
+  jobDescription: "...",
+  config: {
+    keywordRegistry: [
+      { canonical: "rust", aliases: ["rustlang"], category: "technical" },
+      { canonical: "javascript", aliases: ["js", "ecmascript"], category: "technical" }, // overrides default
+    ],
+  },
+});
+
+console.log(result.keywordsByCategory.technical); // { matched: [...], missing: [...] }
+console.log(result.keywordWeights);                // [{ term, category, jdWeight, resumeWeight, importance }, ...]
+```
+
+You can still pass `config.skillAliases` for a flat override — it merges on top of the registry-derived aliases.
+
+## Multi-language Keyword Packs
+
+Categorized keyword registries ship as installable subpaths, one per language. Canonical terms stay in English (so scoring/profiles keep working); the pack supplies localized aliases.
+
+```typescript
+import de from "@pranavraut033/ats-checker/de";
+import { analyzeResume } from "@pranavraut033/ats-checker";
+
+const result = analyzeResume({
+  resumeText: "...", // e.g. a German-language resume
+  jobDescription: "...",
+  config: { keywordRegistry: de },
+});
+```
+
+Available packs: `/en` (the default registry) and `/de` (seed set — grows on demand). Each default-exports a `KeywordRegistry`.
+
+## Language Requirements
+
+The JD parser scans for spoken-language mentions — CEFR codes (`A1`–`C2`) or descriptive words (`basic`, `conversational`, `professional`, `fluent`, `native`) — and the resume parser does the same. Any language found in the JD is treated as required; the resume must mention it at an equal or higher level to count as matched.
+
+```typescript
+const result = analyzeResume({
+  resumeText: "Languages: German (C1), English (native)",
+  jobDescription: "German (B2) required for this role.",
+});
+
+console.log(result.matchedLanguages); // [{ name: "german", level: "b2", levelRank: 4 }]
+console.log(result.missingLanguages); // []
+```
+
+A missing or under-leveled language surfaces both in `result.missingLanguages` and as a suggestion (`"Mention your proficiency in: german (b2)"`). This is informational/suggestion-only — it does not change `score` or `breakdown`.
 
 ---
 
