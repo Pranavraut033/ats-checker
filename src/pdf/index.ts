@@ -1,14 +1,30 @@
 /**
+ * Caller-supplied OCR implementation, invoked only when the PDF's text layer
+ * comes back too short to be useful (scanned/image PDFs). The caller owns
+ * the actual OCR engine and dependency — this library never bundles one.
+ */
+export type OCRClient = (data: Uint8Array) => Promise<string>;
+
+export interface ExtractTextOptions {
+  /** Called with the raw PDF bytes when text-layer extraction is too short. */
+  ocrFallback?: OCRClient;
+  /** Threshold (trimmed char count) below which ocrFallback is tried. Default 100, matching resume.parser.ts's scanned-PDF warning. */
+  minTextLength?: number;
+}
+
+/**
  * Extract plain text from a PDF buffer.
  *
  * Requires `pdfjs-dist` to be installed (optional peerDependency):
  *   npm install pdfjs-dist
  *
  * @param data - Raw PDF bytes as Uint8Array or ArrayBuffer
+ * @param options - Optional OCR fallback for scanned/image PDFs
  * @returns Extracted text, ready to pass as `resumeText` to analyzeResume
  */
 export async function extractTextFromPDF(
-  data: Uint8Array | ArrayBuffer
+  data: Uint8Array | ArrayBuffer,
+  options?: ExtractTextOptions
 ): Promise<string> {
   // ponytail: lazy import keeps core zero-dep; missing peer throws with clear message
   let pdfjsLib: typeof import("pdfjs-dist");
@@ -86,7 +102,21 @@ export async function extractTextFromPDF(
     pages.push(columnTexts.filter(Boolean).join("\n"));
   }
 
-  return pages.join("\n");
+  const text = pages.join("\n");
+
+  // ponytail: OCR is the caller's engine/dependency — we only decide *when*
+  // to ask for it (text layer too short) and pick the better of the two results.
+  const minTextLength = options?.minTextLength ?? 100;
+  if (options?.ocrFallback && text.trim().length < minTextLength) {
+    try {
+      const ocrText = await options.ocrFallback(bytes);
+      if (ocrText.trim().length > text.trim().length) return ocrText;
+    } catch {
+      // OCR failure falls back to the text-layer result, never throws.
+    }
+  }
+
+  return text;
 }
 
 function renderColumn(items: Array<{ x: number; y: number; str: string }>): string {

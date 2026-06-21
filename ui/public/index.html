@@ -114,6 +114,49 @@
 
       <div id="resultsSection"></div>
 
+      <details class="bg-white rounded-lg p-6 shadow-xl mt-5">
+        <summary class="flex items-center gap-2 cursor-pointer list-none">
+          <span class="text-2xl">📋</span>
+          <h2 class="text-xl font-bold text-gray-800 flex-1">Code Examples</h2>
+        </summary>
+
+        <div class="mt-4 mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-semibold text-gray-600">Basic usage</p>
+            <button
+              class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md font-medium transition"
+              onclick="copyCode(this, 'codeBasic')"
+            >📋 Copy</button>
+          </div>
+          <pre class="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto"><code id="codeBasic">import { analyzeResume } from "@pranavraut033/ats-checker";
+
+const result = analyzeResume({ resumeText, jobDescription });
+console.log(result.score, result.suggestions);</code></pre>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-semibold text-gray-600">OCR fallback for scanned PDFs</p>
+            <button
+              class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md font-medium transition"
+              onclick="copyCode(this, 'codeOcr')"
+            >📋 Copy</button>
+          </div>
+          <pre class="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto"><code id="codeOcr">import { extractTextFromPDF } from "@pranavraut033/ats-checker/pdf";
+import { createWorker } from "tesseract.js";
+
+const text = await extractTextFromPDF(pdfBytes, {
+  ocrFallback: async (data) => {
+    const worker = await createWorker("eng");
+    const { data: { text } } = await worker.recognize(data);
+    await worker.terminate();
+    return text;
+  },
+});</code></pre>
+          <p class="text-xs text-gray-400 mt-2">This is exactly what powers the "Upload PDF" button above for scanned resumes.</p>
+        </div>
+      </details>
+
       <footer class="mt-16 pt-8 border-t border-white border-opacity-20">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 text-white text-sm">
           <div>
@@ -149,12 +192,43 @@
       {
         "imports": {
           "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.mjs",
-          "pdfjs-dist/build/pdf.worker.mjs": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.mjs"
+          "pdfjs-dist/build/pdf.worker.mjs": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.mjs",
+          "tesseract.js": "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js"
         }
       }
     </script>
     <script type="module">
       import { analyzeResume } from "./dist/index.mjs";
+
+      // ponytail: OCR re-renders pages via pdfjs canvas + tesseract.js; only runs when the
+      // text layer is too short (extractTextFromPDF's minTextLength gate), so normal PDFs
+      // never pay this cost.
+      async function ocrFallback(data) {
+        const label = document.getElementById("pdfBtnLabel");
+        label.textContent = "🔍 OCR scanning…";
+
+        const pdfjsLib = await import("pdfjs-dist");
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        const { createWorker } = await import("tesseract.js");
+        const worker = await createWorker("eng");
+
+        let text = "";
+        try {
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 2 });
+            const canvas = document.createElement("canvas");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+            const { data: { text: pageText } } = await worker.recognize(canvas);
+            text += pageText + "\n";
+          }
+        } finally {
+          await worker.terminate();
+        }
+        return text;
+      }
 
       window.handlePDFUpload = async function (event) {
         const file = event.target.files?.[0];
@@ -166,7 +240,7 @@
           const { GlobalWorkerOptions } = await import("pdfjs-dist");
           GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4/build/pdf.worker.mjs";
           const bytes = new Uint8Array(await file.arrayBuffer());
-          const text = await extractTextFromPDF(bytes);
+          const text = await extractTextFromPDF(bytes, { ocrFallback });
           document.getElementById("resume").value = text;
           label.textContent = "✅ PDF loaded";
         } catch (err) {
@@ -475,6 +549,16 @@ Preferred Qualifications:
             </div>`;
         }
 
+        // Raw output
+        html += `
+          <details class="bg-white rounded-lg p-6 shadow-xl mt-5">
+            <summary class="flex items-center gap-2 cursor-pointer list-none">
+              <span class="text-2xl">🧾</span>
+              <h3 class="text-lg font-bold text-gray-800 flex-1">Raw Output</h3>
+            </summary>
+            <pre class="bg-gray-900 text-gray-100 text-xs rounded-lg p-4 overflow-x-auto mt-4">${JSON.stringify(data, null, 2)}</pre>
+          </details>`;
+
         html += `</div>`;
         document.getElementById("resultsSection").innerHTML = html;
       }
@@ -485,6 +569,21 @@ Preferred Qualifications:
             <span class="text-2xl">❌</span>
             <div><h3 class="font-bold mb-1">Analysis Failed</h3><p class="text-sm">${message}</p></div>
           </div>`;
+      };
+
+      window.copyCode = function (btn, codeId) {
+        const code = document.getElementById(codeId).textContent;
+        const original = btn.textContent;
+        navigator.clipboard.writeText(code).then(
+          () => {
+            btn.textContent = "✅ Copied!";
+            setTimeout(() => (btn.textContent = original), 1500);
+          },
+          () => {
+            btn.textContent = "❌ Copy failed";
+            setTimeout(() => (btn.textContent = original), 1500);
+          }
+        );
       };
 
       window.clearAll = function () {
