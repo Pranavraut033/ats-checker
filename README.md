@@ -52,9 +52,12 @@ import { analyzeResume } from "@pranavraut033/ats-checker";
 const result = analyzeResume({
   resumeText: `
     Software Engineer with 5 years of experience.
-    Skills: JavaScript, TypeScript, React, Node.js, SQL
-    Experience: Senior Engineer at ExampleCorp (Jan 2020 - Present)
-    Education: B.S. Computer Science
+    Skills
+    JavaScript, TypeScript, React, Node.js, SQL
+    Experience
+    Senior Engineer at ExampleCorp (Jan 2020 - Present)
+    Education
+    B.S. Computer Science
   `,
   jobDescription: `
     Frontend engineer role. Must have React, TypeScript, accessibility best practices.
@@ -63,11 +66,11 @@ const result = analyzeResume({
   config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score);            // e.g. 72.45
+console.log(result.score);            // 44.44
 console.log(result.matchedSkills);    // ["javascript", "node", "react", "typescript"]
-console.log(result.missingSkills);    // ["accessibility best practices", "graphql"]
+console.log(result.missingSkills);    // ["accessibility", "frontend", "graphql"]
 console.log(result.experienceGap);    // 0 (requirement met)
-console.log(result.suggestions);      // ["Add GraphQL to your skills section", ...]
+console.log(result.suggestions);      // ["Highlight these required skills: accessibility, frontend, graphql", ...]
 ```
 
 ---
@@ -101,6 +104,10 @@ console.log(result.suggestions);      // ["Add GraphQL to your skills section", 
 `score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
 
 The `keywords` sub-score is a **weighted** coverage ratio, not a flat count: each JD keyword gets a weight from its location (required > preferred > body text) and frequency, so missing a required keyword drops the score more than missing one mentioned once in the body.
+
+> **Caveat — malformed/copy-pasted JD text:** required/preferred detection scans each line for literal trigger phrases (`required`, `must`, `nice to have`, `preferred`). Job postings copy-pasted from a wrapped/columned source sometimes split words across line breaks (e.g. `"Nice to\n\nhaveExperience..."`), which breaks these phrases across two lines and silently drops them into the unweighted body-keyword bucket instead of required/preferred. Skill keywords themselves (e.g. `react`, `python/fastapi`) are still picked up via the whole-text token scan and unaffected. If a JD looks oddly broken, paste it through a plain-text cleanup pass first, or expect required/preferred weighting to under-count.
+
+The `education` sub-score normalizes degree abbreviations on both sides to a canonical level (`bachelor`, `master`, `phd`, `mba`, `associate`) before comparing — so a resume listing "B.S. Computer Science" satisfies a JD requiring "Bachelor's degree".
 
 ---
 
@@ -287,6 +294,23 @@ if (result.warnings.length) {
   // e.g. "Almost no text was extracted — the resume may be a scanned/image PDF."
 }
 ```
+
+### OCR fallback for scanned PDFs
+
+`extractTextFromPDF` accepts an optional `ocrFallback` that's only invoked when the text layer comes back too short (default threshold: 100 chars). The OCR engine and its dependency are entirely your choice — the core library never bundles one:
+
+```typescript
+const resumeText = await extractTextFromPDF(bytes, {
+  ocrFallback: async (data) => {
+    // bring your own OCR engine, e.g. tesseract.js or a cloud OCR API
+    const { recognize } = await import("tesseract.js");
+    const { data: { text } } = await recognize(data, "eng");
+    return text;
+  },
+});
+```
+
+If `ocrFallback` throws or returns text that isn't longer than the text-layer result, `extractTextFromPDF` silently keeps the original result — OCR failures never break the deterministic extraction path.
 
 ---
 
