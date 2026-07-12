@@ -1,5 +1,14 @@
 # Release Notes
 
+## v1.4.0 — 2026-07-12
+
+**Smarter gap-checking: ATS Checker now flags experience mismatches and a missing contact email.**
+
+- **Catch experience gaps** — if a job description asks for "5+ years of React" and your resume doesn't show it, you'll see the gap called out.
+- **Missing contact email warning** — get a heads-up if your resume doesn't list a way for recruiters to reach you.
+
+Both checks are informational and never change your score.
+
 ## v1.3.3 — 2026-06-24
 
 **ATS Checker is here: a zero-dependency library and web UI that scores your resume against a job description the way applicant tracking systems do.**

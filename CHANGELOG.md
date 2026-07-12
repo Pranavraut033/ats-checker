@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.4.0] - 2026-07-12
+
+### Added
+- Detect skill-experience gaps (JD "N+ years of X" vs. resume's overall experience) and flag resumes missing a contact email. Both are informational — they don't affect `score`/`breakdown` ([8f4a928])
+
+[8f4a928]: https://github.com/Pranavraut033/ats-checker/commit/8f4a928
+
 ## [1.3.3] - 2026-06-24
 
 Initial changelog entry, covering the project's full history to date.
