@@ -94,7 +94,10 @@ function monthsBetween(start: ParsedDateToken, end: ParsedDateToken): number {
   return (end.year - start.year) * 12 + (endMonth - startMonth + 1);
 }
 
-export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRange | null {
+export function parseDateRange(
+  text: string,
+  referenceDate?: Date
+): ParsedDateRange | null {
   const normalized = text.trim();
   // ponytail: localized range separators (German "bis", French "à"/"jusqu'à") and accented
   // month names (à-ÿ) added inline alongside English so the same regex covers all three.
@@ -106,7 +109,10 @@ export function parseDateRange(text: string, referenceDate?: Date): ParsedDateRa
   }
   const startToken = parseDateToken(rangeMatch[1]);
   const endRaw = rangeMatch[2];
-  const isPresent = /present|current|now|aktuell|heute|actuellement|présent|actuel/i.test(endRaw);
+  const isPresent =
+    /present|current|now|aktuell|heute|actuellement|présent|actuel/i.test(
+      endRaw
+    );
   const endToken = isPresent ? undefined : parseDateToken(endRaw);
   if (!startToken) {
     return null;
@@ -163,6 +169,9 @@ export function sumExperienceYears(ranges: ParsedDateRange[]): number {
   }
 
   // Fallback: naive sum (no overlap detection possible without bounds)
-  const months = ranges.reduce((total, r) => total + (r.durationInMonths ?? 0), 0);
+  const months = ranges.reduce(
+    (total, r) => total + (r.durationInMonths ?? 0),
+    0
+  );
   return Number((months / 12).toFixed(2));
 }

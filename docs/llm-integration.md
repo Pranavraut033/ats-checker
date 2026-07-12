@@ -1,7 +1,7 @@
 # LLM Integration (deprecated)
 
 !!! warning "Deprecated"
-    `analyzeResumeAsync` and the LLM integration layer are deprecated. The recommended pattern is to call `analyzeResume` (sync, deterministic) and run your own LLM pass on `result.suggestions` if you want AI-enhanced wording. This page is kept for reference only.
+`analyzeResumeAsync` and the LLM integration layer are deprecated. The recommended pattern is to call `analyzeResume` (sync, deterministic) and run your own LLM pass on `result.suggestions` if you want AI-enhanced wording. This page is kept for reference only.
 
 ats-checker supports optional AI enhancement for suggestions while keeping the core ATS score deterministic and unchanged.
 
@@ -30,16 +30,16 @@ const myLLMClient = {
       model: input.model,
       messages: input.messages,
       max_tokens: input.max_tokens,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
     });
 
     return {
       content: response.choices[0].message.content,
       usage: {
-        total_tokens: response.usage.total_tokens
-      }
+        total_tokens: response.usage.total_tokens,
+      },
     };
-  }
+  },
 };
 
 const result = await analyzeResumeAsync({
@@ -48,21 +48,21 @@ const result = await analyzeResumeAsync({
   llm: {
     client: myLLMClient,
     models: {
-      default: "gpt-4o-mini"
+      default: "gpt-4o-mini",
     },
     limits: {
       maxCalls: 3,
       maxTokensPerCall: 1000,
-      maxTotalTokens: 5000
+      maxTotalTokens: 5000,
     },
     enable: {
-      suggestions: true
-    }
-  }
+      suggestions: true,
+    },
+  },
 });
 
-console.log(result.score);        // Same as without LLM
-console.log(result.suggestions);  // Enhanced by AI
+console.log(result.score); // Same as without LLM
+console.log(result.suggestions); // Enhanced by AI
 ```
 
 ### Sync vs Async
@@ -76,20 +76,20 @@ console.log(result.suggestions);  // Enhanced by AI
 
 ```typescript
 interface LLMConfig {
-  client: LLMClient;        // Your LLM implementation
+  client: LLMClient; // Your LLM implementation
   models?: {
-    default: string;        // Primary model for suggestions
-    thinking?: string;      // Optional model for complex tasks
+    default: string; // Primary model for suggestions
+    thinking?: string; // Optional model for complex tasks
   };
   limits: {
-    maxCalls: number;       // Maximum LLM API calls
+    maxCalls: number; // Maximum LLM API calls
     maxTokensPerCall: number; // Tokens per call
     maxTotalTokens: number; // Total token budget
   };
   enable?: {
-    suggestions?: boolean;  // Enhance suggestion text
+    suggestions?: boolean; // Enhance suggestion text
   };
-  timeoutMs?: number;       // Request timeout (default: 30000ms)
+  timeoutMs?: number; // Request timeout (default: 30000ms)
 }
 ```
 
@@ -103,9 +103,9 @@ interface LLMClient {
     model: string;
     messages: Array<{ role: "system" | "user"; content: string }>;
     max_tokens: number;
-    response_format: any;  // JSON schema for structured output
+    response_format: any; // JSON schema for structured output
   }): Promise<{
-    content: string;       // JSON response
+    content: string; // JSON response
     usage?: {
       total_tokens?: number;
     };
@@ -116,6 +116,7 @@ interface LLMClient {
 ## Budget Controls
 
 LLM calls are limited by:
+
 - **Max Calls**: Total number of API requests
 - **Tokens per Call**: Maximum tokens for each request
 - **Total Tokens**: Overall token budget across all calls
@@ -135,14 +136,14 @@ const openaiClient: LLMClient = {
       model: input.model,
       messages: input.messages,
       max_tokens: input.max_tokens,
-      response_format: { type: "json_object" }
+      response_format: { type: "json_object" },
     });
 
     return {
       content: response.choices[0].message.content || "",
-      usage: { total_tokens: response.usage?.total_tokens }
+      usage: { total_tokens: response.usage?.total_tokens },
     };
-  }
+  },
 };
 ```
 
@@ -155,21 +156,26 @@ const anthropicClient: LLMClient = {
     const response = await anthropic.messages.create({
       model: input.model,
       max_tokens: input.max_tokens,
-      system: input.messages.find(m => m.role === "system")?.content,
-      messages: input.messages.filter(m => m.role === "user")
+      system: input.messages.find((m) => m.role === "system")?.content,
+      messages: input.messages.filter((m) => m.role === "user"),
     });
 
     return {
-      content: response.content[0].type === "text" ? response.content[0].text : "",
-      usage: { total_tokens: response.usage?.input_tokens + response.usage?.output_tokens }
+      content:
+        response.content[0].type === "text" ? response.content[0].text : "",
+      usage: {
+        total_tokens:
+          response.usage?.input_tokens + response.usage?.output_tokens,
+      },
     };
-  }
+  },
 };
 ```
 
 ## Fallback Behavior
 
 If LLM calls fail or timeout:
+
 - Core analysis continues normally
 - Suggestions fall back to deterministic versions
 - A warning is added to the result

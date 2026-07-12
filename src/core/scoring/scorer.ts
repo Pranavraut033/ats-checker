@@ -1,9 +1,13 @@
-import { ParsedJobDescription, ParsedResume } from "../../types/parser";
-import { ATSAnalysisResult, ATSBreakdown, KeywordWeight } from "../../types/scoring";
 import { KeywordCategory, ResolvedATSConfig } from "../../types/config";
-import { clamp, countFrequencies, tokenize, unique } from "../../utils/text";
-import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import { ParsedJobDescription, ParsedResume } from "../../types/parser";
+import {
+  ATSAnalysisResult,
+  ATSBreakdown,
+  KeywordWeight,
+} from "../../types/scoring";
 import { diffLanguages } from "../../utils/languages";
+import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import { clamp, countFrequencies, tokenize, unique } from "../../utils/text";
 import { extractDegreeLevels } from "../parser/jd.parser";
 
 const REQUIRED_SKILL_WEIGHT = 0.7;
@@ -11,7 +15,14 @@ const OPTIONAL_SKILL_WEIGHT = 0.3;
 const EXPERIENCE_YEARS_WEIGHT = 0.75;
 const EXPERIENCE_ROLE_WEIGHT = 0.25;
 
-const ALL_CATEGORIES: KeywordCategory[] = ["technical", "tool", "concept", "soft", "marketing", "domain"];
+const ALL_CATEGORIES: KeywordCategory[] = [
+  "technical",
+  "tool",
+  "concept",
+  "soft",
+  "marketing",
+  "domain",
+];
 
 interface ScoringArtifacts {
   matchedKeywords: string[];
@@ -44,27 +55,47 @@ function scoreSkills(
   const profileOptional = config.profile?.optionalSkills ?? [];
 
   const required = new Set(
-    normalizeSkills([...job.requiredSkills, ...profileRequired], config.skillAliases)
+    normalizeSkills(
+      [...job.requiredSkills, ...profileRequired],
+      config.skillAliases
+    )
   );
   const optional = new Set(
-    normalizeSkills([...job.preferredSkills, ...profileOptional], config.skillAliases)
+    normalizeSkills(
+      [...job.preferredSkills, ...profileOptional],
+      config.skillAliases
+    )
   );
-  const resumeSkills = new Set(normalizeSkills(resume.skills, config.skillAliases));
+  const resumeSkills = new Set(
+    normalizeSkills(resume.skills, config.skillAliases)
+  );
 
-  const matchedRequired = [...required].filter((skill) => resumeSkills.has(skill));
-  const matchedOptional = [...optional].filter((skill) => resumeSkills.has(skill));
+  const matchedRequired = [...required].filter((skill) =>
+    resumeSkills.has(skill)
+  );
+  const matchedOptional = [...optional].filter((skill) =>
+    resumeSkills.has(skill)
+  );
 
-  const requiredCoverage = required.size === 0 ? 1 : matchedRequired.length / required.size;
-  const optionalCoverage = optional.size === 0 ? 1 : matchedOptional.length / optional.size;
+  const requiredCoverage =
+    required.size === 0 ? 1 : matchedRequired.length / required.size;
+  const optionalCoverage =
+    optional.size === 0 ? 1 : matchedOptional.length / optional.size;
 
   const score = clamp(
-    (requiredCoverage * REQUIRED_SKILL_WEIGHT + optionalCoverage * OPTIONAL_SKILL_WEIGHT) * 100,
+    (requiredCoverage * REQUIRED_SKILL_WEIGHT +
+      optionalCoverage * OPTIONAL_SKILL_WEIGHT) *
+      100,
     0,
     100
   );
 
-  const matched = [...required].filter((skill) => resumeSkills.has(skill)).sort();
-  const missing = [...required].filter((skill) => !resumeSkills.has(skill)).sort();
+  const matched = [...required]
+    .filter((skill) => resumeSkills.has(skill))
+    .sort();
+  const missing = [...required]
+    .filter((skill) => !resumeSkills.has(skill))
+    .sort();
   return { score, matched, missing };
 }
 
@@ -73,7 +104,8 @@ function scoreExperience(
   job: ParsedJobDescription,
   config: ResolvedATSConfig
 ): { score: number; missingYears: number } {
-  const requiredYears = job.minExperienceYears ?? config.profile?.minExperience ?? 0;
+  const requiredYears =
+    job.minExperienceYears ?? config.profile?.minExperience ?? 0;
   if (!requiredYears) {
     return { score: 100, missingYears: 0 };
   }
@@ -82,10 +114,17 @@ function scoreExperience(
 
   // #1 fix: job.roleKeywords are single lowercase tokens ("engineer"), but resume.jobTitles are
   // full phrases ("senior software engineer") — compare via token overlap, not whole-phrase Set.has.
-  const jobRoleSet = new Set(job.roleKeywords.map((value) => value.toLowerCase()));
-  const resumeTitleTokens = new Set(resume.jobTitles.flatMap((t) => tokenize(t)));
-  const matchedRoles = job.roleKeywords.filter((rk) => resumeTitleTokens.has(rk.toLowerCase()));
-  const titleCoverage = jobRoleSet.size === 0 ? 1 : matchedRoles.length / jobRoleSet.size;
+  const jobRoleSet = new Set(
+    job.roleKeywords.map((value) => value.toLowerCase())
+  );
+  const resumeTitleTokens = new Set(
+    resume.jobTitles.flatMap((t) => tokenize(t))
+  );
+  const matchedRoles = job.roleKeywords.filter((rk) =>
+    resumeTitleTokens.has(rk.toLowerCase())
+  );
+  const titleCoverage =
+    jobRoleSet.size === 0 ? 1 : matchedRoles.length / jobRoleSet.size;
   const roleComponent = clamp(titleCoverage, 0, 1) * EXPERIENCE_ROLE_WEIGHT;
 
   const score = clamp((yearsComponent + roleComponent) * 100, 0, 100);
@@ -134,16 +173,29 @@ function scoreKeywords(
   const requiredSet = new Set(job.requiredSkills);
   const preferredSet = new Set(job.preferredSkills);
   const jdFrequencies = countFrequencies(
-    tokenize(job.normalizedText).map((t) => normalizeSkill(t, config.skillAliases))
+    tokenize(job.normalizedText).map((t) =>
+      normalizeSkill(t, config.skillAliases)
+    )
   );
-  const weightOf = (keyword: string) => keywordWeightOf(keyword, requiredSet, preferredSet, jdFrequencies);
+  const weightOf = (keyword: string) =>
+    keywordWeightOf(keyword, requiredSet, preferredSet, jdFrequencies);
 
-  const matchedKeywords = [...jobKeywordSet].filter((keyword) => resumeTokenSet.has(keyword));
-  const missingKeywords = [...jobKeywordSet].filter((keyword) => !resumeTokenSet.has(keyword));
+  const matchedKeywords = [...jobKeywordSet].filter((keyword) =>
+    resumeTokenSet.has(keyword)
+  );
+  const missingKeywords = [...jobKeywordSet].filter(
+    (keyword) => !resumeTokenSet.has(keyword)
+  );
 
   // Weighted coverage: a missing required/high-frequency keyword costs more than a body-only one.
-  const totalWeight = [...jobKeywordSet].reduce((sum, keyword) => sum + weightOf(keyword), 0);
-  const matchedWeight = matchedKeywords.reduce((sum, keyword) => sum + weightOf(keyword), 0);
+  const totalWeight = [...jobKeywordSet].reduce(
+    (sum, keyword) => sum + weightOf(keyword),
+    0
+  );
+  const matchedWeight = matchedKeywords.reduce(
+    (sum, keyword) => sum + weightOf(keyword),
+    0
+  );
   const score = clamp((matchedWeight / totalWeight) * 100, 0, 100);
 
   const totalTokens = resumeTokens.length || 1;
@@ -154,10 +206,14 @@ function scoreKeywords(
 
   const keywordsByCategory = emptyCategoryBuckets();
   for (const keyword of matchedKeywords) {
-    keywordsByCategory[config.categoryIndex.get(keyword) ?? "technical"].matched.push(keyword);
+    keywordsByCategory[
+      config.categoryIndex.get(keyword) ?? "technical"
+    ].matched.push(keyword);
   }
   for (const keyword of missingKeywords) {
-    keywordsByCategory[config.categoryIndex.get(keyword) ?? "technical"].missing.push(keyword);
+    keywordsByCategory[
+      config.categoryIndex.get(keyword) ?? "technical"
+    ].missing.push(keyword);
   }
   for (const bucket of Object.values(keywordsByCategory)) {
     bucket.matched.sort();
@@ -198,28 +254,43 @@ function computeSkillExperienceGaps(
   config: ResolvedATSConfig
 ): ATSAnalysisResult["skillExperienceGaps"] {
   if (job.skillExperienceRequirements.length === 0) return [];
-  const resumeSkills = new Set(normalizeSkills(resume.skills, config.skillAliases));
+  const resumeSkills = new Set(
+    normalizeSkills(resume.skills, config.skillAliases)
+  );
   const gaps: ATSAnalysisResult["skillExperienceGaps"] = [];
   for (const { skill, years } of job.skillExperienceRequirements) {
     if (resumeSkills.has(skill) && resume.totalExperienceYears < years) {
-      gaps.push({ skill, requiredYears: years, resumeYears: resume.totalExperienceYears });
+      gaps.push({
+        skill,
+        requiredYears: years,
+        resumeYears: resume.totalExperienceYears,
+      });
     }
   }
   return gaps.sort((a, b) => a.skill.localeCompare(b.skill));
 }
 
-function scoreEducation(resume: ParsedResume, job: ParsedJobDescription): number {
+function scoreEducation(
+  resume: ParsedResume,
+  job: ParsedJobDescription
+): number {
   if (job.educationRequirements.length === 0) {
     return 100;
   }
-  const resumeDegreeLevels = extractDegreeLevels(resume.educationEntries.join(" "));
+  const resumeDegreeLevels = extractDegreeLevels(
+    resume.educationEntries.join(" ")
+  );
   const matched = job.educationRequirements.filter((requirement) =>
     resumeDegreeLevels.includes(requirement)
   );
   if (matched.length === 0) {
     return 0;
   }
-  return clamp((matched.length / job.educationRequirements.length) * 100, 0, 100);
+  return clamp(
+    (matched.length / job.educationRequirements.length) * 100,
+    0,
+    100
+  );
 }
 
 export function calculateScore(
@@ -252,10 +323,8 @@ export function calculateScore(
 
   // ponytail: language proficiency is informational, not part of the weighted score —
   // promote to a breakdown component if a real JD weights it explicitly.
-  const { matched: matchedLanguages, missing: missingLanguages } = diffLanguages(
-    resume.languages,
-    job.requiredLanguages
-  );
+  const { matched: matchedLanguages, missing: missingLanguages } =
+    diffLanguages(resume.languages, job.requiredLanguages);
 
   const skillExperienceGaps = computeSkillExperienceGaps(resume, job, config);
 

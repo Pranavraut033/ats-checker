@@ -43,8 +43,12 @@ The built-in `defaultKeywordRegistry` is a list of `{ canonical, aliases, catego
 config: {
   keywordRegistry: [
     { canonical: "rust", aliases: ["rustlang"], category: "technical" },
-    { canonical: "javascript", aliases: ["js", "ecmascript"], category: "technical" }, // overrides default entry
-  ]
+    {
+      canonical: "javascript",
+      aliases: ["js", "ecmascript"],
+      category: "technical",
+    }, // overrides default entry
+  ];
 }
 ```
 
@@ -53,6 +57,7 @@ Entries merge over `defaultKeywordRegistry` by `canonical` term — your entries
 ### Keyword Weighting
 
 Within `scoreKeywords`, each JD keyword gets a weight based on:
+
 - **Location**: required (`3`) > preferred (`2`) > body-only (`1`)
 - **Frequency**: a small bonus when the JD repeats the term
 
@@ -64,7 +69,9 @@ Categorized registries for other languages ship as subpath exports (canonical te
 
 ```typescript
 import de from "@pranavraut033/ats-checker/de";
-config: { keywordRegistry: de }
+config: {
+  keywordRegistry: de;
+}
 ```
 
 See [src/lang/](../src/lang/) for available packs (`en`, `de`).
@@ -145,13 +152,15 @@ Add your own validation logic with penalties.
 
 ```typescript
 config: {
-  rules: [{
-    id: "no-tables",
-    description: "Resumes with tables are hard for ATS to parse",
-    penalty: 10,
-    warning: "Remove tables from your resume",
-    condition: (context) => context.resume.hasTables
-  }]
+  rules: [
+    {
+      id: "no-tables",
+      description: "Resumes with tables are hard for ATS to parse",
+      penalty: 10,
+      warning: "Remove tables from your resume",
+      condition: (context) => context.resume.hasTables,
+    },
+  ];
 }
 ```
 
@@ -163,7 +172,7 @@ Freeze the "Present"/"Now"/"Current" end date used in experience date ranges. Wi
 
 ```typescript
 config: {
-  referenceDate: "2026-01-01"  // all "Present" ranges end here
+  referenceDate: "2026-01-01"; // all "Present" ranges end here
 }
 ```
 
@@ -175,7 +184,7 @@ Allow partial keyword matches (e.g., "Java" matches "JavaScript").
 
 ```typescript
 config: {
-  allowPartialMatches: true  // default: true
+  allowPartialMatches: true; // default: true
 }
 ```
 
@@ -184,6 +193,7 @@ config: {
 All user input is merged with sane defaults using `resolveConfig()` and weights are normalized to sum to 1.0.
 
 Default values:
+
 - **Weights**: skills 0.3, experience 0.3, keywords 0.25, education 0.15
 - **Keyword Density**: min 0.0025, max 0.04, overusePenalty 5
 - **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6, missingContact 0 (warning-only)
@@ -207,16 +217,18 @@ const result = analyzeResume({
   jobDescription: "...",
   config: {
     weights: { skills: 0.5, experience: 0.3, keywords: 0.1, education: 0.1 },
-    skillAliases: { "typescript": ["ts"] },
+    skillAliases: { typescript: ["ts"] },
     profile: {
       mandatorySkills: ["javascript", "react"],
-      minExperience: 3
+      minExperience: 3,
     },
-    rules: [{
-      id: "phone-number",
-      penalty: 2,
-      condition: (context) => !context.resume.contact?.phone
-    }]
-  }
+    rules: [
+      {
+        id: "phone-number",
+        penalty: 2,
+        condition: (context) => !context.resume.contact?.phone,
+      },
+    ],
+  },
 });
 ```

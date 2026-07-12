@@ -4,12 +4,21 @@ import { RuleEngine } from "./core/rules/rule.engine";
 import { calculateScore } from "./core/scoring/scorer";
 import { resolveConfig } from "./core/scoring/weights";
 import { SuggestionEngine } from "./core/suggestions/suggestion.engine";
-import { AnalyzeResumeInput, ATSAnalysisResult } from "./types/scoring";
+import {
+  LLMManager,
+  LLMSchemas,
+  LLMPrompts,
+  adaptSuggestionEnhancementResponse,
+} from "./llm";
+import {
+  defaultKeywordRegistry,
+  defaultProfiles,
+  defaultSkillAliases,
+} from "./profiles";
 import { ATSConfig } from "./types/config";
 import { LLMConfig } from "./types/llm";
+import { AnalyzeResumeInput, ATSAnalysisResult } from "./types/scoring";
 import { clamp } from "./utils/text";
-import { defaultKeywordRegistry, defaultProfiles, defaultSkillAliases } from "./profiles";
-import { LLMManager, LLMSchemas, LLMPrompts, adaptSuggestionEnhancementResponse } from "./llm";
 
 export * from "./types";
 export { defaultProfiles, defaultSkillAliases, defaultKeywordRegistry };
@@ -63,7 +72,10 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
 
   // V2: Optional LLM enhancement of suggestions (deterministic scores unchanged)
   if (input.llm && suggestionResult.suggestions.length > 0) {
-    const llmResult = enhanceSuggestionsWithLLM(input.llm, suggestionResult.suggestions);
+    const llmResult = enhanceSuggestionsWithLLM(
+      input.llm,
+      suggestionResult.suggestions
+    );
     if (llmResult.success) {
       suggestions = llmResult.enhancedSuggestions || suggestions;
     }
@@ -134,7 +146,9 @@ function enhanceSuggestionsWithLLM(
  * @param input Resume, job description, and optional LLM config
  * @returns Promise<ATSAnalysisResult>
  */
-export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATSAnalysisResult> {
+export async function analyzeResumeAsync(
+  input: AnalyzeResumeInput
+): Promise<ATSAnalysisResult> {
   // First pass: deterministic v1 logic
   const resolvedConfig = resolveConfig(input.config ?? ({} as ATSConfig));
   const parsedResume = parseResume(input.resumeText, resolvedConfig);
@@ -205,7 +219,11 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
 async function enhanceSuggestionsWithLLMAsync(
   config: LLMConfig,
   suggestions: string[]
-): Promise<{ success: boolean; enhancedSuggestions?: string[]; warnings: string[] }> {
+): Promise<{
+  success: boolean;
+  enhancedSuggestions?: string[];
+  warnings: string[];
+}> {
   if (!config.enable?.suggestions) {
     return { success: false, warnings: [] };
   }
@@ -226,7 +244,10 @@ async function enhanceSuggestionsWithLLMAsync(
       if (result.error) {
         warnings.push(`LLM suggestion enhancement failed: ${result.error}`);
       }
-      return { success: false, warnings: [...warnings, ...llmManager.getWarnings()] };
+      return {
+        success: false,
+        warnings: [...warnings, ...llmManager.getWarnings()],
+      };
     }
 
     const enhanced = adaptSuggestionEnhancementResponse(result.data);
@@ -236,7 +257,10 @@ async function enhanceSuggestionsWithLLMAsync(
 
     if (enhancedSuggestions.length === 0) {
       warnings.push("LLM returned no actionable enhanced suggestions");
-      return { success: false, warnings: [...warnings, ...llmManager.getWarnings()] };
+      return {
+        success: false,
+        warnings: [...warnings, ...llmManager.getWarnings()],
+      };
     }
 
     return {
@@ -245,7 +269,9 @@ async function enhanceSuggestionsWithLLMAsync(
       warnings: llmManager.getWarnings(),
     };
   } catch (e) {
-    warnings.push(`Unexpected error in LLM enhancement: ${(e as Error).message}`);
+    warnings.push(
+      `Unexpected error in LLM enhancement: ${(e as Error).message}`
+    );
     return { success: false, warnings };
   }
 }

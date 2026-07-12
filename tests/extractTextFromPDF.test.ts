@@ -40,8 +40,7 @@ describe("extractTextFromPDF", () => {
       promise: Promise.resolve({
         numPages: 1,
         getPage: vi.fn().mockResolvedValue({
-          getTextContent: () =>
-            Promise.resolve({ items: [{ str: "hello" }] }),
+          getTextContent: () => Promise.resolve({ items: [{ str: "hello" }] }),
         }),
       }),
     });
@@ -50,7 +49,9 @@ describe("extractTextFromPDF", () => {
     const result = await extractTextFromPDF(buf);
     expect(result).toContain("hello");
     // should have received a Uint8Array, not the original ArrayBuffer
-    expect((getDocument as ReturnType<typeof vi.fn>).mock.calls[0][0].data).toBeInstanceOf(Uint8Array);
+    expect(
+      (getDocument as ReturnType<typeof vi.fn>).mock.calls[0][0].data
+    ).toBeInstanceOf(Uint8Array);
   });
 
   it("reconstructs lines from y-coordinates", async () => {
@@ -103,7 +104,9 @@ describe("extractTextFromPDF", () => {
     });
 
     const ocrFallback = vi.fn().mockResolvedValue("should not be used");
-    const result = await extractTextFromPDF(new Uint8Array([0]), { ocrFallback });
+    const result = await extractTextFromPDF(new Uint8Array([0]), {
+      ocrFallback,
+    });
     expect(ocrFallback).not.toHaveBeenCalled();
     expect(result).toContain("a".repeat(200));
   });
@@ -111,8 +114,12 @@ describe("extractTextFromPDF", () => {
   it("uses ocrFallback result when text-layer extraction is too short", async () => {
     await mockShortDoc();
 
-    const ocrFallback = vi.fn().mockResolvedValue("Recovered full resume text from OCR".repeat(5));
-    const result = await extractTextFromPDF(new Uint8Array([0]), { ocrFallback });
+    const ocrFallback = vi
+      .fn()
+      .mockResolvedValue("Recovered full resume text from OCR".repeat(5));
+    const result = await extractTextFromPDF(new Uint8Array([0]), {
+      ocrFallback,
+    });
     expect(ocrFallback).toHaveBeenCalledOnce();
     expect(result).toContain("Recovered full resume text from OCR");
   });
@@ -120,8 +127,12 @@ describe("extractTextFromPDF", () => {
   it("falls back to text-layer result when ocrFallback throws", async () => {
     await mockShortDoc();
 
-    const ocrFallback = vi.fn().mockRejectedValue(new Error("OCR engine unavailable"));
-    const result = await extractTextFromPDF(new Uint8Array([0]), { ocrFallback });
+    const ocrFallback = vi
+      .fn()
+      .mockRejectedValue(new Error("OCR engine unavailable"));
+    const result = await extractTextFromPDF(new Uint8Array([0]), {
+      ocrFallback,
+    });
     expect(result).toBe("hi");
   });
 
@@ -129,7 +140,9 @@ describe("extractTextFromPDF", () => {
     await mockShortDoc();
 
     const ocrFallback = vi.fn().mockResolvedValue("x");
-    const result = await extractTextFromPDF(new Uint8Array([0]), { ocrFallback });
+    const result = await extractTextFromPDF(new Uint8Array([0]), {
+      ocrFallback,
+    });
     expect(result).toBe("hi");
   });
 
@@ -146,7 +159,9 @@ describe("extractTextFromPDF", () => {
   });
 
   it("throws a clear error when pdfjs-dist is not installed", async () => {
-    vi.doMock("pdfjs-dist", () => { throw new Error("Module not found"); });
+    vi.doMock("pdfjs-dist", () => {
+      throw new Error("Module not found");
+    });
 
     // Re-import to trigger fresh dynamic import inside the function
     vi.resetModules();

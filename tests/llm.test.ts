@@ -3,15 +3,17 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { LLMBudgetManager } from "../src/llm/llm.budget";
-import { LLMManager } from "../src/llm/llm.manager";
+
+import { analyzeResumeAsync } from "../src/index";
 import {
   adaptSkillNormalizationResponse,
   adaptSuggestionEnhancementResponse,
 } from "../src/llm/llm.adapters";
+import { LLMBudgetManager } from "../src/llm/llm.budget";
+import { LLMManager } from "../src/llm/llm.manager";
 import { LLMSchemas } from "../src/llm/llm.schemas";
+
 import type { LLMClient, LLMConfig } from "../src/types/llm";
-import { analyzeResumeAsync } from "../src/index";
 
 // ============ Budget Manager Tests ============
 
@@ -127,7 +129,11 @@ describe("LLMManager", () => {
     const mockResponse = {
       content: JSON.stringify({
         suggestions: [
-          { original: "Add skills", enhanced: "Highlight these required skills", actionable: true },
+          {
+            original: "Add skills",
+            enhanced: "Highlight these required skills",
+            actionable: true,
+          },
         ],
       }),
       usage: { total_tokens: 150 },
@@ -147,23 +153,28 @@ describe("LLMManager", () => {
     expect(result.fallback).toBe(false);
     expect(result.data).toEqual({
       suggestions: [
-        { original: "Add skills", enhanced: "Highlight these required skills", actionable: true },
+        {
+          original: "Add skills",
+          enhanced: "Highlight these required skills",
+          actionable: true,
+        },
       ],
     });
     expect(result.tokensUsed).toBe(150);
   });
 
   it("fails gracefully on timeout", async () => {
-    vi.mocked(mockClient.createCompletion).mockImplementation(
-      (_input: any) => {
-        const p = new Promise<{ content: unknown; usage?: { total_tokens?: number } }>((_, reject) =>
-          globalThis.setTimeout(() => reject(new Error("Timeout")), 100)
-        );
-        // Attach local catch to avoid unhandled rejections in test harness
-        void p.catch(() => { });
-        return p;
-      }
-    );
+    vi.mocked(mockClient.createCompletion).mockImplementation((_input: any) => {
+      const p = new Promise<{
+        content: unknown;
+        usage?: { total_tokens?: number };
+      }>((_, reject) =>
+        globalThis.setTimeout(() => reject(new Error("Timeout")), 100)
+      );
+      // Attach local catch to avoid unhandled rejections in test harness
+      void p.catch(() => {});
+      return p;
+    });
 
     const manager = new LLMManager({ ...config, timeoutMs: 50 });
     const result = await manager.callLLM(
@@ -242,20 +253,30 @@ describe("LLMManager", () => {
       unhandled = true;
       lastReason = reason;
       // Log to help debugging in CI
-      // eslint-disable-next-line no-console
+
       console.error("UNHANDLED REJECTION CAPTURED:", reason);
     };
     process.once("unhandledRejection", handler);
 
     // client that resolves after a long delay (longer than timeout)
-    vi.mocked(mockClient.createCompletion).mockImplementation(
-      (_input: any) => {
-        const p = new Promise<{ content: unknown; usage?: { total_tokens?: number } }>((res) => setTimeout(() => res({ content: JSON.stringify({ suggestions: [] }), usage: { total_tokens: 10 } }), 200));
-        // Avoid unhandled rejections if this settles after manager returns
-        void p.catch(() => { });
-        return p;
-      }
-    );
+    vi.mocked(mockClient.createCompletion).mockImplementation((_input: any) => {
+      const p = new Promise<{
+        content: unknown;
+        usage?: { total_tokens?: number };
+      }>((res) =>
+        setTimeout(
+          () =>
+            res({
+              content: JSON.stringify({ suggestions: [] }),
+              usage: { total_tokens: 10 },
+            }),
+          200
+        )
+      );
+      // Avoid unhandled rejections if this settles after manager returns
+      void p.catch(() => {});
+      return p;
+    });
 
     const manager = new LLMManager({ ...config, timeoutMs: 50 });
 
@@ -288,7 +309,9 @@ describe("LLMManager", () => {
 
     const mockResponse = {
       content: JSON.stringify({
-        suggestions: [{ original: "Test", enhanced: "Better test", actionable: true }],
+        suggestions: [
+          { original: "Test", enhanced: "Better test", actionable: true },
+        ],
       }),
       usage: { total_tokens: 50 },
     };
@@ -423,10 +446,15 @@ Engineer at Company (2020 - Present)
 Education
 B.S. Computer Science`;
 
-    const jobDescription = "Looking for React engineer with 3+ years experience";
+    const jobDescription =
+      "Looking for React engineer with 3+ years experience";
 
     // This should work exactly as v1 - no LLM involved
-    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
+    const result = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { referenceDate: "2026-01-01" },
+    });
 
     expect(result.score).toBe(75.75);
     expect(result.breakdown).toEqual({
@@ -473,7 +501,9 @@ B.S. Computer Science`;
 
   it("calls the LLM when suggestions are available, even for a high-match resume", async () => {
     const mockClient: LLMClient = {
-      createCompletion: vi.fn(async () => ({ content: JSON.stringify({ suggestions: [] }) })),
+      createCompletion: vi.fn(async () => ({
+        content: JSON.stringify({ suggestions: [] }),
+      })),
     };
 
     const result = await analyzeResumeAsync({
@@ -485,7 +515,8 @@ Experience
 Senior Engineer (2020 - Present) - Led React architecture
 Education
 B.S. Computer Science`,
-      jobDescription: "React engineer. Required: React, JavaScript. Preferred: GraphQL.",
+      jobDescription:
+        "React engineer. Required: React, JavaScript. Preferred: GraphQL.",
       llm: {
         client: mockClient,
         limits: { maxCalls: 10, maxTokensPerCall: 2000, maxTotalTokens: 50000 },

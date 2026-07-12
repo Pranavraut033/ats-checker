@@ -5,20 +5,39 @@
  */
 import { readFileSync } from "fs";
 import { join } from "path";
+
 import { describe, it, expect, beforeAll } from "vitest";
-import { extractTextFromPDF } from "../src/pdf/index";
+
 import { parseResume } from "../src/core/parser/resume.parser";
+import { extractTextFromPDF } from "../src/pdf/index";
+
 import type { ParsedResume } from "../src/types/parser";
 
 const FIXTURES = join(__dirname, "fixtures");
 
 const minimalConfig = {
   skillAliases: {},
-  profile: { name: "test", mandatorySkills: [], optionalSkills: [], minExperience: 0 },
+  profile: {
+    name: "test",
+    mandatorySkills: [],
+    optionalSkills: [],
+    minExperience: 0,
+  },
   rules: [],
-  weights: { skills: 0.25, experience: 0.25, keywords: 0.25, education: 0.25, normalizedTotal: 1 },
+  weights: {
+    skills: 0.25,
+    experience: 0.25,
+    keywords: 0.25,
+    education: 0.25,
+    normalizedTotal: 1,
+  },
   keywordDensity: { min: 0.0025, max: 0.04, overusePenalty: 5 },
-  sectionPenalties: { missingSummary: 4, missingExperience: 10, missingSkills: 8, missingEducation: 6 },
+  sectionPenalties: {
+    missingSummary: 4,
+    missingExperience: 10,
+    missingSkills: 8,
+    missingEducation: 6,
+  },
   allowPartialMatches: true,
   // Pinned so "Present" doesn't drift totalExperienceYears as real time passes.
   referenceDate: new Date("2026-06-22"),
@@ -58,7 +77,9 @@ describe("real PDF — PranavRaut2026 (two-column layout)", () => {
       expect(parsed.detectedSections).toContain(section);
     }
     // A well-extracted PDF must not trigger the "no line breaks" warning
-    expect(parsed.warnings.some((w: string) => w.includes("no line breaks"))).toBe(false);
+    expect(
+      parsed.warnings.some((w: string) => w.includes("no line breaks"))
+    ).toBe(false);
   });
 
   it("extracts expected skills", () => {
@@ -70,6 +91,8 @@ describe("real PDF — PranavRaut2026 (two-column layout)", () => {
 
   it("parses the exact expected years of experience for the pinned reference date", () => {
     expect(parsed.totalExperienceYears).toBe(6.17);
-    expect(parsed.totalExperienceYears).toBeGreaterThanOrEqual(expected.totalExperienceYearsMin);
+    expect(parsed.totalExperienceYears).toBeGreaterThanOrEqual(
+      expected.totalExperienceYearsMin
+    );
   });
 });

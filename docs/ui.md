@@ -5,6 +5,7 @@ ATS Checker includes a web-based demo for testing and demonstrating the library'
 ## 🚀 Live Demo
 
 The interactive demo is hosted on GitHub Pages:
+
 - **URL**: `https://Pranavraut033.github.io/ats-checker/index.html`
 - **Updates**: Automatically deployed when you push to `main`
 - **Privacy**: 100% client-side processing—data never leaves your browser
@@ -20,11 +21,13 @@ npm run build      # Build library and copy to UI dist folder
 Then choose one of these options:
 
 **Using npx http-server (recommended):**
+
 ```bash
 npx http-server ui/public -p 3005
 ```
 
 **Using Python:**
+
 ```bash
 cd ui/public && python3 -m http.server 3005
 ```
@@ -67,32 +70,41 @@ Click **Upload PDF** to load a resume directly from a `.pdf` file. Extraction ru
 ## Results Display
 
 ### ATS Score
+
 Overall compatibility score (0-100) with color-coded indicator:
+
 - 🟢 **75+**: Strong match
-- 🟡 **50-74**: Moderate match  
+- 🟡 **50-74**: Moderate match
 - 🔴 **<50**: Needs improvement
 
 ### Component Breakdown
+
 Individual scores for:
+
 - **Skills** (30%) - Required and preferred skill coverage
 - **Experience** (30%) - Years and role relevance
 - **Keywords** (25%) - Job description keyword matches
 - **Education** (15%) - Degree and certification matches
 
 ### Keywords
+
 - **Matched** - Green tags for keywords found in both documents
 - **Missing** - Red tags for important keywords to add
 - **Overused** - Yellow tags for keywords appearing too frequently
 - **By Category** - The same matched/missing keywords regrouped into technical, tool, concept, soft, marketing, and domain panels (categories with no keywords are hidden)
 
 ### Achievement Strength
+
 A green/red bar showing the ratio of strong to weak experience bullets, where "strong" means a bullet pairs an impact verb (built, led, optimized, ...) with a quantified result (a number, `%`, `$`, or `k+`/`m+`).
 
 ### Language Requirements
+
 Required languages (parsed from the JD as CEFR codes or words like "fluent"/"native") shown against what the resume states — green for met/exceeded, red for missing or below the required level.
 
 ### Suggestions
+
 Actionable advice like:
+
 - "Add 'React' to your skills section"
 - "Include more JavaScript experience details"
 - "Consider adding a summary section"
@@ -103,7 +115,9 @@ Actionable advice like:
 AI-powered suggestions are enhanced when LLM is enabled.
 
 ### Warnings
+
 Issues detected such as:
+
 - Missing resume sections (Summary, Education, etc.)
 - Potential keyword stuffing
 - Formatting problems
@@ -117,7 +131,8 @@ Enable LLM enhancement for AI-generated suggestions:
 3. Paste your API key (password field for security)
 4. Run analysis as normal
 
-**Security Note:** 
+**Security Note:**
+
 - Your data stays in your browser—API key is only used for OpenAI calls
 - Use a test/development key with limited permissions
 - Never share your production API key
@@ -141,6 +156,7 @@ git push origin main
 ```
 
 GitHub Actions workflow:
+
 1. Builds the library (`tsup`)
 2. Copies UI files and library to `pages/` directory
 3. Deploys to GitHub Pages

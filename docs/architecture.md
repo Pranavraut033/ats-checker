@@ -39,47 +39,47 @@ analyzeResume(input)
 
 `ATSAnalysisResult`:
 
-| Field | Source |
-|---|---|
-| `score` | `clamp(weightedScore - totalPenalty, 0, 100)` |
-| `breakdown` | `{ skills, experience, keywords, education }` sub-scores |
-| `matchedSkills` | required skills found in resume (sorted) |
-| `missingSkills` | required skills absent from resume (sorted) |
-| `matchedKeywords` | JD keywords present in resume (sorted) |
-| `missingKeywords` | JD keywords absent from resume (sorted) |
-| `overusedKeywords` | keywords above density threshold (sorted) |
-| `keywordsByCategory` | matched/missing keywords bucketed by `KeywordCategory` via `config.categoryIndex` |
-| `keywordWeights` | per-keyword `{ jdWeight, resumeWeight, importance }` from `scoreKeywords` |
-| `achievementStrength` | `{ strong, weak }` counts from `resume.achievements` (set in `parseResume`) |
-| `matchedLanguages` / `missingLanguages` | `diffLanguages(resume.languages, job.requiredLanguages)` in `calculateScore` |
-| `skillExperienceGaps` | JD "N+ years of X" requirements vs `resume.totalExperienceYears`, for skills the resume has (informational, not scored) |
-| `suggestions` | deterministic from SuggestionEngine |
-| `warnings` | from RuleEngine + parse warnings |
-| `experienceGap` | `max(requiredYears - parsedYears, 0)` |
-| `detectedSections` | section names the resume parser found |
-| `parsedExperienceYears` | sum of experience date ranges |
+| Field                                   | Source                                                                                                                  |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `score`                                 | `clamp(weightedScore - totalPenalty, 0, 100)`                                                                           |
+| `breakdown`                             | `{ skills, experience, keywords, education }` sub-scores                                                                |
+| `matchedSkills`                         | required skills found in resume (sorted)                                                                                |
+| `missingSkills`                         | required skills absent from resume (sorted)                                                                             |
+| `matchedKeywords`                       | JD keywords present in resume (sorted)                                                                                  |
+| `missingKeywords`                       | JD keywords absent from resume (sorted)                                                                                 |
+| `overusedKeywords`                      | keywords above density threshold (sorted)                                                                               |
+| `keywordsByCategory`                    | matched/missing keywords bucketed by `KeywordCategory` via `config.categoryIndex`                                       |
+| `keywordWeights`                        | per-keyword `{ jdWeight, resumeWeight, importance }` from `scoreKeywords`                                               |
+| `achievementStrength`                   | `{ strong, weak }` counts from `resume.achievements` (set in `parseResume`)                                             |
+| `matchedLanguages` / `missingLanguages` | `diffLanguages(resume.languages, job.requiredLanguages)` in `calculateScore`                                            |
+| `skillExperienceGaps`                   | JD "N+ years of X" requirements vs `resume.totalExperienceYears`, for skills the resume has (informational, not scored) |
+| `suggestions`                           | deterministic from SuggestionEngine                                                                                     |
+| `warnings`                              | from RuleEngine + parse warnings                                                                                        |
+| `experienceGap`                         | `max(requiredYears - parsedYears, 0)`                                                                                   |
+| `detectedSections`                      | section names the resume parser found                                                                                   |
+| `parsedExperienceYears`                 | sum of experience date ranges                                                                                           |
 
 **Scores are immutable** — no code path modifies `score` or `breakdown` after `calculateScore()` returns.
 
 ## Module Map
 
-| Module | Path | Role |
-|---|---|---|
-| Entry point | `src/index.ts` | Orchestrates pipeline; exports public API |
-| Resume parser | `src/core/parser/resume.parser.ts` | Section detect, skill extract, date ranges |
-| JD parser | `src/core/parser/jd.parser.ts` | Required/preferred skills, keywords, min experience |
-| Scorer | `src/core/scoring/scorer.ts` | Four sub-scores, weighted combine |
-| Config resolver | `src/core/scoring/weights.ts` | `resolveConfig()` — merge defaults, normalize weights |
-| Rule engine | `src/core/rules/rule.engine.ts` | Pluggable penalty rules |
-| Suggestion engine | `src/core/suggestions/suggestion.engine.ts` | Deterministic suggestions |
-| LLM layer (deprecated) | `src/llm/` | Budget-controlled wrapper; only touches `suggestions` |
-| Profiles | `src/profiles/index.ts` | `defaultKeywordRegistry` (categorized) + derived `defaultSkillAliases` |
-| Language packs | `src/lang/en/`, `src/lang/de/` | Installable `KeywordRegistry` per language, default-exported |
-| Types | `src/types/` | All shared types; re-exported from `src/index.ts` |
-| Text utils | `src/utils/text.ts` | Tech-aware tokenizer, NFKC normalize, `clamp`, `unique` |
-| Skill utils | `src/utils/skills.ts` | `normalizeSkill`/`normalizeSkills` (Map-cached), `buildCategoryIndex`, `deriveSkillAliases`, `mergeKeywordRegistries` |
-| Date utils | `src/utils/dates.ts` | `parseDateRange` (respects `referenceDate`), `sumExperienceYears` |
-| Language utils | `src/utils/languages.ts` | `parseLanguageMentions` (CEFR/descriptive level detection), `diffLanguages` (rank comparison) |
+| Module                 | Path                                        | Role                                                                                                                  |
+| ---------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Entry point            | `src/index.ts`                              | Orchestrates pipeline; exports public API                                                                             |
+| Resume parser          | `src/core/parser/resume.parser.ts`          | Section detect, skill extract, date ranges                                                                            |
+| JD parser              | `src/core/parser/jd.parser.ts`              | Required/preferred skills, keywords, min experience                                                                   |
+| Scorer                 | `src/core/scoring/scorer.ts`                | Four sub-scores, weighted combine                                                                                     |
+| Config resolver        | `src/core/scoring/weights.ts`               | `resolveConfig()` — merge defaults, normalize weights                                                                 |
+| Rule engine            | `src/core/rules/rule.engine.ts`             | Pluggable penalty rules                                                                                               |
+| Suggestion engine      | `src/core/suggestions/suggestion.engine.ts` | Deterministic suggestions                                                                                             |
+| LLM layer (deprecated) | `src/llm/`                                  | Budget-controlled wrapper; only touches `suggestions`                                                                 |
+| Profiles               | `src/profiles/index.ts`                     | `defaultKeywordRegistry` (categorized) + derived `defaultSkillAliases`                                                |
+| Language packs         | `src/lang/en/`, `src/lang/de/`              | Installable `KeywordRegistry` per language, default-exported                                                          |
+| Types                  | `src/types/`                                | All shared types; re-exported from `src/index.ts`                                                                     |
+| Text utils             | `src/utils/text.ts`                         | Tech-aware tokenizer, NFKC normalize, `clamp`, `unique`                                                               |
+| Skill utils            | `src/utils/skills.ts`                       | `normalizeSkill`/`normalizeSkills` (Map-cached), `buildCategoryIndex`, `deriveSkillAliases`, `mergeKeywordRegistries` |
+| Date utils             | `src/utils/dates.ts`                        | `parseDateRange` (respects `referenceDate`), `sumExperienceYears`                                                     |
+| Language utils         | `src/utils/languages.ts`                    | `parseLanguageMentions` (CEFR/descriptive level detection), `diffLanguages` (rank comparison)                         |
 
 ## Build & Distribution
 

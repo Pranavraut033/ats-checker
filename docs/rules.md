@@ -5,6 +5,7 @@ Customize ATS validation via rules that add penalties and warnings. Built-in rul
 ## Built-in Rules
 
 Defaults applied by the engine:
+
 - **Missing Sections**: penalties for missing `summary` (4), `experience` (10), `skills` (8), `education` (6)
 - **Formatting**: table/column-like structures detected → penalty 8
 - **Keyword Stuffing**: per-overused keyword penalty (default 5× count)
@@ -18,12 +19,12 @@ Custom `condition` functions receive a `RuleContext` object:
 
 ```ts
 interface RuleContext {
-  resume: ParsedResume;        // parsed resume data
-  job: ParsedJobDescription;   // parsed job description
-  weights: NormalizedWeights;  // resolved weights (sum to 1)
+  resume: ParsedResume; // parsed resume data
+  job: ParsedJobDescription; // parsed job description
+  weights: NormalizedWeights; // resolved weights (sum to 1)
   keywordDensity: KeywordDensityConfig; // thresholds and penalties
-  breakdown?: ATSBreakdown;    // component scores
-  matchedKeywords?: string[];  // in resume & JD
+  breakdown?: ATSBreakdown; // component scores
+  matchedKeywords?: string[]; // in resume & JD
   overusedKeywords?: string[]; // suspected stuffing
 }
 ```
@@ -58,7 +59,8 @@ const result = analyzeResume({
       },
       {
         id: "limit-overuse",
-        description: "Extra penalty if more than 3 keywords flagged as overused",
+        description:
+          "Extra penalty if more than 3 keywords flagged as overused",
         penalty: 3,
         warning: "Reduce repeated keywords",
         condition: (ctx) => (ctx.overusedKeywords?.length ?? 0) > 3,

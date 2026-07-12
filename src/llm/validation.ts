@@ -5,7 +5,8 @@ import { JSONSchema } from "../types/llm";
  * Supports: object type with properties, required arrays, and simple primitive checks.
  */
 export function validateJsonSchema(data: unknown, schema: JSONSchema): boolean {
-  if (schema.type !== "object" || typeof data !== "object" || data === null) return false;
+  if (schema.type !== "object" || typeof data !== "object" || data === null)
+    return false;
   const obj = data as Record<string, unknown>;
 
   if (schema.required) {
@@ -40,9 +41,15 @@ export function validateJsonSchema(data: unknown, schema: JSONSchema): boolean {
           if (items && (items as any).type && Array.isArray(value)) {
             const itemType = (items as any).type;
             for (const item of value as unknown[]) {
-              if (itemType === "string" && typeof item !== "string") return false;
-              if (itemType === "number" && typeof item !== "number") return false;
-              if (itemType === "object" && (typeof item !== "object" || item === null)) return false;
+              if (itemType === "string" && typeof item !== "string")
+                return false;
+              if (itemType === "number" && typeof item !== "number")
+                return false;
+              if (
+                itemType === "object" &&
+                (typeof item !== "object" || item === null)
+              )
+                return false;
             }
           }
           break;

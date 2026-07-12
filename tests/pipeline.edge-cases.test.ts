@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
+
 import { analyzeResume, analyzeResumeAsync } from "../src";
 import { resolveConfig } from "../src/core/scoring/weights";
+
 import type { ATSConfig } from "../src/types";
 
 // Edge cases across skills, experience, education, rules, density, suggestions, weights, LLM sync fallback
@@ -26,7 +28,11 @@ describe("ATS pipeline edge cases", () => {
 
     expect(result.breakdown.experience).toBe(89.5);
     // Should indicate missing years (rounded to 2 decimals)
-    expect(result.suggestions.some(s => s.toLowerCase().includes("clarify at least"))).toBe(true);
+    expect(
+      result.suggestions.some((s) =>
+        s.toLowerCase().includes("clarify at least")
+      )
+    ).toBe(true);
   });
 
   it("education scoring handles multiple required degrees", () => {
@@ -36,18 +42,28 @@ describe("ATS pipeline edge cases", () => {
     const result = analyzeResume({ resumeText, jobDescription });
 
     expect(result.breakdown.education).toBe(0);
-    expect(result.suggestions.some(s => s.includes("education credentials"))).toBe(true);
+    expect(
+      result.suggestions.some((s) => s.includes("education credentials"))
+    ).toBe(true);
   });
 
   it("applies section penalties and warns for missing sections", () => {
     const resumeText = `Skills\nJavaScript, React\nExperience\nEngineer (2024 - Present)`; // Missing summary and education
     const jobDescription = `Need engineer`;
 
-    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
+    const result = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { referenceDate: "2026-01-01" },
+    });
 
     // Warnings should include missing sections
-    expect(result.warnings.some(w => w.includes("summary section missing"))).toBe(true);
-    expect(result.warnings.some(w => w.includes("education section missing"))).toBe(true);
+    expect(
+      result.warnings.some((w) => w.includes("summary section missing"))
+    ).toBe(true);
+    expect(
+      result.warnings.some((w) => w.includes("education section missing"))
+    ).toBe(true);
     expect(result.score).toBeCloseTo(53.6, 5);
   });
 
@@ -55,9 +71,15 @@ describe("ATS pipeline edge cases", () => {
     const resumeText = `Summary\nSkills | JavaScript | React\nExperience\nEngineer (2022 - Present) | Team | Impact\nEducation\nB.S.`;
     const jobDescription = `Need React`;
 
-    const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
+    const result = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { referenceDate: "2026-01-01" },
+    });
 
-    expect(result.warnings.some(w => w.toLowerCase().includes("table-like"))).toBe(true);
+    expect(
+      result.warnings.some((w) => w.toLowerCase().includes("table-like"))
+    ).toBe(true);
     expect(result.score).toBe(41.5);
   });
 
@@ -65,16 +87,26 @@ describe("ATS pipeline edge cases", () => {
     const baseJD = "Looking for React developer";
 
     // Configure a tight density to control math easily
-    const config: ATSConfig = { keywordDensity: { min: 0.0, max: 0.05, overusePenalty: 5 } };
+    const config: ATSConfig = {
+      keywordDensity: { min: 0.0, max: 0.05, overusePenalty: 5 },
+    };
 
     // Exactly 20 tokens with React appearing 1 time -> density 0.05 (== max)
     const equalResume = `Summary\n${Array(19).fill("word").join(" ")} React`;
-    const eqResult = analyzeResume({ resumeText: equalResume, jobDescription: baseJD, config });
+    const eqResult = analyzeResume({
+      resumeText: equalResume,
+      jobDescription: baseJD,
+      config,
+    });
     expect(eqResult.overusedKeywords).not.toContain("react");
 
     // 20 tokens with React appearing 2 times -> 0.1 (> max)
     const overResume = `Summary\n${Array(18).fill("word").join(" ")} React React`;
-    const overResult = analyzeResume({ resumeText: overResume, jobDescription: baseJD, config });
+    const overResult = analyzeResume({
+      resumeText: overResume,
+      jobDescription: baseJD,
+      config,
+    });
     expect(overResult.overusedKeywords).toContain("react");
   });
 
@@ -83,21 +115,36 @@ describe("ATS pipeline edge cases", () => {
     const jobDescription = `Need engineer`;
 
     const result = analyzeResume({ resumeText, jobDescription });
-    expect(result.suggestions.some(s => s.toLowerCase().includes("impact verbs"))).toBe(true);
+    expect(
+      result.suggestions.some((s) => s.toLowerCase().includes("impact verbs"))
+    ).toBe(true);
   });
 
   it("weights normalize to sum 1.0 and influence score", () => {
     const config: ATSConfig = {
-      weights: { skills: 0.5, experience: 0.25, keywords: 0.15, education: 0.1 },
+      weights: {
+        skills: 0.5,
+        experience: 0.25,
+        keywords: 0.15,
+        education: 0.1,
+      },
     };
     const resolved = resolveConfig(config);
-    const sum = resolved.weights.skills + resolved.weights.experience + resolved.weights.keywords + resolved.weights.education;
+    const sum =
+      resolved.weights.skills +
+      resolved.weights.experience +
+      resolved.weights.keywords +
+      resolved.weights.education;
     expect(Number(sum.toFixed(6))).toBe(1);
 
     const resumeText = `Summary\nEngineer\nSkills\nReact\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`;
     const jobDescription = `Requirements: React`;
 
-    const resultDefault = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
+    const resultDefault = analyzeResume({
+      resumeText,
+      jobDescription,
+      config: { referenceDate: "2026-01-01" },
+    });
     const resultWeighted = analyzeResume({
       resumeText,
       jobDescription,
@@ -127,7 +174,11 @@ describe("ATS pipeline edge cases", () => {
     });
 
     // Warning is added by sync fallback path in analyzeResume()
-    expect(result.warnings.some(w => w.includes("LLM suggestion enhancement skipped"))).toBe(true);
+    expect(
+      result.warnings.some((w) =>
+        w.includes("LLM suggestion enhancement skipped")
+      )
+    ).toBe(true);
   });
 
   it("async LLM path enhances suggestions or degrades gracefully", async () => {
@@ -142,7 +193,12 @@ describe("ATS pipeline edge cases", () => {
       // this file that already pins referenceDate).
       config: { referenceDate: "2026-01-01" },
       llm: {
-        client: { createCompletion: async () => ({ content: JSON.stringify({ suggestions: [] }), usage: { total_tokens: 100 } }) },
+        client: {
+          createCompletion: async () => ({
+            content: JSON.stringify({ suggestions: [] }),
+            usage: { total_tokens: 100 },
+          }),
+        },
         limits: { maxCalls: 3, maxTokensPerCall: 2000, maxTotalTokens: 5000 },
         enable: { suggestions: true },
       },

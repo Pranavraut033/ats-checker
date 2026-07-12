@@ -1,25 +1,25 @@
 /**
  * Example: OpenAI LLM Client Adapter
  * This is a reference implementation showing how to integrate with OpenAI's API.
- * 
+ *
  * Usage:
  *   import { createOpenAIClient } from './openai-client';
  *   const client = createOpenAIClient(process.env.OPENAI_API_KEY);
- *   
+ *
  *   const result = await analyzeResumeAsync({
  *     resumeText, jobDescription,
  *     llm: { client, limits: {...} }
  *   });
  */
 
-import type { LLMClient, JSONSchema } from "@pranavraut033/ats-checker";
+import type { LLMClient } from "@pranavraut033/ats-checker";
 
 /**
  * Creates an OpenAI client adapter for the ATS checker
- * 
+ *
  * @param apiKey OpenAI API key
  * @returns LLMClient implementation
- * 
+ *
  * @example
  * const client = createOpenAIClient(process.env.OPENAI_API_KEY);
  * const result = await analyzeResumeAsync({
@@ -59,13 +59,13 @@ export function createOpenAIClient(apiKey: string): LLMClient {
       throw new Error(
         "Not implemented. Install @openai/sdk and uncomment the implementation above."
       );
-    }
+    },
   };
 }
 
 /**
  * Example: Anthropic (Claude) LLM Client Adapter
- * 
+ *
  * Usage:
  *   const client = createAnthropicClient(process.env.ANTHROPIC_API_KEY);
  */
@@ -97,13 +97,13 @@ export function createAnthropicClient(apiKey: string): LLMClient {
       throw new Error(
         "Not implemented. Install @anthropic-ai/sdk and uncomment the implementation above."
       );
-    }
+    },
   };
 }
 
 /**
  * Example: Local Model (LM Studio, Ollama) Client Adapter
- * 
+ *
  * Usage:
  *   const client = createLocalModelClient("http://localhost:8000");
  */
@@ -133,13 +133,13 @@ export function createLocalModelClient(baseUrl: string): LLMClient {
       throw new Error(
         "Not implemented. Connect to your local LM Studio or Ollama server."
       );
-    }
+    },
   };
 }
 
 /**
  * Example: Mock client for testing
- * 
+ *
  * Usage:
  *   const client = createMockClient();
  *   const result = await analyzeResumeAsync({
@@ -148,7 +148,9 @@ export function createLocalModelClient(baseUrl: string): LLMClient {
  *   });
  */
 export function createMockClient(
-  responseOverride?: (input: Parameters<LLMClient["createCompletion"]>[0]) => unknown
+  responseOverride?: (
+    input: Parameters<LLMClient["createCompletion"]>[0]
+  ) => unknown
 ): LLMClient {
   return {
     async createCompletion(input) {
@@ -156,7 +158,7 @@ export function createMockClient(
       if (responseOverride) {
         return {
           content: responseOverride(input),
-          usage: { total_tokens: 100 }
+          usage: { total_tokens: 100 },
         };
       }
 
@@ -170,11 +172,11 @@ export function createMockClient(
               {
                 original: "Test suggestion",
                 enhanced: "Enhanced test suggestion",
-                actionable: true
-              }
-            ]
+                actionable: true,
+              },
+            ],
           },
-          usage: { total_tokens: 50 }
+          usage: { total_tokens: 50 },
         };
       }
 
@@ -182,18 +184,18 @@ export function createMockClient(
         return {
           content: {
             canonicalSkills: [
-              { input: "js", normalized: "javascript", confidence: 0.95 }
-            ]
+              { input: "js", normalized: "javascript", confidence: 0.95 },
+            ],
           },
-          usage: { total_tokens: 30 }
+          usage: { total_tokens: 30 },
         };
       }
 
       // Fallback
       return {
         content: { result: "success" },
-        usage: { total_tokens: 20 }
+        usage: { total_tokens: 20 },
       };
-    }
+    },
   };
 }

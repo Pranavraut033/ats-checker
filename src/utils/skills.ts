@@ -1,5 +1,9 @@
-import { KeywordCategory, KeywordRegistry, SkillAliases } from "../types/config";
 import { unique } from "./text";
+import {
+  KeywordCategory,
+  KeywordRegistry,
+  SkillAliases,
+} from "../types/config";
 
 // ponytail: Map lookup, not fuzzy match — add fuzzy only if real misses show up.
 const aliasIndexCache = new WeakMap<SkillAliases, Map<string, string>>();
@@ -25,11 +29,18 @@ export function normalizeSkill(skill: string, aliases: SkillAliases): string {
   return getAliasIndex(aliases).get(normalized) ?? normalized;
 }
 
-export function normalizeSkills(skills: string[], aliases: SkillAliases): string[] {
+export function normalizeSkills(
+  skills: string[],
+  aliases: SkillAliases
+): string[] {
   return unique(skills.map((skill) => normalizeSkill(skill, aliases)));
 }
 
-export function skillMatched(candidate: string, targetSkills: Set<string>, aliases: SkillAliases): boolean {
+export function skillMatched(
+  candidate: string,
+  targetSkills: Set<string>,
+  aliases: SkillAliases
+): boolean {
   const normalizedCandidate = normalizeSkill(candidate, aliases);
   return targetSkills.has(normalizedCandidate);
 }
@@ -44,7 +55,9 @@ export function deriveSkillAliases(registry: KeywordRegistry): SkillAliases {
 }
 
 /** Derive a canonical->category lookup from a keyword registry. */
-export function buildCategoryIndex(registry: KeywordRegistry): Map<string, KeywordCategory> {
+export function buildCategoryIndex(
+  registry: KeywordRegistry
+): Map<string, KeywordCategory> {
   const index = new Map<string, KeywordCategory>();
   for (const entry of registry) {
     index.set(entry.canonical.toLowerCase(), entry.category);
@@ -53,9 +66,14 @@ export function buildCategoryIndex(registry: KeywordRegistry): Map<string, Keywo
 }
 
 /** Merge two registries by canonical term; entries in `overrides` win. */
-export function mergeKeywordRegistries(base: KeywordRegistry, overrides: KeywordRegistry): KeywordRegistry {
+export function mergeKeywordRegistries(
+  base: KeywordRegistry,
+  overrides: KeywordRegistry
+): KeywordRegistry {
   const byCanonical = new Map<string, KeywordRegistry[number]>();
-  for (const entry of base) byCanonical.set(entry.canonical.toLowerCase(), entry);
-  for (const entry of overrides) byCanonical.set(entry.canonical.toLowerCase(), entry);
+  for (const entry of base)
+    byCanonical.set(entry.canonical.toLowerCase(), entry);
+  for (const entry of overrides)
+    byCanonical.set(entry.canonical.toLowerCase(), entry);
   return [...byCanonical.values()];
 }

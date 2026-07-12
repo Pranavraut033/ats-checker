@@ -26,22 +26,35 @@ function buildAliasReplacementSuggestions(
   job: ParsedJobDescription,
   config: ResolvedATSConfig
 ): string[] {
-  const jobKeywordSet = new Set(job.keywords.map((k) => normalizeSkill(k, config.skillAliases)));
+  const jobKeywordSet = new Set(
+    job.keywords.map((k) => normalizeSkill(k, config.skillAliases))
+  );
   const replacements: string[] = [];
   for (const token of unique(tokenize(resume.normalizedText))) {
     const canonical = normalizeSkill(token, config.skillAliases);
     const jdSurface = job.keywordSurfaceForms[canonical];
-    if (jdSurface && jobKeywordSet.has(canonical) && jdSurface.toLowerCase() !== token.toLowerCase()) {
-      replacements.push(`Replace "${token}" with "${jdSurface}" to match the job description's wording.`);
+    if (
+      jdSurface &&
+      jobKeywordSet.has(canonical) &&
+      jdSurface.toLowerCase() !== token.toLowerCase()
+    ) {
+      replacements.push(
+        `Replace "${token}" with "${jdSurface}" to match the job description's wording.`
+      );
     }
   }
   return unique(replacements).slice(0, 5);
 }
 
 export class SuggestionEngine {
-  generate(input: SuggestionInput): Pick<ATSAnalysisResult, "suggestions" | "warnings"> {
+  generate(
+    input: SuggestionInput
+  ): Pick<ATSAnalysisResult, "suggestions" | "warnings"> {
     const suggestions: string[] = [];
-    const warnings: string[] = [...input.ruleWarnings, ...input.resume.warnings];
+    const warnings: string[] = [
+      ...input.ruleWarnings,
+      ...input.resume.warnings,
+    ];
 
     if (input.score.missingSkills.length > 0) {
       suggestions.push(
@@ -55,7 +68,9 @@ export class SuggestionEngine {
       );
     }
 
-    suggestions.push(...buildAliasReplacementSuggestions(input.resume, input.job, input.config));
+    suggestions.push(
+      ...buildAliasReplacementSuggestions(input.resume, input.job, input.config)
+    );
 
     if (input.score.overusedKeywords.length > 0) {
       suggestions.push(
@@ -69,7 +84,10 @@ export class SuggestionEngine {
       );
     }
 
-    if (input.job.educationRequirements.length > 0 && input.score.educationScore === 0) {
+    if (
+      input.job.educationRequirements.length > 0 &&
+      input.score.educationScore === 0
+    ) {
       suggestions.push(
         `State your education credentials matching: ${formatList(input.job.educationRequirements)}`
       );
@@ -94,7 +112,9 @@ export class SuggestionEngine {
       suggestions.push(`Mention your proficiency in: ${formatted}`);
     }
 
-    const weakAchievement = input.resume.achievements.find((a) => a.strength === "weak");
+    const weakAchievement = input.resume.achievements.find(
+      (a) => a.strength === "weak"
+    );
     if (weakAchievement) {
       suggestions.push(
         `Strengthen "${weakAchievement.text}" — add scope/metrics, e.g. "Built and maintained scalable services handling 500k+ requests/day."`

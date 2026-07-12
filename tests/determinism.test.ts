@@ -3,6 +3,7 @@
  * Golden values were captured after the determinism fixes and serve as regression pins.
  */
 import { describe, it, expect, vi, afterEach } from "vitest";
+
 import { analyzeResume } from "../src";
 
 // ---------------------------------------------------------------------------
@@ -106,11 +107,19 @@ describe("determinism — clock-independent experience scoring", () => {
       jobDescription: JD_FRONTEND,
     };
 
-    const early = analyzeResume({ ...baseInput, config: { referenceDate: "2021-01-01" } });
-    const later = analyzeResume({ ...baseInput, config: { referenceDate: "2026-01-01" } });
+    const early = analyzeResume({
+      ...baseInput,
+      config: { referenceDate: "2021-01-01" },
+    });
+    const later = analyzeResume({
+      ...baseInput,
+      config: { referenceDate: "2026-01-01" },
+    });
 
     // 5 more years of experience must strictly raise the experience score
-    expect(later.breakdown.experience).toBeGreaterThan(early.breakdown.experience);
+    expect(later.breakdown.experience).toBeGreaterThan(
+      early.breakdown.experience
+    );
     expect(early.breakdown.experience).toBe(52);
     expect(later.breakdown.experience).toBe(100);
   });
@@ -125,17 +134,25 @@ describe("tokenizer — tech tokens", () => {
   const techResume = `Summary\nPolyglot engineer.\nSkills\nC#, Node.js\nExperience\nEngineer (2020 - 2023)\nEducation\nB.S.`;
 
   it("c# is recognized as a keyword (not dropped as single-char 'c')", () => {
-    const result = analyzeResume({ resumeText: techResume, jobDescription: techJD });
+    const result = analyzeResume({
+      resumeText: techResume,
+      jobDescription: techJD,
+    });
     // c# should appear in matched (via alias -> csharp canonical or direct token)
     const allKeywords = [...result.matchedKeywords, ...result.missingKeywords];
     // c# or its canonical 'csharp' should be tracked, not silently absent
-    expect(allKeywords.some((k) => k.includes("c#") || k.includes("csharp"))).toBe(true);
+    expect(
+      allKeywords.some((k) => k.includes("c#") || k.includes("csharp"))
+    ).toBe(true);
   });
 
   it("alias normalization: 'js' in resume body matches 'javascript' JD keyword", () => {
     const jsResume = `Summary\nDeveloper.\nSkills\nJS, React\nExperience\nEngineer (2020 - 2023)\nEducation\nB.S.`;
     const jsJD = `Require JavaScript developer with React experience.`;
-    const result = analyzeResume({ resumeText: jsResume, jobDescription: jsJD });
+    const result = analyzeResume({
+      resumeText: jsResume,
+      jobDescription: jsJD,
+    });
     // "javascript" should be matched, not missing
     expect(result.missingKeywords).not.toContain("javascript");
   });
@@ -143,7 +160,10 @@ describe("tokenizer — tech tokens", () => {
   it("node and javascript are separate skills (no alias collapse)", () => {
     const bothResume = `Summary\nFull-stack.\nSkills\nJavaScript, Node.js\nExperience\nEngineer (2020 - 2023)\nEducation\nB.S.`;
     const bothJD = `Must have JavaScript and Node.js. Prefer TypeScript.`;
-    const result = analyzeResume({ resumeText: bothResume, jobDescription: bothJD });
+    const result = analyzeResume({
+      resumeText: bothResume,
+      jobDescription: bothJD,
+    });
     // Both javascript and node should match, not collapse into one
     const matched = result.matchedKeywords;
     expect(matched).toContain("javascript");

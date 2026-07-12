@@ -1,5 +1,5 @@
-import { ATSBreakdown } from "./scoring";
 import { ParsedJobDescription, ParsedResume } from "./parser";
+import { ATSBreakdown } from "./scoring";
 
 export interface ATSWeights {
   skills: number;
@@ -10,7 +10,13 @@ export interface ATSWeights {
 
 export type SkillAliases = Record<string, string[]>;
 
-export type KeywordCategory = "technical" | "tool" | "concept" | "soft" | "marketing" | "domain";
+export type KeywordCategory =
+  | "technical"
+  | "tool"
+  | "concept"
+  | "soft"
+  | "marketing"
+  | "domain";
 
 export interface KeywordEntry {
   canonical: string;

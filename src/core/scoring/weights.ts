@@ -1,4 +1,8 @@
 import {
+  defaultKeywordRegistry,
+  softwareEngineerProfile,
+} from "../../profiles";
+import {
   ATSConfig,
   ATSWeights,
   KeywordDensityConfig,
@@ -6,8 +10,11 @@ import {
   ResolvedATSConfig,
   SectionPenaltyConfig,
 } from "../../types/config";
-import { defaultKeywordRegistry, softwareEngineerProfile } from "../../profiles";
-import { buildCategoryIndex, deriveSkillAliases, mergeKeywordRegistries } from "../../utils/skills";
+import {
+  buildCategoryIndex,
+  deriveSkillAliases,
+  mergeKeywordRegistries,
+} from "../../utils/skills";
 
 const DEFAULT_WEIGHTS: ATSWeights = {
   skills: 0.3,
@@ -33,7 +40,8 @@ const DEFAULT_SECTION_PENALTIES: Required<SectionPenaltyConfig> = {
 };
 
 function normalizeWeights(weights: ATSWeights): NormalizedWeights {
-  const total = weights.skills + weights.experience + weights.keywords + weights.education;
+  const total =
+    weights.skills + weights.experience + weights.keywords + weights.education;
   if (total === 0) {
     // Guard against misconfigured zero weights by falling back to equal distribution
     const equal = 1 / 4;
@@ -62,11 +70,17 @@ export function resolveConfig(config: ATSConfig = {}): ResolvedATSConfig {
     education: config.weights?.education ?? DEFAULT_WEIGHTS.education,
   };
 
-  const keywordRegistry = mergeKeywordRegistries(defaultKeywordRegistry, config.keywordRegistry ?? []);
+  const keywordRegistry = mergeKeywordRegistries(
+    defaultKeywordRegistry,
+    config.keywordRegistry ?? []
+  );
 
   const resolved: ResolvedATSConfig = {
     weights: normalizeWeights(weights),
-    skillAliases: { ...deriveSkillAliases(keywordRegistry), ...(config.skillAliases ?? {}) },
+    skillAliases: {
+      ...deriveSkillAliases(keywordRegistry),
+      ...(config.skillAliases ?? {}),
+    },
     keywordRegistry,
     categoryIndex: buildCategoryIndex(keywordRegistry),
     profile: config.profile ?? softwareEngineerProfile,
@@ -77,7 +91,9 @@ export function resolveConfig(config: ATSConfig = {}): ResolvedATSConfig {
       ...(config.sectionPenalties ?? {}),
     },
     allowPartialMatches: config.allowPartialMatches ?? true,
-    referenceDate: config.referenceDate ? new Date(config.referenceDate) : undefined,
+    referenceDate: config.referenceDate
+      ? new Date(config.referenceDate)
+      : undefined,
   };
 
   return resolved;

@@ -63,11 +63,11 @@ plugins:
 nav:
   - Home: index.md
   - Documentation:
-    - Architecture: architecture.md
-    - Configuration: configuration.md
-    - Rules Engine: rules.md
-    - LLM Integration (deprecated): llm-integration.md
-    - UI Guide: ui.md
+      - Architecture: architecture.md
+      - Configuration: configuration.md
+      - Rules Engine: rules.md
+      - LLM Integration (deprecated): llm-integration.md
+      - UI Guide: ui.md
 
 extra:
   social:
@@ -77,4 +77,3 @@ extra:
       link: https://www.linkedin.com/in/pranav-raut
 
 copyright: Copyright &copy; 2025 Pranav Virendra Raut
-

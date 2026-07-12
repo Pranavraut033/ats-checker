@@ -1,14 +1,31 @@
 import { describe, it, expect } from "vitest";
+
 import { parseResume } from "../src/core/parser/resume.parser";
 
 describe("resume parser section detection", () => {
   const minimalConfig = {
     skillAliases: {},
-    profile: { name: "test", mandatorySkills: [], optionalSkills: [], minExperience: 0 },
+    profile: {
+      name: "test",
+      mandatorySkills: [],
+      optionalSkills: [],
+      minExperience: 0,
+    },
     rules: [],
-    weights: { skills: 0.25, experience: 0.25, keywords: 0.25, education: 0.25, normalizedTotal: 1 },
+    weights: {
+      skills: 0.25,
+      experience: 0.25,
+      keywords: 0.25,
+      education: 0.25,
+      normalizedTotal: 1,
+    },
     keywordDensity: { min: 0.0025, max: 0.04, overusePenalty: 5 },
-    sectionPenalties: { missingSummary: 4, missingExperience: 10, missingSkills: 8, missingEducation: 6 },
+    sectionPenalties: {
+      missingSummary: 4,
+      missingExperience: 10,
+      missingSkills: 8,
+      missingEducation: 6,
+    },
     allowPartialMatches: true,
   } as any;
 
@@ -25,12 +42,16 @@ describe("resume parser section detection", () => {
     // Simulates a multi-column PDF that exports as one long line
     const blob = "A".repeat(500);
     const parsed = parseResume(blob, minimalConfig);
-    expect(parsed.warnings.some(w => w.includes("no line breaks"))).toBe(true);
+    expect(parsed.warnings.some((w) => w.includes("no line breaks"))).toBe(
+      true
+    );
   });
 
   it("warns when almost no text was extracted (likely scanned PDF)", () => {
     const parsed = parseResume("short", minimalConfig);
-    expect(parsed.warnings.some(w => w.includes("scanned/image PDF"))).toBe(true);
+    expect(parsed.warnings.some((w) => w.includes("scanned/image PDF"))).toBe(
+      true
+    );
   });
 
   it("matches common aliases like 'work experience' to experience", () => {
@@ -60,7 +81,9 @@ describe("resume parser section detection", () => {
   it("parses skill lists using non-• bullet glyphs (▪, ·)", () => {
     const resume = `Skills:\n▪ JavaScript\n▪ React\n· TypeScript`;
     const parsed = parseResume(resume, minimalConfig);
-    expect(parsed.skills).toEqual(expect.arrayContaining(["javascript", "react", "typescript"]));
+    expect(parsed.skills).toEqual(
+      expect.arrayContaining(["javascript", "react", "typescript"])
+    );
   });
 
   it("ignores implausible 'N years' fallback values", () => {
@@ -88,7 +111,9 @@ describe("resume parser section detection", () => {
   it("does not warn about a missing email when one is present", () => {
     const resume = `Summary\nContact: jane@example.com\nSkills\nJavaScript\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
     const parsed = parseResume(resume, minimalConfig);
-    expect(parsed.warnings.some((w) => w.includes("No email address detected"))).toBe(false);
+    expect(
+      parsed.warnings.some((w) => w.includes("No email address detected"))
+    ).toBe(false);
   });
 
   it("broadened title detection matches non-engineering roles (Designer, Recruiter, Accountant)", () => {
