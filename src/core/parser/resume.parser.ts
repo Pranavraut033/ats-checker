@@ -5,6 +5,7 @@ import {
   escapeRegExp,
   normalizeForComparison,
   normalizeWhitespace,
+  ROLE_NOUNS,
   splitLines,
   tokenize,
   unique,
@@ -48,6 +49,18 @@ const STRONG_VERBS = [
 ];
 
 const WEAK_VERBS = ["worked", "helped", "performed", "responsible", "assisted", "participated", "involved"];
+
+// Seniority words that precede a role noun ("Senior Engineer", "VP Engineering") but aren't role
+// nouns themselves. Legacy modifier words kept alongside so "Software Engineer"/"Full Stack
+// Developer"/"Frontend Developer"/"Backend Engineer" (the original narrower whitelist) still match.
+const TITLE_SENIORITY_PREFIXES = ["senior", "lead", "principal", "staff", "vp", "director"];
+const TITLE_MODIFIER_WORDS = ["software", "full\\s*stack", "frontend", "backend"];
+// Shared with jd.parser.ts's extractRoleKeywords — root cause fix for #1 (JD roleKeywords vs
+// resume title phrases previously drawing from two different, disagreeing whitelists).
+const TITLE_PREFIX_WORDS = unique([...TITLE_SENIORITY_PREFIXES, ...TITLE_MODIFIER_WORDS, ...ROLE_NOUNS]);
+// Stop at comma / hyphen / open-paren so an inline date range ("(Jan 2020 - Present)") on a
+// combined title+dates line doesn't leak into the captured title.
+const TITLE_RE = new RegExp(`^(${TITLE_PREFIX_WORDS.join("|")})[^,(-]*`, "i");
 
 // ponytail: verb+metric heuristic — no sentence parsing until it misclassifies in practice.
 const METRIC_RE = /\d|%|\$|\bk\+|\bm\+/i;
@@ -152,12 +165,24 @@ function parseExperience(sectionContent: string | undefined, referenceDate?: Dat
 
   for (const line of lines) {
     const range = parseDateRange(line, referenceDate);
+    const titleMatch = line.match(TITLE_RE);
+    const title = titleMatch ? titleMatch[0].trim() : undefined;
+
     if (range) {
-      const previous = entries[entries.length - 1];
-      if (previous && !previous.dates) {
-        previous.dates = range;
+      if (title) {
+        // Title and dates on the same line — the common "Senior Engineer, Company (2020–Present)"
+        // layout. Without this, the date branch consumed the whole line and the title (and thus
+        // the experience role-match component) was silently dropped. We capture the title only —
+        // not an achievement, matching the pre-existing behavior that dated lines aren't bullets.
+        jobTitles.push(title.toLowerCase());
+        entries.push({ title, dates: range, description: line });
       } else {
-        entries.push({ dates: range });
+        const previous = entries[entries.length - 1];
+        if (previous && !previous.dates) {
+          previous.dates = range;
+        } else {
+          entries.push({ dates: range });
+        }
       }
       if (range.durationInMonths) {
         rangesInMonths.push(range.durationInMonths);
@@ -165,9 +190,7 @@ function parseExperience(sectionContent: string | undefined, referenceDate?: Dat
       continue;
     }
 
-    const titleMatch = line.match(/^(Senior|Lead|Principal|Staff|VP|Director|Consultant|Architect|Software|Full\s*Stack|Frontend|Backend|Engineer|Developer|Manager|Analyst)[^,-]*/i);
-    if (titleMatch) {
-      const title = titleMatch[0].trim();
+    if (title) {
       jobTitles.push(title.toLowerCase());
       const entry: ParsedExperienceEntry = { title, description: line };
       entries.push(entry);
@@ -192,6 +215,18 @@ function parseEducation(sectionContent: string | undefined): string[] {
 
 function collectKeywords(text: string): string[] {
   return unique(tokenize(text));
+}
+
+const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+// ponytail: lenient international-ish pattern — optional leading +country code, then 2-4
+// groups of 2-4 digits separated by space/dot/dash. Good enough to flag presence, not validate.
+const PHONE_RE = /\+?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}/;
+
+function extractContact(text: string): ParsedResume["contact"] {
+  const email = text.match(EMAIL_RE)?.[0];
+  const phone = text.match(PHONE_RE)?.[0]?.trim();
+  if (!email && !phone) return undefined;
+  return { email, phone };
 }
 
 export function parseResume(resumeText: string, config: ResolvedATSConfig): ParsedResume {
@@ -239,6 +274,13 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
     }
   }
 
+  const contact = extractContact(resumeText);
+  if (!contact?.email) {
+    warnings.push(
+      "No email address detected — most ATS require a parseable contact email"
+    );
+  }
+
   return {
     raw: resumeText,
     normalizedText,
@@ -254,6 +296,7 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
     totalExperienceYears,
     keywords: collectKeywords(normalizedText),
     languages: parseLanguageMentions(resumeText),
+    contact,
     warnings,
   };
 }

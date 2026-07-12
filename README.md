@@ -23,6 +23,8 @@ Zero-dependency TypeScript library that scores a resume against a job descriptio
 - **Achievement strength** — classifies resume experience bullets as strong/weak (verb + quantified impact) and suggests rewrites
 - **Multi-language keyword packs** — `/en` and `/de` subpaths ship categorized keyword registries; install more by passing your own `keywordRegistry`
 - **Language proficiency matching** — detects spoken-language requirements in the JD (CEFR `A1`–`C2` or words like "fluent"/"native") and flags resume gaps below the required level
+- **Skill-experience gaps** — parses "N+ years of X" requirements from the JD and flags resume skills that don't have enough overall experience behind them
+- **Contact detection** — flags resumes with no parseable email address (warning-only by default, configurable to a scoring penalty)
 - **Configurable** — adjust weights, add skill aliases or a custom keyword registry, define custom penalty rules
 - **Zero dependencies** — core library has no runtime deps; ships ESM + CJS
 - **PDF input** — optional `/pdf` subpath extracts resume text from a PDF buffer (requires `pdfjs-dist` peer dep)
@@ -93,6 +95,7 @@ console.log(result.suggestions);      // ["Highlight these required skills: acce
 | `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified as strong vs weak achievement statements |
 | `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
 | `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
+| `skillExperienceGaps` | `{ skill, requiredYears, resumeYears }[]` | JD skills the resume has but whose overall experience falls short of a JD "N+ years of X" requirement — informational, doesn't affect `score` |
 | `suggestions` | `string[]` | Deterministic improvement recommendations |
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
@@ -174,6 +177,7 @@ const result = analyzeResume({
 | `keywordDensity.overusePenalty` | `5` |
 | `allowPartialMatches` | `true` |
 | `referenceDate` | Current date (use explicit ISO string for determinism) |
+| `sectionPenalties.missingContact` | `0` (warning-only; no parseable email detected) |
 
 See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/configuration/) for all options.
 

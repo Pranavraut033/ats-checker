@@ -52,6 +52,7 @@ analyzeResume(input)
 | `keywordWeights` | per-keyword `{ jdWeight, resumeWeight, importance }` from `scoreKeywords` |
 | `achievementStrength` | `{ strong, weak }` counts from `resume.achievements` (set in `parseResume`) |
 | `matchedLanguages` / `missingLanguages` | `diffLanguages(resume.languages, job.requiredLanguages)` in `calculateScore` |
+| `skillExperienceGaps` | JD "N+ years of X" requirements vs `resume.totalExperienceYears`, for skills the resume has (informational, not scored) |
 | `suggestions` | deterministic from SuggestionEngine |
 | `warnings` | from RuleEngine + parse warnings |
 | `experienceGap` | `max(requiredYears - parsedYears, 0)` |

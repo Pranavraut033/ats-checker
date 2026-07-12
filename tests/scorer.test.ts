@@ -50,6 +50,42 @@ describe("calculateScore — experience (years capped at 2x coverage, role title
   });
 });
 
+describe("calculateScore — skillExperienceGaps (informational only, never feeds score/breakdown)", () => {
+  it("flags a gap when the resume has the skill but falls short of the required years", () => {
+    const job = parseJobDescription("Must have 5+ years of Figma experience.", config);
+    const resume = parseResume(
+      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2024 - Present)\nEducation\nB.S.`,
+      config
+    );
+    const result = calculateScore(resume, job, config);
+    expect(result.skillExperienceGaps).toEqual([
+      { skill: "figma", requiredYears: 5, resumeYears: 2.08 },
+    ]);
+    // Informational only: the gap reflects a shortfall in years, but the resume *does* have
+    // the required skill itself, so skills coverage (and thus the weighted score) is unaffected
+    // by the gap — it comes from a separate breakdown component entirely.
+    expect(result.breakdown.skills).toBe(100);
+  });
+
+  it("does not flag a gap when the skill is missing from the resume entirely", () => {
+    const job = parseJobDescription("Must have 5+ years of Figma experience.", config);
+    const resume = parseResume(
+      `Summary\nDesigner.\nSkills\nSketch\nExperience\nDesigner (2024 - Present)\nEducation\nB.S.`,
+      config
+    );
+    expect(calculateScore(resume, job, config).skillExperienceGaps).toEqual([]);
+  });
+
+  it("does not flag a gap when the resume already meets the required years", () => {
+    const job = parseJobDescription("Must have 1+ years of Figma experience.", config);
+    const resume = parseResume(
+      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2020 - Present)\nEducation\nB.S.`,
+      config
+    );
+    expect(calculateScore(resume, job, config).skillExperienceGaps).toEqual([]);
+  });
+});
+
 describe("calculateScore — education", () => {
   const resume = parseResume(`Summary\nEngineer.\nSkills\nReact\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`, config);
 

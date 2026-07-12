@@ -8,7 +8,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
   },
   "breakdown": {
     "education": 100,
-    "experience": 75,
+    "experience": 100,
     "keywords": 100,
     "skills": 44.24999999999999,
   },
@@ -30,6 +30,8 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
         "startMonth": 1,
         "startYear": 2019,
       },
+      "description": "Software Engineer (Jan 2019 - Dec 2022)",
+      "title": "Software Engineer",
     },
   ],
   "experienceGap": 0,
@@ -134,14 +136,18 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     "sql",
   ],
   "parsedExperienceYears": 4,
-  "score": 50.78,
+  "score": 58.28,
+  "skillExperienceGaps": [],
   "suggestions": [
     "Highlight these required skills: backend, javascript, node, react, typescript",
     "Avoid keyword stuffing for: backend, docker, engineer, python, sql",
     "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+    "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
   ],
   "warnings": [
     "Keyword stuffing detected for: backend, docker, engineer, python, sql (penalty 25)",
+    "Missing contact email (penalty 0)",
+    "No email address detected — most ATS require a parseable contact email",
   ],
 }
 `;
@@ -154,7 +160,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
   },
   "breakdown": {
     "education": 100,
-    "experience": 75,
+    "experience": 100,
     "keywords": 43.75,
     "skills": 49.99999999999999,
   },
@@ -176,6 +182,8 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
         "startMonth": 1,
         "startYear": 2020,
       },
+      "description": "Senior Engineer at ExampleCorp (Jan 2020 - Present) - Built React apps and APIs.",
+      "title": "Senior Engineer at ExampleCorp",
     },
   ],
   "experienceGap": 0,
@@ -287,15 +295,19 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "typescript",
   ],
   "parsedExperienceYears": 6.08,
-  "score": 48.44,
+  "score": 55.94,
+  "skillExperienceGaps": [],
   "suggestions": [
     "Highlight these required skills: accessibility, frontend, graphql",
     "Incorporate job-specific keywords: accessibility, frontend, graphql",
     "Avoid keyword stuffing for: engineer, react, typescript",
     "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+    "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
   ],
   "warnings": [
     "Keyword stuffing detected for: engineer, react, typescript (penalty 15)",
+    "Missing contact email (penalty 0)",
+    "No email address detected — most ATS require a parseable contact email",
   ],
 }
 `;

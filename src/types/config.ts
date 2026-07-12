@@ -41,6 +41,8 @@ export interface SectionPenaltyConfig {
   missingExperience?: number;
   missingSkills?: number;
   missingEducation?: number;
+  /** Penalty when no parseable contact email is detected. Defaults to 0 (warning-only). */
+  missingContact?: number;
 }
 
 export interface ATSRule {

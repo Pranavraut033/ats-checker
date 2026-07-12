@@ -80,9 +80,12 @@ function scoreExperience(
   const yearCoverage = clamp(resume.totalExperienceYears / requiredYears, 0, 2);
   const yearsComponent = clamp(yearCoverage, 0, 1) * EXPERIENCE_YEARS_WEIGHT;
 
+  // #1 fix: job.roleKeywords are single lowercase tokens ("engineer"), but resume.jobTitles are
+  // full phrases ("senior software engineer") — compare via token overlap, not whole-phrase Set.has.
   const jobRoleSet = new Set(job.roleKeywords.map((value) => value.toLowerCase()));
-  const titleMatches = resume.jobTitles.filter((title) => jobRoleSet.has(title.toLowerCase()));
-  const titleCoverage = jobRoleSet.size === 0 ? 1 : titleMatches.length / jobRoleSet.size;
+  const resumeTitleTokens = new Set(resume.jobTitles.flatMap((t) => tokenize(t)));
+  const matchedRoles = job.roleKeywords.filter((rk) => resumeTitleTokens.has(rk.toLowerCase()));
+  const titleCoverage = jobRoleSet.size === 0 ? 1 : matchedRoles.length / jobRoleSet.size;
   const roleComponent = clamp(titleCoverage, 0, 1) * EXPERIENCE_ROLE_WEIGHT;
 
   const score = clamp((yearsComponent + roleComponent) * 100, 0, 100);
@@ -185,6 +188,26 @@ function scoreKeywords(
   };
 }
 
+// ponytail: assumes a matched skill was used across the resume's full parsed tenure, since we
+// don't map individual skills to dated roles — a real per-skill-dating upgrade would compare
+// requiredYears against years-in-role instead of the resume's overall totalExperienceYears.
+// Informational only — never feeds score/breakdown, same as diffLanguages() below.
+function computeSkillExperienceGaps(
+  resume: ParsedResume,
+  job: ParsedJobDescription,
+  config: ResolvedATSConfig
+): ATSAnalysisResult["skillExperienceGaps"] {
+  if (job.skillExperienceRequirements.length === 0) return [];
+  const resumeSkills = new Set(normalizeSkills(resume.skills, config.skillAliases));
+  const gaps: ATSAnalysisResult["skillExperienceGaps"] = [];
+  for (const { skill, years } of job.skillExperienceRequirements) {
+    if (resumeSkills.has(skill) && resume.totalExperienceYears < years) {
+      gaps.push({ skill, requiredYears: years, resumeYears: resume.totalExperienceYears });
+    }
+  }
+  return gaps.sort((a, b) => a.skill.localeCompare(b.skill));
+}
+
 function scoreEducation(resume: ParsedResume, job: ParsedJobDescription): number {
   if (job.educationRequirements.length === 0) {
     return 100;
@@ -234,6 +257,8 @@ export function calculateScore(
     job.requiredLanguages
   );
 
+  const skillExperienceGaps = computeSkillExperienceGaps(resume, job, config);
+
   return {
     score: clamp(Number(weightedScore.toFixed(2)), 0, 100),
     breakdown,
@@ -247,6 +272,7 @@ export function calculateScore(
     achievementStrength,
     matchedLanguages,
     missingLanguages,
+    skillExperienceGaps,
     suggestions: [],
     warnings: [],
     // detectedSections / parsedExperienceYears / experienceGap / experienceEntries: filled by index.ts

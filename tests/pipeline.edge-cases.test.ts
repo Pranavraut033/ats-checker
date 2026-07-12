@@ -24,7 +24,7 @@ describe("ATS pipeline edge cases", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.breakdown.experience).toBe(64.5);
+    expect(result.breakdown.experience).toBe(89.5);
     // Should indicate missing years (rounded to 2 decimals)
     expect(result.suggestions.some(s => s.toLowerCase().includes("clarify at least"))).toBe(true);
   });
@@ -48,7 +48,7 @@ describe("ATS pipeline edge cases", () => {
     // Warnings should include missing sections
     expect(result.warnings.some(w => w.includes("summary section missing"))).toBe(true);
     expect(result.warnings.some(w => w.includes("education section missing"))).toBe(true);
-    expect(result.score).toBeCloseTo(46.1, 5);
+    expect(result.score).toBeCloseTo(53.6, 5);
   });
 
   it("detects table-like formatting and applies penalty", () => {
@@ -137,6 +137,10 @@ describe("ATS pipeline edge cases", () => {
     const result = await analyzeResumeAsync({
       resumeText,
       jobDescription,
+      // ponytail: pinned so this test doesn't drift with the real clock (pre-existing gap —
+      // "Present" resolves against Date.now() without this, same as every other fixture in
+      // this file that already pins referenceDate).
+      config: { referenceDate: "2026-01-01" },
       llm: {
         client: { createCompletion: async () => ({ content: JSON.stringify({ suggestions: [] }), usage: { total_tokens: 100 } }) },
         limits: { maxCalls: 3, maxTokensPerCall: 2000, maxTotalTokens: 5000 },
@@ -147,8 +151,9 @@ describe("ATS pipeline edge cases", () => {
     expect(result.suggestions).toEqual([
       "Highlight these required skills: node, react, typescript",
       "Incorporate job-specific keywords: react, typescript",
-      "Clarify at least 0.5 years of relevant experience with quantified achievements.",
+      "Clarify at least 0.92 years of relevant experience with quantified achievements.",
       "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+      "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
     ]);
   });
 });

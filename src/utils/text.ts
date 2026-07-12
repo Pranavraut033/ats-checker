@@ -20,6 +20,19 @@ export const STOP_WORDS = new Set([
   "first", "based", "day", "week", "month", "time", "fast", "open", "dynamic",
 ]);
 
+// Shared role-noun vocabulary so the JD side (extractRoleKeywords) and the resume side
+// (title detection) agree on what counts as a "role" — this is what makes the two sides
+// comparable via token overlap instead of silently diverging whitelists. Broadened well
+// past engineering so non-eng resumes/JDs (design, sales, HR, finance, ...) get titles too.
+export const ROLE_NOUNS = [
+  "engineer", "developer", "manager", "scientist", "analyst", "designer",
+  "architect", "director", "consultant", "lead", "vp", "specialist",
+  "coordinator", "administrator", "accountant", "recruiter", "nurse",
+  "teacher", "associate", "representative", "executive", "officer",
+  "technician", "strategist", "marketer", "writer", "editor", "product",
+  "principal", "staff", "head",
+];
+
 export function normalizeWhitespace(text: string): string {
   return text.replace(/\r\n?/g, "\n").replace(/\s+/g, " ").trim();
 }

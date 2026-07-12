@@ -27,6 +27,9 @@ const DEFAULT_SECTION_PENALTIES: Required<SectionPenaltyConfig> = {
   missingExperience: 10,
   missingSkills: 8,
   missingEducation: 6,
+  // Warning-only by default — see determinism note in the contact/parseability plan step;
+  // callers who want it to actually move the score can override via config.sectionPenalties.
+  missingContact: 0,
 };
 
 function normalizeWeights(weights: ATSWeights): NormalizedWeights {

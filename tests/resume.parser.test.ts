@@ -68,4 +68,32 @@ describe("resume parser section detection", () => {
     const parsed = parseResume(resume, minimalConfig);
     expect(parsed.totalExperienceYears).toBe(0);
   });
+
+  it("extracts a contact email and phone number when present", () => {
+    const resume = `Summary\nJane Doe, jane.doe@example.com, +1 415-555-0134\nSkills\nJavaScript\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.contact?.email).toBe("jane.doe@example.com");
+    expect(parsed.contact?.phone).toBeTruthy();
+  });
+
+  it("warns when no email address is detected", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.contact?.email).toBeUndefined();
+    expect(parsed.warnings).toContain(
+      "No email address detected — most ATS require a parseable contact email"
+    );
+  });
+
+  it("does not warn about a missing email when one is present", () => {
+    const resume = `Summary\nContact: jane@example.com\nSkills\nJavaScript\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.warnings.some((w) => w.includes("No email address detected"))).toBe(false);
+  });
+
+  it("broadened title detection matches non-engineering roles (Designer, Recruiter, Accountant)", () => {
+    const resume = `Experience\nDesigner\nSome Studio, 2020 - 2022`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.jobTitles).toContain("designer");
+  });
 });

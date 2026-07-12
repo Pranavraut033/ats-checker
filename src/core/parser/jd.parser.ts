@@ -1,6 +1,6 @@
 import { ResolvedATSConfig, SkillAliases } from "../../types/config";
-import { ParsedJobDescription, ParsedLanguage } from "../../types/parser";
-import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS } from "../../utils/text";
+import { ParsedJobDescription, ParsedLanguage, SkillExperienceRequirement } from "../../types/parser";
+import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS, ROLE_NOUNS } from "../../utils/text";
 import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 import { parseLanguageMentions } from "../../utils/languages";
 
@@ -38,9 +38,13 @@ function extractPreferredSkills(lines: string[]): string[] {
   return preferred;
 }
 
+// Shared with resume.parser.ts's title detection so both sides agree on role vocabulary —
+// this is the root cause fix for #1 (JD single-token roleKeywords never matching resume title phrases).
+const ROLE_NOUN_RE = new RegExp(`(${ROLE_NOUNS.join("|")})`, "gi");
+
 function extractRoleKeywords(text: string): string[] {
   // ponytail: match every occurrence (not just the first) so multi-role JDs surface all titles.
-  const roleMatches = text.match(/(engineer|developer|manager|scientist|analyst|designer|architect|director|consultant|lead|vp)/gi) ?? [];
+  const roleMatches = text.match(ROLE_NOUN_RE) ?? [];
   const fallback = roleMatches.length === 0 ? [text.split(/\n/)[0] ?? ""] : [];
   return unique(tokenize([...roleMatches, ...fallback].join(" ")));
 }
@@ -81,6 +85,48 @@ function isLanguageRequired(lang: ParsedLanguage, jobDescription: string): boole
     if (!lower.includes(lang.name)) return false;
     return LANG_SECTION_RE.test(line) || LANG_REQUIREMENT_HINT_RE.test(line);
   });
+}
+
+// Matches "N(+)? years [of/in/with] <skill words...>" e.g. "5+ years of Figma experience".
+const YEARS_BEFORE_SKILL_RE = /(\d{1,2})\+?\s*years?\s*(?:of|in|with)?\s*((?:[a-z0-9][a-z0-9.#+\-/]*\s*){1,4})/gi;
+// Matches "<skill words...> N(+)? years" e.g. "React (3+ years)" or "Figma experience: 5 years".
+const SKILL_BEFORE_YEARS_RE = /((?:[a-z0-9][a-z0-9.#+\-/]*[\s,]*){1,4})\(?(\d{1,2})\+?\s*years?\)?/gi;
+
+// Parse per-skill year requirements ("5+ years of React", "GraphQL (3+ years)") out of the JD,
+// gated through the same skillVocab used for required/preferred skill extraction so generic
+// filler words ("must", "have", "of") never turn into bogus skill-experience entries.
+function extractSkillExperienceRequirements(
+  lines: string[],
+  skillVocab: Set<string>,
+  aliases: SkillAliases
+): SkillExperienceRequirement[] {
+  const requirements = new Map<string, number>();
+
+  const record = (rawWord: string, years: number) => {
+    if (!Number.isFinite(years) || years <= 0 || years > 60) return;
+    const canonical = normalizeSkill(rawWord, aliases);
+    if (!skillVocab.has(rawWord.toLowerCase()) && !skillVocab.has(canonical)) return;
+    const existing = requirements.get(canonical);
+    if (existing === undefined || years > existing) {
+      requirements.set(canonical, years);
+    }
+  };
+
+  for (const line of lines) {
+    for (const re of [YEARS_BEFORE_SKILL_RE, SKILL_BEFORE_YEARS_RE]) {
+      re.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = re.exec(line))) {
+        const years = Number.parseInt(re === YEARS_BEFORE_SKILL_RE ? match[1] : match[2], 10);
+        const candidateWords = tokenize(re === YEARS_BEFORE_SKILL_RE ? match[2] : match[1]);
+        for (const word of candidateWords) record(word, years);
+      }
+    }
+  }
+
+  return [...requirements.entries()]
+    .map(([skill, years]) => ({ skill, years }))
+    .sort((a, b) => a.skill.localeCompare(b.skill));
 }
 
 // Shared with scorer.ts so resume abbreviations ("B.S.") normalize to the same
@@ -131,6 +177,11 @@ export function parseJobDescription(
   const bodyTokens = tokenize(normalizedText).filter(isSkillLike);
   const roleKeywords = extractRoleKeywords(jobDescription);
   const keywords = unique([...requiredSkills, ...preferredSkills, ...roleKeywords, ...bodyTokens]);
+  const skillExperienceRequirements = extractSkillExperienceRequirements(
+    lines,
+    skillVocab,
+    config.skillAliases
+  );
 
   return {
     raw: jobDescription,
@@ -140,6 +191,7 @@ export function parseJobDescription(
     roleKeywords,
     keywords,
     minExperienceYears: extractMinExperience(jobDescription),
+    skillExperienceRequirements,
     educationRequirements: extractDegreeLevels(jobDescription),
     keywordSurfaceForms: collectKeywordSurfaceForms(jobDescription, config.skillAliases),
     // A language only counts as required if its mention carries a requirement/level cue

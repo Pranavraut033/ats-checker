@@ -66,6 +66,12 @@ export class RuleEngine {
       warnings.push("Few recognizable sections found (penalty 5)");
     }
 
+    if (!input.resume.contact?.email) {
+      const penalty = this.config.sectionPenalties.missingContact;
+      totalPenalty += penalty;
+      warnings.push(`Missing contact email (penalty ${penalty})`);
+    }
+
     return { totalPenalty, warnings };
   }
 

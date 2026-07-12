@@ -57,4 +57,10 @@ export interface ATSAnalysisResult {
   parsedExperienceYears: number;
   /** Parsed experience entries from the resume, with titles and date ranges. */
   experienceEntries: ParsedExperienceEntry[];
+  /**
+   * JD skills the resume has but whose overall experience falls short of the JD's per-skill
+   * year requirement (e.g. JD wants "5+ years Figma", resume has Figma but only 3 years total).
+   * Informational only — does not feed `score`/`breakdown`, same as language proficiency.
+   */
+  skillExperienceGaps: { skill: string; requiredYears: number; resumeYears: number }[];
 }

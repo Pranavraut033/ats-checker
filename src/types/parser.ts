@@ -58,7 +58,15 @@ export interface ParsedResume {
   totalExperienceYears: number;
   keywords: string[];
   languages: ParsedLanguage[];
+  /** Contact details extracted via regex; absent fields mean detection failed, not that the resume lacks them. */
+  contact?: { email?: string; phone?: string };
   warnings: string[];
+}
+
+/** A JD's "N+ years of <skill>" requirement, e.g. { skill: "figma", years: 5 }. */
+export interface SkillExperienceRequirement {
+  skill: string;
+  years: number;
 }
 
 export interface ParsedJobDescription {
@@ -69,6 +77,8 @@ export interface ParsedJobDescription {
   roleKeywords: string[];
   keywords: string[];
   minExperienceYears?: number;
+  /** Per-skill year requirements parsed from the JD, e.g. "5+ years of Figma". */
+  skillExperienceRequirements: SkillExperienceRequirement[];
   educationRequirements: string[];
   /** canonical keyword -> the surface form (original casing/spelling) the JD used. */
   keywordSurfaceForms: Record<string, string>;

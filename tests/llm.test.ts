@@ -428,10 +428,10 @@ B.S. Computer Science`;
     // This should work exactly as v1 - no LLM involved
     const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
-    expect(result.score).toBe(68.25);
+    expect(result.score).toBe(75.75);
     expect(result.breakdown).toEqual({
       skills: 52.49999999999999,
-      experience: 75,
+      experience: 100,
       keywords: 100,
       education: 100,
     });
@@ -439,6 +439,7 @@ B.S. Computer Science`;
       "Highlight these required skills: node",
       "Avoid keyword stuffing for: engineer, react",
       "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+      "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
     ]);
   });
 
@@ -464,6 +465,7 @@ B.S. Computer Science`;
       "Highlight these required skills: javascript, node, react, typescript",
       "Clarify at least 3 years of relevant experience with quantified achievements.",
       "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+      "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
     ]);
     // Client should not have been called
     expect(mockClient.createCompletion).not.toHaveBeenCalled();
@@ -492,7 +494,7 @@ B.S. Computer Science`,
       config: { referenceDate: "2026-01-01" },
     });
 
-    expect(result.score).toBe(70.7);
+    expect(result.score).toBe(78.2);
     // This resume has non-empty suggestions (keyword stuffing warning), so the LLM is invoked.
     expect(mockClient.createCompletion).toHaveBeenCalled();
   });

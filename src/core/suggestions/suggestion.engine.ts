@@ -112,6 +112,18 @@ export class SuggestionEngine {
       );
     }
 
+    if (!input.resume.contact?.email) {
+      suggestions.push(
+        "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you."
+      );
+    }
+
+    for (const gap of input.score.skillExperienceGaps) {
+      suggestions.push(
+        `The role asks for ${gap.requiredYears}+ years of ${gap.skill}; make that duration explicit in your experience section.`
+      );
+    }
+
     return { suggestions, warnings };
   }
 }

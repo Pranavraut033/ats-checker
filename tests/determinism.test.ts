@@ -111,8 +111,8 @@ describe("determinism — clock-independent experience scoring", () => {
 
     // 5 more years of experience must strictly raise the experience score
     expect(later.breakdown.experience).toBeGreaterThan(early.breakdown.experience);
-    expect(early.breakdown.experience).toBe(27);
-    expect(later.breakdown.experience).toBe(75);
+    expect(early.breakdown.experience).toBe(52);
+    expect(later.breakdown.experience).toBe(100);
   });
 });
 

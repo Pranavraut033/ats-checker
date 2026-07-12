@@ -52,5 +52,6 @@ parseResume / parseJobDescription
 - **Skills must be normalized** via `normalizeSkills()` from `src/utils/skills.ts` before comparison. `normalizeSkill()` is Map-cached per `skillAliases` object (`WeakMap`) — don't reintroduce a linear scan.
 - **Deterministic scores are immutable** — LLM paths may only touch `suggestions`, never `score` or `breakdown`.
 - **Keyword scoring is weighted**, not a flat coverage ratio — see `keywordWeightOf()` in `scorer.ts` (location: required > preferred > body, plus a frequency bonus).
+- **`skillExperienceGaps`** (JD "N+ years of X" vs resume's overall `totalExperienceYears`) and contact-email detection (`resume.contact`, `sectionPenalties.missingContact`, default `0` = warning-only) are informational — never feed `score`/`breakdown`.
 - Tests are end-to-end against `analyzeResume()` with realistic text; mock LLM for deterministic tests.
 - Build target is dual ESM/CJS (`tsup`); `dist/` is published, `ui/public/dist/` is the dev UI copy.

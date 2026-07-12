@@ -30,4 +30,37 @@ describe("job description parser edge cases", () => {
     const parsed = parseJobDescription("Looking for an Engineering Director or Senior Consultant", config);
     expect(parsed.roleKeywords).toEqual(expect.arrayContaining(["director", "consultant"]));
   });
+
+  it("picks up broadened role keywords beyond engineering (Designer, Recruiter, Accountant)", () => {
+    const parsed = parseJobDescription(
+      "We're hiring a Product Designer, a Recruiter, and a Senior Accountant.",
+      config
+    );
+    expect(parsed.roleKeywords).toEqual(
+      expect.arrayContaining(["designer", "recruiter", "accountant", "product"])
+    );
+  });
+
+  it("parses 'N+ years of <skill>' requirements gated through the skill vocabulary", () => {
+    const parsed = parseJobDescription("Must have 5+ years of Figma experience.", config);
+    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "figma", years: 5 }]);
+  });
+
+  it("parses '<skill> (N+ years)' requirements", () => {
+    const parsed = parseJobDescription("React (3+ years) required.", config);
+    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "react", years: 3 }]);
+  });
+
+  it("does not record a skill-experience requirement for non-vocabulary words", () => {
+    const parsed = parseJobDescription("Must have 5+ years of coffee brewing experience.", config);
+    expect(parsed.skillExperienceRequirements).toEqual([]);
+  });
+
+  it("keeps the max requested years when a skill is mentioned with multiple durations", () => {
+    const parsed = parseJobDescription(
+      "3+ years of Python required. 5+ years of Python preferred.",
+      config
+    );
+    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "python", years: 5 }]);
+  });
 });

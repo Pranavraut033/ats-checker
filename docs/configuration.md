@@ -133,7 +133,8 @@ config: {
     missingSummary: 5,
     missingExperience: 10,
     missingSkills: 5,
-    missingEducation: 5
+    missingEducation: 5,
+    missingContact: 0  // warning-only by default; set >0 to dock points for no parseable email
   }
 }
 ```
@@ -185,7 +186,7 @@ All user input is merged with sane defaults using `resolveConfig()` and weights 
 Default values:
 - **Weights**: skills 0.3, experience 0.3, keywords 0.25, education 0.15
 - **Keyword Density**: min 0.0025, max 0.04, overusePenalty 5
-- **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6
+- **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6, missingContact 0 (warning-only)
 - **Partial Matches**: `allowPartialMatches: true`
 - **Skill Aliases**: merged from built-in `defaultSkillAliases` + your overrides
 - **Keyword Registry**: merged from `defaultKeywordRegistry` + your `keywordRegistry` entries (by canonical term), then `skillAliases` layered on top
@@ -214,7 +215,7 @@ const result = analyzeResume({
     rules: [{
       id: "phone-number",
       penalty: 2,
-      condition: (context) => !context.resume.contactInfo?.phone
+      condition: (context) => !context.resume.contact?.phone
     }]
   }
 });

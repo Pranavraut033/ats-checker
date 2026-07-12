@@ -25,6 +25,7 @@ describe("SuggestionEngine", () => {
       "Highlight these required skills: react",
       "Incorporate job-specific keywords: react",
       "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
+      "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
     ]);
   });
 
