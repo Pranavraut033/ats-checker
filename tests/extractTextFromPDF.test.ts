@@ -159,6 +159,8 @@ describe("extractTextFromPDF", () => {
   });
 
   it("throws a clear error when pdfjs-dist is not installed", async () => {
+    // Override the file-level vi.mock, which otherwise always wins.
+    vi.doUnmock("pdfjs-dist");
     vi.doMock("pdfjs-dist", () => {
       throw new Error("Module not found");
     });

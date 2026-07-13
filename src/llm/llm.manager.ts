@@ -145,7 +145,7 @@ export class LLMManager {
             clientPromise!.catch(() => {}),
             new Promise((r) => setTimeout(r, graceMs)),
           ]);
-        } catch (e) {
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
@@ -176,7 +176,7 @@ export class LLMManager {
             clientPromise!.catch(() => {}),
             new Promise((r) => setTimeout(r, graceMs)),
           ]);
-        } catch (e) {
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
@@ -196,7 +196,7 @@ export class LLMManager {
             clientPromise!.catch(() => {}),
             new Promise((r) => setTimeout(r, graceMs)),
           ]);
-        } catch (e) {
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
@@ -232,7 +232,7 @@ export class LLMManager {
           clientPromise!.catch(() => {}),
           new Promise((r) => setTimeout(r, graceMs)),
         ]);
-      } catch (e) {
+      } catch {
         // intentionally ignore
       } finally {
         process.removeListener("unhandledRejection", onUnhandled);
@@ -301,7 +301,7 @@ export class LLMManager {
   private validateAgainstSchema(data: unknown, schema: JSONSchema): boolean {
     try {
       return validateJsonSchema(data, schema);
-    } catch (e) {
+    } catch {
       // If validator throws for any reason, gracefully fallback to simple existence check
       if (typeof data !== "object" || data === null) {
         return false;

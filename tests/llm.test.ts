@@ -164,7 +164,7 @@ describe("LLMManager", () => {
   });
 
   it("fails gracefully on timeout", async () => {
-    vi.mocked(mockClient.createCompletion).mockImplementation((_input: any) => {
+    vi.mocked(mockClient.createCompletion).mockImplementation((_input: Parameters<LLMClient["createCompletion"]>[0]) => {
       const p = new Promise<{
         content: unknown;
         usage?: { total_tokens?: number };
@@ -259,7 +259,7 @@ describe("LLMManager", () => {
     process.once("unhandledRejection", handler);
 
     // client that resolves after a long delay (longer than timeout)
-    vi.mocked(mockClient.createCompletion).mockImplementation((_input: any) => {
+    vi.mocked(mockClient.createCompletion).mockImplementation((_input: Parameters<LLMClient["createCompletion"]>[0]) => {
       const p = new Promise<{
         content: unknown;
         usage?: { total_tokens?: number };

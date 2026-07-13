@@ -33,13 +33,13 @@ import type { LLMClient } from "@pranavraut033/ats-checker";
  *   }
  * });
  */
-export function createOpenAIClient(apiKey: string): LLMClient {
+export function createOpenAIClient(_apiKey: string): LLMClient {
   // Type stub - in real implementation, would import OpenAI SDK
   // import OpenAI from "openai";
   // const openai = new OpenAI({ apiKey });
 
   return {
-    async createCompletion(input) {
+    async createCompletion(_input) {
       // In a real implementation:
       // const response = await openai.beta.messages.create({
       //   model: input.model,
@@ -69,12 +69,12 @@ export function createOpenAIClient(apiKey: string): LLMClient {
  * Usage:
  *   const client = createAnthropicClient(process.env.ANTHROPIC_API_KEY);
  */
-export function createAnthropicClient(apiKey: string): LLMClient {
+export function createAnthropicClient(_apiKey: string): LLMClient {
   // import Anthropic from "@anthropic-ai/sdk";
   // const client = new Anthropic({ apiKey });
 
   return {
-    async createCompletion(input) {
+    async createCompletion(_input) {
       // Claude requires schema in system prompt or tool_use
       // const response = await client.messages.create({
       //   model: input.model,
@@ -107,9 +107,9 @@ export function createAnthropicClient(apiKey: string): LLMClient {
  * Usage:
  *   const client = createLocalModelClient("http://localhost:8000");
  */
-export function createLocalModelClient(baseUrl: string): LLMClient {
+export function createLocalModelClient(_baseUrl: string): LLMClient {
   return {
-    async createCompletion(input) {
+    async createCompletion(_input) {
       // const response = await fetch(`${baseUrl}/v1/chat/completions`, {
       //   method: "POST",
       //   headers: { "Content-Type": "application/json" },

@@ -11,6 +11,7 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { parseResume } from "../src/core/parser/resume.parser";
 import { extractTextFromPDF } from "../src/pdf/index";
 
+import type { ResolvedATSConfig } from "../src/types/config";
 import type { ParsedResume } from "../src/types/parser";
 
 const FIXTURES = join(__dirname, "fixtures");
@@ -41,7 +42,7 @@ const minimalConfig = {
   allowPartialMatches: true,
   // Pinned so "Present" doesn't drift totalExperienceYears as real time passes.
   referenceDate: new Date("2026-06-22"),
-} as any;
+} as unknown as ResolvedATSConfig;
 
 const expected = JSON.parse(
   readFileSync(join(FIXTURES, "PranavRaut2026.expected.json"), "utf8")

@@ -21,7 +21,7 @@ export function validateJsonSchema(data: unknown, schema: JSONSchema): boolean {
       if (value === undefined) continue; // handled by required above
 
       if (propSchema == null) continue;
-      const expectedType = (propSchema as any).type;
+      const expectedType = (propSchema as JSONSchema).type;
       if (!expectedType) continue;
 
       switch (expectedType) {
@@ -37,9 +37,11 @@ export function validateJsonSchema(data: unknown, schema: JSONSchema): boolean {
         case "array":
           if (!Array.isArray(value)) return false;
           // optional: check item types when simple type is provided
-          const items = (propSchema as any).items;
-          if (items && (items as any).type && Array.isArray(value)) {
-            const itemType = (items as any).type;
+          const items = (propSchema as JSONSchema).items as
+            | JSONSchema
+            | undefined;
+          if (items && items.type && Array.isArray(value)) {
+            const itemType = items.type;
             for (const item of value as unknown[]) {
               if (itemType === "string" && typeof item !== "string")
                 return false;

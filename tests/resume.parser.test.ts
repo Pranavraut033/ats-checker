@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 
 import { parseResume } from "../src/core/parser/resume.parser";
 
+import type { ResolvedATSConfig } from "../src/types/config";
+
 describe("resume parser section detection", () => {
   const minimalConfig = {
     skillAliases: {},
@@ -27,7 +29,7 @@ describe("resume parser section detection", () => {
       missingEducation: 6,
     },
     allowPartialMatches: true,
-  } as any;
+  } as unknown as ResolvedATSConfig;
 
   it("detects headers with colon and different casing", () => {
     const resume = `SUMMARY:\nSoftware engineer.\nSkills:\nJavaScript, React\nWork Experience:\nEngineer (2020 - Present)\nEducation:\nB.S.`;

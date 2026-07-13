@@ -11,12 +11,7 @@ export interface ATSWeights {
 export type SkillAliases = Record<string, string[]>;
 
 export type KeywordCategory =
-  | "technical"
-  | "tool"
-  | "concept"
-  | "soft"
-  | "marketing"
-  | "domain";
+  "technical" | "tool" | "concept" | "soft" | "marketing" | "domain";
 
 export interface KeywordEntry {
   canonical: string;

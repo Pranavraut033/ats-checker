@@ -113,7 +113,7 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
  */
 function enhanceSuggestionsWithLLM(
   config: LLMConfig,
-  suggestions: string[]
+  _suggestions: string[]
 ): { success: boolean; enhancedSuggestions?: string[]; warnings: string[] } {
   if (!config.enable?.suggestions) {
     return { success: false, warnings: [] };
@@ -122,8 +122,6 @@ function enhanceSuggestionsWithLLM(
   const warnings: string[] = [];
 
   try {
-    const llmManager = new LLMManager(config);
-
     // Use synchronous approach - we'll make this async-friendly in future
     // For now, we need to return synchronously, so we use a fallback pattern
     // In production, the calling code should make this async
