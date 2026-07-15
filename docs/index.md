@@ -1,6 +1,6 @@
 # ATS Checker
 
-Zero-dependency TypeScript library that scores a resume against a job description and explains why — skills coverage, keyword overlap, experience match, and education — with no randomness, no LLM, and no external calls.
+Zero-dependency TypeScript library that scores a resume against a job description and explains why — skills coverage, keyword overlap, experience match, parseability, and education — with no randomness, no LLM, and no external calls.
 
 ## Quick Start
 
@@ -25,25 +25,29 @@ const result = analyzeResume({
   config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score);           // e.g. 72.45
+console.log(result.score);           // e.g. 39.44
 console.log(result.matchedSkills);   // ["javascript", "node", "react", "typescript"]
-console.log(result.missingSkills);   // ["accessibility best practices", "graphql"]
+console.log(result.missingSkills);   // ["accessibility", "frontend", "graphql"]
 console.log(result.experienceGap);   // 0 (requirement met)
-console.log(result.suggestions);     // ["Add GraphQL to your skills section", ...]
+console.log(result.suggestions);     // ["Highlight these required skills: ...", ...]
 ```
 
 ## Features
 
 - **Deterministic** — same input always produces the same score; pin it with `referenceDate` to freeze "Present" date math
-- **Explainable** — breakdown by category plus matched and missing skill/keyword lists
-- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain)
-- **Weighted keyword scoring** — JD keywords weighted by location (required > preferred > body) and frequency
+- **Explainable** — breakdown by category (skills / experience / keywords / parseability / education) plus matched and missing skill/keyword lists
+- **Parseability scoring** — deducts for table/columnar formatting, multi-column layout, special characters, non-standard bullets, likely-scanned text, and an unparseable contact email; itemized in `result.parseabilityReport`
+- **Fuzzy/stem matching by default** — typos and word-form variants ("ReactJS" vs "react") still match; opt out via `config.matching = { fuzzy: false }`
+- **Whole-document skill extraction** — skills mentioned in experience bullets/summary count, each entry dated per-role
+- **Seniority & employment-gap awareness** — `result.seniorityMatch`, `result.employmentGaps`
+- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain); 407 canonical terms ship by default
+- **Weighted keyword scoring** — JD keywords weighted by location (required > preferred > body, including header-scoped `Requirements:`/`Preferred:` blocks) and frequency
 - **Alias-aware & achievement suggestions** — reword suggestions matching the JD's wording, plus strong/weak achievement-bullet feedback
 - **Multi-language keyword packs** — `/en` and `/de` subpaths; bring your own via `config.keywordRegistry`
 - **Language proficiency matching** — JD spoken-language requirements (CEFR `A1`–`C2` or words like "fluent"/"native") matched against resume mentions
 - **Configurable** — adjust weights, add skill aliases or a keyword registry, define custom penalty rules
 - **Deterministic-only core** — `analyzeResumeAsync` (LLM path) is deprecated; `analyzeResume` is the primary API
-- **Zero dependencies** — no runtime deps; ships ESM + CJS
+- **Zero dependencies** — no runtime deps (fuzzy/stem matching is hand-rolled); ships ESM + CJS
 - **PDF input** — optional `/pdf` subpath for extracting text from PDF resumes
 
 ## Live Demo
@@ -57,7 +61,8 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | Field | Type | Description |
 |---|---|---|
 | `score` | `number` | Overall ATS score 0–100 after rule penalties |
-| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `education` |
+| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education` |
+| `parseabilityReport` | `ParseabilityReport` | Itemized deductions behind `breakdown.parseability` |
 | `matchedSkills` | `string[]` | Required skills found in the resume |
 | `missingSkills` | `string[]` | Required skills absent from the resume |
 | `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
@@ -68,6 +73,9 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified strong vs weak |
 | `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
 | `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
+| `seniorityMatch` | `{ resume?, required?, met }` | Resume vs JD inferred seniority |
+| `employmentGaps` | `{ afterRole, months }[]` | Gaps ≥3 months between dated roles |
+| `perSkillExperience` | `{ skill, years }[]` | Per-skill years from per-role dating |
 | `suggestions` | `string[]` | Deterministic improvement recommendations |
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
@@ -75,7 +83,7 @@ console.log(result.suggestions);     // ["Add GraphQL to your skills section", .
 | `parsedExperienceYears` | `number` | Total years from resume date ranges |
 
 **Scoring formula:**  
-`score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted. The `keywords` sub-score is a weighted coverage ratio — see [Configuration](configuration.md#keyword-registry--categories) for how weights are derived.
+`score = skills×0.25 + experience×0.20 + keywords×0.25 + parseability×0.20 + education×0.10` → clamped to 0–100 → rule penalties subtracted. The `keywords` sub-score is a weighted coverage ratio — see [Configuration](configuration.md#keyword-registry--categories) for how weights are derived.
 
 ## Documentation
 

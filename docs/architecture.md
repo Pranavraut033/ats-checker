@@ -12,11 +12,12 @@ analyzeResume(input)
   ├─ parseResume()            section detection, skill extraction, date range parsing, language mentions
   ├─ parseJobDescription()    required/preferred skills, keywords, experience requirement, required languages
   │
-  ├─ calculateScore()         four sub-scores → weighted combine → clamp(toFixed(2), 0, 100)
-  │    ├─ scoreSkills         required coverage × 0.7 + optional coverage × 0.3
-  │    ├─ scoreExperience     years coverage × 0.75 + role title coverage × 0.25
+  ├─ calculateScore()         five sub-scores → weighted combine → clamp(toFixed(2), 0, 100)
+  │    ├─ scoreSkills         required coverage × 0.7 + optional coverage × 0.3 (fuzzy/stem matched by default)
+  │    ├─ scoreExperience     years coverage × 0.65 + title coverage (titleMatch) × 0.20 + seniority match × 0.15
   │    ├─ scoreKeywords       weighted coverage (location + frequency weight per keyword), categorized
-  │    └─ scoreEducation      substring coverage of degree keywords
+  │    ├─ scoreParseability   100 − deductions for tables/columns/special-chars/scanned-text/contact/section-count
+  │    └─ scoreEducation      degree-level match, with partial credit for adjacent levels (no hard 0-cliff)
   │
   ├─ RuleEngine.evaluate()    built-in + custom rules → totalPenalty + warnings[]
   ├─ SuggestionEngine.generate()  deterministic suggestions in fixed priority order
@@ -42,7 +43,8 @@ analyzeResume(input)
 | Field | Source |
 |---|---|
 | `score` | `clamp(weightedScore - totalPenalty, 0, 100)` |
-| `breakdown` | `{ skills, experience, keywords, education }` sub-scores |
+| `breakdown` | `{ skills, experience, keywords, parseability, education }` sub-scores |
+| `parseabilityReport` | `scoreParseability()`'s itemized `{ reason, points }` deductions + underlying `FormattingSignals` |
 | `matchedSkills` | required skills found in resume (sorted) |
 | `missingSkills` | required skills absent from resume (sorted) |
 | `matchedKeywords` | JD keywords present in resume (sorted) |
@@ -52,7 +54,10 @@ analyzeResume(input)
 | `keywordWeights` | per-keyword `{ jdWeight, resumeWeight, importance }` from `scoreKeywords` |
 | `achievementStrength` | `{ strong, weak }` counts from `resume.achievements` (set in `parseResume`) |
 | `matchedLanguages` / `missingLanguages` | `diffLanguages(resume.languages, job.requiredLanguages)` in `calculateScore` |
-| `skillExperienceGaps` | JD "N+ years of X" requirements vs `resume.totalExperienceYears`, for skills the resume has (informational, not scored) |
+| `seniorityMatch` | `computeSeniorityMatch(resume, job)` — `{ resume?, required?, met }`, `met=true` when either side is unknown |
+| `employmentGaps` | pass-through of `resume.employmentGaps` (`detectEmploymentGaps`, gaps ≥3 months between dated roles) |
+| `perSkillExperience` | `computePerSkillExperience()` — per-skill years derived from per-role dating (`entry.skills` + `entry.dates`, overlap-merged) |
+| `skillExperienceGaps` | JD "N+ years of X" requirements vs `perSkillExperience`, for skills the resume has (informational, not scored) |
 | `suggestions` | deterministic from SuggestionEngine |
 | `warnings` | from RuleEngine + parse warnings |
 | `experienceGap` | `max(requiredYears - parsedYears, 0)` |
@@ -76,9 +81,11 @@ analyzeResume(input)
 | Profiles | `src/profiles/index.ts` | `defaultKeywordRegistry` (categorized) + derived `defaultSkillAliases` |
 | Language packs | `src/lang/en/`, `src/lang/de/` | Installable `KeywordRegistry` per language, default-exported |
 | Types | `src/types/` | All shared types; re-exported from `src/index.ts` |
-| Text utils | `src/utils/text.ts` | Tech-aware tokenizer, NFKC normalize, `clamp`, `unique` |
-| Skill utils | `src/utils/skills.ts` | `normalizeSkill`/`normalizeSkills` (Map-cached), `buildCategoryIndex`, `deriveSkillAliases`, `mergeKeywordRegistries` |
-| Date utils | `src/utils/dates.ts` | `parseDateRange` (respects `referenceDate`), `sumExperienceYears` |
+| Text utils | `src/utils/text.ts` | Tech-aware tokenizer, NFKC normalize, `clamp`, `unique`, `detectFormatting` (parseability signals) |
+| Skill utils | `src/utils/skills.ts` | `normalizeSkill`/`normalizeSkills` (Map-cached, optional fuzzy fallback), `buildCategoryIndex`, `deriveSkillAliases`, `mergeKeywordRegistries` |
+| Match utils | `src/utils/match.ts` | `stem` (hand-rolled suffix normalizer), `fuzzyEqual`/`levenshteinDistance` (bounded edit distance) — zero-dependency fuzzy matching |
+| Title utils | `src/utils/titles.ts` | `inferSeniority`, `normalizeTitle`, `titleMatch` (stemmed/synonym role-title coverage) |
+| Date utils | `src/utils/dates.ts` | `parseDateRange` (respects `referenceDate`), `sumExperienceYears`, `detectEmploymentGaps` |
 | Language utils | `src/utils/languages.ts` | `parseLanguageMentions` (CEFR/descriptive level detection), `diffLanguages` (rank comparison) |
 
 ## Build & Distribution

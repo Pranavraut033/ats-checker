@@ -6,7 +6,7 @@
 [![Tests](https://github.com/Pranavraut033/ats-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranavraut033/ats-checker/actions/workflows/ci.yml)
 [![Build Status](https://github.com/Pranavraut033/ats-checker/actions/workflows/deploy.yml/badge.svg)](https://github.com/Pranavraut033/ats-checker/actions/workflows/deploy.yml)
 
-Zero-dependency TypeScript library that scores a resume against a job description and explains why — skills coverage, keyword overlap, experience match, and education — with no randomness, no LLM, and no external calls.
+Zero-dependency TypeScript library that scores a resume against a job description and explains why — skills coverage, keyword overlap, experience match, parseability, and education — with no randomness, no LLM, and no external calls.
 
 **[Live Demo →](https://pranavraut033.github.io/ats-checker/)**  
 **[Docs →](https://pranavraut033.github.io/ats-checker/docs/)**
@@ -16,17 +16,21 @@ Zero-dependency TypeScript library that scores a resume against a job descriptio
 ## Features
 
 - **Deterministic** — same input always produces the same score; pin it with `referenceDate` to freeze "Present" date math
-- **Explainable** — breakdown by category (skills / experience / keywords / education) plus matched and missing skill/keyword lists
-- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain); results are grouped by category
-- **Weighted keyword scoring** — JD keywords are weighted by where they appear (required > preferred > body) and how often, so a missing "required" keyword costs more than a missing body-only one
+- **Explainable** — breakdown by category (skills / experience / keywords / parseability / education) plus matched and missing skill/keyword lists
+- **Parseability scoring** — a real-ATS-realism dimension that deducts for table/columnar formatting, multi-column layout, special/control characters, non-standard bullets, likely-scanned text, and an unparseable contact email — with the specific deductions itemized in `result.parseabilityReport`
+- **Fuzzy/stem matching by default** — typos and word-form variants ("ReactJS" vs "react", "developing" vs "develop") still match; opt out via `config.matching = { fuzzy: false }` for exact-match-only behavior
+- **Whole-document skill extraction** — skills mentioned in experience bullets and the summary count, not just an explicit Skills section, and each experience entry is dated per-role
+- **Seniority & employment-gap awareness** — infers resume/JD seniority (`junior`–`principal`) and surfaces a capped match signal (`result.seniorityMatch`), and flags employment gaps of 3+ months between roles (`result.employmentGaps`)
+- **Categorized keywords** — every keyword/alias belongs to a category (technical, tool, concept, soft, marketing, domain); results are grouped by category; 407 canonical terms ship by default
+- **Weighted keyword scoring** — JD keywords are weighted by where they appear (required > preferred > body, including header-scoped `Requirements:`/`Preferred:` blocks) and how often, so a missing "required" keyword costs more than a missing body-only one
 - **Alias-aware suggestions** — flags resume terms that should be reworded to match the JD's own wording (e.g. "js" → "JavaScript")
 - **Achievement strength** — classifies resume experience bullets as strong/weak (verb + quantified impact) and suggests rewrites
 - **Multi-language keyword packs** — `/en` and `/de` subpaths ship categorized keyword registries; install more by passing your own `keywordRegistry`
 - **Language proficiency matching** — detects spoken-language requirements in the JD (CEFR `A1`–`C2` or words like "fluent"/"native") and flags resume gaps below the required level
-- **Skill-experience gaps** — parses "N+ years of X" requirements from the JD and flags resume skills that don't have enough overall experience behind them
-- **Contact detection** — flags resumes with no parseable email address (warning-only by default, configurable to a scoring penalty)
+- **Skill-experience gaps** — parses "N+ years of X" requirements from the JD and flags resume skills whose per-role dated experience (`result.perSkillExperience`) falls short
+- **Contact detection** — parses email/phone/LinkedIn/location and penalizes an unparseable contact email by default (near-knockout, like a real ATS)
 - **Configurable** — adjust weights, add skill aliases or a custom keyword registry, define custom penalty rules
-- **Zero dependencies** — core library has no runtime deps; ships ESM + CJS
+- **Zero dependencies** — core library has no runtime deps (fuzzy/stem matching is hand-rolled); ships ESM + CJS
 - **PDF input** — optional `/pdf` subpath extracts resume text from a PDF buffer (requires `pdfjs-dist` peer dep)
 - **Built-in profiles** — software engineer, data scientist, product manager out of the box
 
@@ -68,7 +72,7 @@ const result = analyzeResume({
   config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score);            // 44.44
+console.log(result.score);            // 39.44
 console.log(result.matchedSkills);    // ["javascript", "node", "react", "typescript"]
 console.log(result.missingSkills);    // ["accessibility", "frontend", "graphql"]
 console.log(result.experienceGap);    // 0 (requirement met)
@@ -84,7 +88,8 @@ console.log(result.suggestions);      // ["Highlight these required skills: acce
 | Field | Type | Description |
 |---|---|---|
 | `score` | `number` | Overall ATS score 0–100 after rule penalties |
-| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `education` |
+| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education` |
+| `parseabilityReport` | `ParseabilityReport` | Itemized `{ reason, points }` deductions behind `breakdown.parseability`, plus the underlying formatting signals |
 | `matchedSkills` | `string[]` | Required skills found in the resume |
 | `missingSkills` | `string[]` | Required skills absent from the resume |
 | `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
@@ -95,20 +100,27 @@ console.log(result.suggestions);      // ["Highlight these required skills: acce
 | `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified as strong vs weak achievement statements |
 | `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
 | `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
-| `skillExperienceGaps` | `{ skill, requiredYears, resumeYears }[]` | JD skills the resume has but whose overall experience falls short of a JD "N+ years of X" requirement — informational, doesn't affect `score` |
+| `seniorityMatch` | `{ resume?, required?, met }` | Resume vs JD inferred seniority (`junior`–`principal`); `met` is `true` whenever either side is unknown |
+| `employmentGaps` | `{ afterRole, months }[]` | Gaps of 3+ months between consecutive dated roles — informational |
+| `perSkillExperience` | `{ skill, years }[]` | Per-skill years of experience derived from per-role dating (which roles actually mention the skill) |
+| `skillExperienceGaps` | `{ skill, requiredYears, resumeYears }[]` | JD skills the resume has but whose per-role dated experience falls short of a JD "N+ years of X" requirement — informational, doesn't affect `score` |
 | `suggestions` | `string[]` | Deterministic improvement recommendations |
 | `warnings` | `string[]` | Parse warnings and section alerts |
 | `experienceGap` | `number` | Years below JD minimum; `0` when met |
 | `detectedSections` | `string[]` | Resume sections the parser found |
 | `parsedExperienceYears` | `number` | Total years from resume date ranges (overlap-deduplicated) |
-| `experienceEntries` | `ParsedExperienceEntry[]` | Parsed job entries: `title`, `company`, `dates` (with `start`/`end`/`durationInMonths`) |
+| `experienceEntries` | `ParsedExperienceEntry[]` | Parsed job entries: `title`, `company`, `dates` (with `start`/`end`/`durationInMonths`), `skills` (per-role skill mentions) |
 
 **Scoring formula:**  
-`score = skills×0.30 + experience×0.30 + keywords×0.25 + education×0.15` → clamped to 0–100 → rule penalties subtracted.
+`score = skills×0.25 + experience×0.20 + keywords×0.25 + parseability×0.20 + education×0.10` → clamped to 0–100 → rule penalties subtracted.
+
+The `parseability` sub-score starts at 100 and deducts for formatting/structure signals that trip up real ATS parsers — tables/columns, multi-column layout, special/control characters, non-standard bullets, likely-scanned text, an unparseable contact email, and too few detected sections. This is the single biggest real-world ATS rejection cause the v1 model didn't score at all.
+
+Skill and keyword matching use fuzzy/stemmed comparison by default (`config.matching = { fuzzy: true }`), so typos and word-form variants ("ReactJS" vs "react", "developing" vs "develop") still match. Pass `{ fuzzy: false }` to require exact matches only.
 
 The `keywords` sub-score is a **weighted** coverage ratio, not a flat count: each JD keyword gets a weight from its location (required > preferred > body text) and frequency, so missing a required keyword drops the score more than missing one mentioned once in the body.
 
-> **Caveat — malformed/copy-pasted JD text:** required/preferred detection scans each line for literal trigger phrases (`required`, `must`, `nice to have`, `preferred`). Job postings copy-pasted from a wrapped/columned source sometimes split words across line breaks (e.g. `"Nice to\n\nhaveExperience..."`), which breaks these phrases across two lines and silently drops them into the unweighted body-keyword bucket instead of required/preferred. Skill keywords themselves (e.g. `react`, `python/fastapi`) are still picked up via the whole-text token scan and unaffected. If a JD looks oddly broken, paste it through a plain-text cleanup pass first, or expect required/preferred weighting to under-count.
+> **Caveat — malformed/copy-pasted JD text:** required/preferred detection combines two heuristics: header-scoped blocks (a line that's just "Requirements:"/"Preferred:"/"Must have:"/"Nice to have:" scopes the bulleted lines that follow it) and line-local trigger phrases (`required`, `must`, `nice to have`, `preferred`) as a fallback. Job postings copy-pasted from a wrapped/columned source can still split a header or trigger phrase across line breaks (e.g. `"Nice to\n\nhave..."`), which drops that block into the unweighted body-keyword bucket instead of required/preferred. Skill keywords themselves (e.g. `react`, `python/fastapi`) are still picked up via the whole-text token scan and unaffected. If a JD looks oddly broken, paste it through a plain-text cleanup pass first, or expect required/preferred weighting to under-count.
 
 The `education` sub-score normalizes degree abbreviations on both sides to a canonical level (`bachelor`, `master`, `phd`, `mba`, `associate`) before comparing — so a resume listing "B.S. Computer Science" satisfies a JD requiring "Bachelor's degree".
 
@@ -124,7 +136,10 @@ const result = analyzeResume({
   jobDescription: "...",
   config: {
     // Override scoring weights (auto-normalized to sum to 1)
-    weights: { skills: 0.4, experience: 0.3, keywords: 0.2, education: 0.1 },
+    weights: { skills: 0.3, experience: 0.2, keywords: 0.2, parseability: 0.2, education: 0.1 },
+
+    // Fuzzy/stem matching is on by default; disable for exact-match-only (v1 behavior)
+    matching: { fuzzy: false },
 
     // Additional skill synonyms merged over built-in defaults
     skillAliases: { javascript: ["js", "ecmascript"] },
@@ -168,16 +183,18 @@ const result = analyzeResume({
 
 | Setting | Default |
 |---|---|
-| `weights.skills` | `0.30` |
-| `weights.experience` | `0.30` |
+| `weights.skills` | `0.25` |
+| `weights.experience` | `0.20` |
 | `weights.keywords` | `0.25` |
-| `weights.education` | `0.15` |
+| `weights.parseability` | `0.20` |
+| `weights.education` | `0.10` |
+| `matching.fuzzy` | `true` (stemmed/fuzzy skill & keyword matching) |
 | `keywordDensity.min` | `0.0025` |
 | `keywordDensity.max` | `0.04` |
 | `keywordDensity.overusePenalty` | `5` |
 | `allowPartialMatches` | `true` |
 | `referenceDate` | Current date (use explicit ISO string for determinism) |
-| `sectionPenalties.missingContact` | `0` (warning-only; no parseable email detected) |
+| `sectionPenalties.missingContact` | `12` (no parseable email detected — a real ATS treats this as a near-knockout) |
 
 See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/configuration/) for all options.
 
@@ -185,7 +202,7 @@ See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/config
 
 ## Keyword Registry, Categories & Aliases
 
-Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). Common tech synonyms are pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, etc.
+Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). The default registry ships **407 canonical terms** across cloud/infra, databases, frameworks, ML/AI, testing, security/compliance, soft skills, marketing, and PM/agile vocabulary, with common surface-form aliases pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, `reactjs`/`react.js` match `react`, etc. — and typos/word-form variants match too via fuzzy/stem matching (on by default, see [Matching](#configuration)).
 
 ```typescript
 import { defaultKeywordRegistry, defaultSkillAliases } from "@pranavraut033/ats-checker";

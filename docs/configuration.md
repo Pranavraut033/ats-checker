@@ -9,15 +9,45 @@ Control the relative importance of each scoring component. Values are normalized
 ```typescript
 config: {
   weights: {
-    skills: 0.4,      // 40% weight for skill matches
-    experience: 0.3,  // 30% for experience
-    keywords: 0.2,    // 20% for keyword matches
-    education: 0.1    // 10% for education
+    skills: 0.3,        // 30% weight for skill matches
+    experience: 0.2,    // 20% for experience
+    keywords: 0.2,      // 20% for keyword matches
+    parseability: 0.2,  // 20% for formatting/structure realism
+    education: 0.1      // 10% for education
   }
 }
 ```
 
-Default weights: skills 0.3, experience 0.3, keywords 0.25, education 0.15
+Default weights: skills 0.25, experience 0.20, keywords 0.25, parseability 0.20, education 0.10
+
+## Matching (fuzzy/stem)
+
+Skill and keyword comparison falls back to stemmed/bounded-Levenshtein matching when an exact alias lookup misses — so typos and word-form variants ("ReactJS" vs "react", "developing" vs "develop") still count as a match. On by default.
+
+```typescript
+config: {
+  matching: {
+    fuzzy: true,       // default: true — set false to require exact matches only (v1 behavior)
+    threshold: 2        // optional: max edit distance passed to the bounded Levenshtein check
+  }
+}
+```
+
+## Parseability
+
+A dedicated 0-100 sub-score (weighted `weights.parseability`, default 0.20) models the single biggest real-world ATS rejection cause: formatting the parser can't cleanly extract. It isn't directly configurable — it's derived from the parser's `FormattingSignals` — but you can see exactly what it deducted via `result.parseabilityReport`:
+
+```typescript
+result.parseabilityReport;
+// {
+//   hasTables: true, hasMultiColumn: false, hasSpecialChars: false,
+//   nonStandardBullets: false, likelyScanned: false, contactParseable: true,
+//   detectedSectionCount: 4,
+//   deductions: [
+//     { reason: "Table or columnar formatting detected — ...", points: 20 }
+//   ]
+// }
+```
 
 ## Skill Aliases
 
@@ -134,10 +164,12 @@ config: {
     missingExperience: 10,
     missingSkills: 5,
     missingEducation: 5,
-    missingContact: 0  // warning-only by default; set >0 to dock points for no parseable email
+    missingContact: 12  // default: a real ATS treats no parseable email as a near-knockout
   }
 }
 ```
+
+Note: an unparseable contact email is *also* one of the deductions inside `breakdown.parseability` (see [Parseability](#parseability)) — `missingContact` is the separate rule-engine penalty on top of that, not a duplicate of it.
 
 ## Custom Rules
 
@@ -184,12 +216,13 @@ config: {
 All user input is merged with sane defaults using `resolveConfig()` and weights are normalized to sum to 1.0.
 
 Default values:
-- **Weights**: skills 0.3, experience 0.3, keywords 0.25, education 0.15
+- **Weights**: skills 0.25, experience 0.20, keywords 0.25, parseability 0.20, education 0.10
+- **Matching**: `fuzzy: true` (stemmed/bounded-Levenshtein fallback for skills & keywords)
 - **Keyword Density**: min 0.0025, max 0.04, overusePenalty 5
-- **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6, missingContact 0 (warning-only)
+- **Section Penalties**: missingSummary 4, missingExperience 10, missingSkills 8, missingEducation 6, missingContact 12
 - **Partial Matches**: `allowPartialMatches: true`
 - **Skill Aliases**: merged from built-in `defaultSkillAliases` + your overrides
-- **Keyword Registry**: merged from `defaultKeywordRegistry` + your `keywordRegistry` entries (by canonical term), then `skillAliases` layered on top
+- **Keyword Registry**: merged from `defaultKeywordRegistry` (407 canonical terms) + your `keywordRegistry` entries (by canonical term), then `skillAliases` layered on top
 - **Language Requirements**: parsed automatically from JD/resume text, no config — see [Language Requirements](#language-requirements)
 - **Profile**: `softwareEngineerProfile` unless overridden
 
@@ -206,7 +239,7 @@ const result = analyzeResume({
   resumeText: "...",
   jobDescription: "...",
   config: {
-    weights: { skills: 0.5, experience: 0.3, keywords: 0.1, education: 0.1 },
+    weights: { skills: 0.4, experience: 0.2, keywords: 0.15, parseability: 0.15, education: 0.1 },
     skillAliases: { "typescript": ["ts"] },
     profile: {
       mandatorySkills: ["javascript", "react"],
