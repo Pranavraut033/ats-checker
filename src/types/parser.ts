@@ -1,6 +1,6 @@
-import { Seniority } from "../utils/titles";
 import { EmploymentGap } from "../utils/dates";
 import { FormattingSignals } from "../utils/text";
+import { Seniority } from "../utils/titles";
 
 export type ResumeSection =
   | "summary"
@@ -65,7 +65,12 @@ export interface ParsedResume {
   keywords: string[];
   languages: ParsedLanguage[];
   /** Contact details extracted via regex; absent fields mean detection failed, not that the resume lacks them. */
-  contact?: { email?: string; phone?: string; linkedin?: string; location?: string };
+  contact?: {
+    email?: string;
+    phone?: string;
+    linkedin?: string;
+    location?: string;
+  };
   /** Inferred overall seniority (highest-ranked signal across job titles), or undefined if unknown. */
   seniority?: Seniority;
   /** Gaps of minGapMonths+ between consecutive (chronologically merged) roles. */

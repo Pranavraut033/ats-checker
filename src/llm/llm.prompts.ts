@@ -36,7 +36,9 @@ Return ONLY valid JSON.`,
   /**
    * User prompt for section classification
    */
-  sectionClassificationUser: (headers: string[]) => `Classify these resume section headers:
+  sectionClassificationUser: (
+    headers: string[]
+  ) => `Classify these resume section headers:
 ${headers.map((h) => `- "${h}"`).join("\n")}
 
 Use categories: summary, experience, skills, education, projects, certifications, other.`,
@@ -53,7 +55,9 @@ Return ONLY valid JSON.`,
    * User prompt for suggestion enhancement
    * IMPORTANT: Includes strict JSON schema to ensure consistent output across all LLM providers
    */
-  suggestionEnhancementUser: (suggestions: string[]) => `Enhance these suggestions for clarity and actionability:
+  suggestionEnhancementUser: (
+    suggestions: string[]
+  ) => `Enhance these suggestions for clarity and actionability:
 ${suggestions.map((s) => `- ${s}`).join("\n")}
 
 Make them specific and measurable where possible.
@@ -81,7 +85,9 @@ Return ONLY valid JSON.`,
   /**
    * User prompt for JD clarification
    */
-  jdClarificationUser: (jd: string) => `Analyze this job description for implicit requirements:
+  jdClarificationUser: (
+    jd: string
+  ) => `Analyze this job description for implicit requirements:
 
 ${jd}
 

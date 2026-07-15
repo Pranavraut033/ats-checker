@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { stem, fuzzyEqual, levenshteinDistance } from "../src/utils/match";
 
 describe("stem", () => {
@@ -65,7 +66,9 @@ describe("fuzzyEqual", () => {
   });
 
   it("respects an explicit maxDistance override", () => {
-    expect(fuzzyEqual("kubernetes", "kubernete", { maxDistance: 1 })).toBe(true);
+    expect(fuzzyEqual("kubernetes", "kubernete", { maxDistance: 1 })).toBe(
+      true
+    );
     expect(fuzzyEqual("kubernetes", "kuber", { maxDistance: 1 })).toBe(false);
   });
 });

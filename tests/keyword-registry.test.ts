@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { analyzeResume } from "../src";
 import { parseResume } from "../src/core/parser/resume.parser";
 import { resolveConfig } from "../src/core/scoring/weights";
@@ -34,7 +35,9 @@ describe("keyword categorization", () => {
 
     expect(result.keywordsByCategory.technical.matched).toContain("javascript");
     expect(result.keywordsByCategory.tool.matched).toContain("docker");
-    expect(result.keywordsByCategory.concept.missing).toContain("accessibility");
+    expect(result.keywordsByCategory.concept.missing).toContain(
+      "accessibility"
+    );
     expect(result.keywordsByCategory.soft.missing).toContain("communication");
   });
 });
@@ -46,7 +49,11 @@ describe("alias-aware suggestions", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.suggestions.some((s) => s.includes('Replace "js" with "JavaScript"'))).toBe(true);
+    expect(
+      result.suggestions.some((s) =>
+        s.includes('Replace "js" with "JavaScript"')
+      )
+    ).toBe(true);
   });
 });
 
@@ -67,7 +74,9 @@ describe("achievement statement strength", () => {
   it("classifies a metric-free, weak-verb bullet as weak", () => {
     const resume = `Experience\nEngineer (2022 - Present)\nWorked with Node.js and TypeScript.`;
     const parsed = parseResume(resume, config);
-    const bullet = parsed.achievements.find((a) => a.text.includes("Worked with Node.js"));
+    const bullet = parsed.achievements.find((a) =>
+      a.text.includes("Worked with Node.js")
+    );
     expect(bullet?.strength).toBe("weak");
   });
 
@@ -84,6 +93,10 @@ describe("achievement statement strength", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.suggestions.some((s) => s.includes("Strengthen") && s.includes("add scope/metrics"))).toBe(true);
+    expect(
+      result.suggestions.some(
+        (s) => s.includes("Strengthen") && s.includes("add scope/metrics")
+      )
+    ).toBe(true);
   });
 });

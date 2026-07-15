@@ -9,6 +9,7 @@ matching on by default, a much richer parser, and a substantially expanded keywo
 Score/breakdown shapes change — treat this as a breaking release if you pin exact score values.
 
 ### Added
+
 - New `parseability` scoring dimension (0-100) — deducts for table/columnar formatting, multi-column
   layout, special/control characters, non-standard bullets, likely-scanned text, an unparseable
   contact email, and too few detected sections. This is the "real ATS reject reason" the model was
@@ -34,6 +35,7 @@ Score/breakdown shapes change — treat this as a breaking release if you pin ex
   `sqlite` are now separate canonicals instead of aliases of `sql`).
 
 ### Changed
+
 - Default scoring weights re-balanced to make room for `parseability`: skills 0.30 → 0.25,
   experience 0.30 → 0.20, education 0.15 → 0.10, keywords unchanged at 0.25, parseability new
   at 0.20.
@@ -55,6 +57,7 @@ matching is hand-rolled in `src/utils/match.ts`, per the project's existing conv
 ## [1.4.0] - 2026-07-12
 
 ### Added
+
 - Detect skill-experience gaps (JD "N+ years of X" vs. resume's overall experience) and flag resumes missing a contact email. Both are informational — they don't affect `score`/`breakdown` ([8f4a928])
 
 [8f4a928]: https://github.com/Pranavraut033/ats-checker/commit/8f4a928
@@ -64,6 +67,7 @@ matching is hand-rolled in `src/utils/match.ts`, per the project's existing conv
 Initial changelog entry, covering the project's full history to date.
 
 ### Added
+
 - Core ATS analysis pipeline: resume/job-description parsing, weighted scoring, rule engine, and suggestion generation ([e727caf])
 - Optional async LLM enhancement layer with budget management, JSON-schema validation, and adapters — deterministic scores are never affected ([54b11c6])
 - Web UI with Tailwind styling, navigation, and results visualization, later migrated to a fully client-side architecture ([be2e196], [c4558f0])
@@ -75,10 +79,12 @@ Initial changelog entry, covering the project's full history to date.
 - GitHub Pages documentation site (MkDocs) and CI workflow ([fad0861], [b5af34a])
 
 ### Fixed
+
 - Prevented unhandled promise rejection from a late-settling LLM client after timeout ([cfe9485])
 - Bumped Node.js version for CI/CD compatibility ([89f8ab2], [c571d42])
 
 ### Changed
+
 - Migrated web UI from an Express backend to a static, client-side architecture ([be2e196])
 
 [e727caf]: https://github.com/Pranavraut033/ats-checker/commit/e727caf

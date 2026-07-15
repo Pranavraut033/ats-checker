@@ -6,6 +6,7 @@
  *   analyzeResume({ ..., config: { keywordRegistry: en } });
  */
 import { defaultKeywordRegistry } from "../../profiles";
+
 import type { KeywordRegistry } from "../../types/config";
 
 const en: KeywordRegistry = defaultKeywordRegistry;

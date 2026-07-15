@@ -1,7 +1,12 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/pdf/index.ts", "src/lang/en/index.ts", "src/lang/de/index.ts"],
+  entry: [
+    "src/index.ts",
+    "src/pdf/index.ts",
+    "src/lang/en/index.ts",
+    "src/lang/de/index.ts",
+  ],
   dts: true,
   clean: true,
   format: ["esm", "cjs"],

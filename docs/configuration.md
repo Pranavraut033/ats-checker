@@ -73,8 +73,12 @@ The built-in `defaultKeywordRegistry` is a list of `{ canonical, aliases, catego
 config: {
   keywordRegistry: [
     { canonical: "rust", aliases: ["rustlang"], category: "technical" },
-    { canonical: "javascript", aliases: ["js", "ecmascript"], category: "technical" }, // overrides default entry
-  ]
+    {
+      canonical: "javascript",
+      aliases: ["js", "ecmascript"],
+      category: "technical",
+    }, // overrides default entry
+  ];
 }
 ```
 
@@ -83,6 +87,7 @@ Entries merge over `defaultKeywordRegistry` by `canonical` term — your entries
 ### Keyword Weighting
 
 Within `scoreKeywords`, each JD keyword gets a weight based on:
+
 - **Location**: required (`3`) > preferred (`2`) > body-only (`1`)
 - **Frequency**: a small bonus when the JD repeats the term
 
@@ -94,7 +99,9 @@ Categorized registries for other languages ship as subpath exports (canonical te
 
 ```typescript
 import de from "@pranavraut033/ats-checker/de";
-config: { keywordRegistry: de }
+config: {
+  keywordRegistry: de;
+}
 ```
 
 See [src/lang/](../src/lang/) for available packs (`en`, `de`).
@@ -169,7 +176,7 @@ config: {
 }
 ```
 
-Note: an unparseable contact email is *also* one of the deductions inside `breakdown.parseability` (see [Parseability](#parseability)) — `missingContact` is the separate rule-engine penalty on top of that, not a duplicate of it.
+Note: an unparseable contact email is _also_ one of the deductions inside `breakdown.parseability` (see [Parseability](#parseability)) — `missingContact` is the separate rule-engine penalty on top of that, not a duplicate of it.
 
 ## Custom Rules
 
@@ -177,13 +184,15 @@ Add your own validation logic with penalties.
 
 ```typescript
 config: {
-  rules: [{
-    id: "no-tables",
-    description: "Resumes with tables are hard for ATS to parse",
-    penalty: 10,
-    warning: "Remove tables from your resume",
-    condition: (context) => context.resume.hasTables
-  }]
+  rules: [
+    {
+      id: "no-tables",
+      description: "Resumes with tables are hard for ATS to parse",
+      penalty: 10,
+      warning: "Remove tables from your resume",
+      condition: (context) => context.resume.hasTables,
+    },
+  ];
 }
 ```
 
@@ -195,7 +204,7 @@ Freeze the "Present"/"Now"/"Current" end date used in experience date ranges. Wi
 
 ```typescript
 config: {
-  referenceDate: "2026-01-01"  // all "Present" ranges end here
+  referenceDate: "2026-01-01"; // all "Present" ranges end here
 }
 ```
 
@@ -207,7 +216,7 @@ Allow partial keyword matches (e.g., "Java" matches "JavaScript").
 
 ```typescript
 config: {
-  allowPartialMatches: true  // default: true
+  allowPartialMatches: true; // default: true
 }
 ```
 
@@ -216,6 +225,7 @@ config: {
 All user input is merged with sane defaults using `resolveConfig()` and weights are normalized to sum to 1.0.
 
 Default values:
+
 - **Weights**: skills 0.25, experience 0.20, keywords 0.25, parseability 0.20, education 0.10
 - **Matching**: `fuzzy: true` (stemmed/bounded-Levenshtein fallback for skills & keywords)
 - **Keyword Density**: min 0.0025, max 0.04, overusePenalty 5
@@ -239,17 +249,25 @@ const result = analyzeResume({
   resumeText: "...",
   jobDescription: "...",
   config: {
-    weights: { skills: 0.4, experience: 0.2, keywords: 0.15, parseability: 0.15, education: 0.1 },
-    skillAliases: { "typescript": ["ts"] },
+    weights: {
+      skills: 0.4,
+      experience: 0.2,
+      keywords: 0.15,
+      parseability: 0.15,
+      education: 0.1,
+    },
+    skillAliases: { typescript: ["ts"] },
     profile: {
       mandatorySkills: ["javascript", "react"],
-      minExperience: 3
+      minExperience: 3,
     },
-    rules: [{
-      id: "phone-number",
-      penalty: 2,
-      condition: (context) => !context.resume.contact?.phone
-    }]
-  }
+    rules: [
+      {
+        id: "phone-number",
+        penalty: 2,
+        condition: (context) => !context.resume.contact?.phone,
+      },
+    ],
+  },
 });
 ```

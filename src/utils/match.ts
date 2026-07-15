@@ -3,7 +3,11 @@
 
 // Longest-suffix-first so e.g. "-ation" is stripped before "-tion" mis-fires, and
 // "-ies"/"-ied" before the generic "-s"/"-ed" catch-alls.
-const SUFFIXES: { suffix: string; replacement: string; minStemLength: number }[] = [
+const SUFFIXES: {
+  suffix: string;
+  replacement: string;
+  minStemLength: number;
+}[] = [
   { suffix: "ational", replacement: "ate", minStemLength: 3 },
   { suffix: "ization", replacement: "ize", minStemLength: 3 },
   { suffix: "ations", replacement: "ate", minStemLength: 3 },
@@ -37,7 +41,10 @@ const SUFFIXES: { suffix: string; replacement: string; minStemLength: number }[]
  */
 function stripOneSuffix(lower: string): string {
   for (const { suffix, replacement, minStemLength } of SUFFIXES) {
-    if (lower.endsWith(suffix) && lower.length - suffix.length >= minStemLength) {
+    if (
+      lower.endsWith(suffix) &&
+      lower.length - suffix.length >= minStemLength
+    ) {
       // Collapse a doubled trailing consonant left behind by stripping "-ing"/"-ed"
       // (e.g. "running" -> "runn" -> "run", "planned" -> "plann" -> "plan").
       let stemmed = lower.slice(0, lower.length - suffix.length) + replacement;
@@ -78,7 +85,11 @@ export function stem(token: string): string {
  * once it's clear the distance exceeds maxDistance, keeping the cost close to O(n*m)
  * but cheap in practice for the short strings this library compares.
  */
-export function levenshteinDistance(a: string, b: string, maxDistance: number): number {
+export function levenshteinDistance(
+  a: string,
+  b: string,
+  maxDistance: number
+): number {
   const s = a.toLowerCase();
   const t = b.toLowerCase();
   if (s === t) return 0;
@@ -116,7 +127,11 @@ export function levenshteinDistance(a: string, b: string, maxDistance: number): 
  * threshold scales with length: maxDistance 1 for strings <=6 chars, 2 for longer,
  * matching the plan's "short vs long" bound.
  */
-export function fuzzyEqual(a: string, b: string, opts?: { maxDistance?: number }): boolean {
+export function fuzzyEqual(
+  a: string,
+  b: string,
+  opts?: { maxDistance?: number }
+): boolean {
   const x = a.trim().toLowerCase();
   const y = b.trim().toLowerCase();
   if (x === y) return true;

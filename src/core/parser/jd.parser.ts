@@ -1,8 +1,19 @@
 import { ResolvedATSConfig, SkillAliases } from "../../types/config";
-import { ParsedJobDescription, ParsedLanguage, SkillExperienceRequirement } from "../../types/parser";
-import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS, ROLE_NOUNS } from "../../utils/text";
-import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import {
+  ParsedJobDescription,
+  ParsedLanguage,
+  SkillExperienceRequirement,
+} from "../../types/parser";
 import { parseLanguageMentions } from "../../utils/languages";
+import { normalizeSkill, normalizeSkills } from "../../utils/skills";
+import {
+  normalizeWhitespace,
+  splitLines,
+  tokenize,
+  unique,
+  STOP_WORDS,
+  ROLE_NOUNS,
+} from "../../utils/text";
 import { inferSeniority } from "../../utils/titles";
 
 // Map any variant found in JD text to a canonical form that also appears in resume text.
@@ -53,7 +64,10 @@ const PREFERRED_HEADER_RE =
 const OTHER_HEADER_RE =
   /^(?:responsibilities|duties|about(?:\s+the)?(?:\s+role|\s+us|\s+company|\s+team)?|what\s+you.?ll\s+do|who\s+you\s+are|benefits|perks|compensation|how\s+to\s+apply|overview|summary|about)\s*:?\s*$/i;
 
-function extractHeaderScopedSkills(lines: string[]): { required: string[]; preferred: string[] } {
+function extractHeaderScopedSkills(lines: string[]): {
+  required: string[];
+  preferred: string[];
+} {
   const required: string[] = [];
   const preferred: string[] = [];
   let scope: "required" | "preferred" | null = null;
@@ -104,7 +118,9 @@ function extractTitleContextLines(text: string): string[] {
 
 function extractMinExperience(text: string): number | undefined {
   // ponytail: accept "yrs." and German/French year words alongside "years".
-  const match = text.match(/(\d{1,2})\+?\s*(?:years?|yrs\.?|jahre?|ans?|années?)/i);
+  const match = text.match(
+    /(\d{1,2})\+?\s*(?:years?|yrs\.?|jahre?|ans?|années?)/i
+  );
   if (!match) return undefined;
   const parsed = Number.parseInt(match[1], 10);
   // ponytail: cap at 60 — realistic max; ignore implausible matches.
@@ -115,7 +131,10 @@ function extractMinExperience(text: string): number | undefined {
 // the JD's actual spelling/casing ("JavaScript") instead of the lowercased canonical form.
 const SURFACE_TOKEN_RE = /[a-z0-9][a-z0-9.#+\-/]*[a-z0-9#+]/gi;
 
-function collectKeywordSurfaceForms(rawText: string, aliases: SkillAliases): Record<string, string> {
+function collectKeywordSurfaceForms(
+  rawText: string,
+  aliases: SkillAliases
+): Record<string, string> {
   const matches = rawText.match(SURFACE_TOKEN_RE) ?? [];
   const surfaceForms: Record<string, string> = {};
   for (const match of matches) {
@@ -128,11 +147,15 @@ function collectKeywordSurfaceForms(rawText: string, aliases: SkillAliases): Rec
 }
 
 const LANG_SECTION_RE = /^\s*(?:languages?|sprache|langue)s?\s*[:\-–—]?\s*/i;
-const LANG_REQUIREMENT_HINT_RE = /\b(fluent|required|must|need|speak|proficient|native|conversational|intermediate|advanced|professional|[abc][12])\b/i;
+const LANG_REQUIREMENT_HINT_RE =
+  /\b(fluent|required|must|need|speak|proficient|native|conversational|intermediate|advanced|professional|[abc][12])\b/i;
 
 // A language mention only counts as required if its line carries a requirement/level cue
 // or sits in a "Languages:" line — otherwise plain mentions ("our Berlin office") false-positive.
-function isLanguageRequired(lang: ParsedLanguage, jobDescription: string): boolean {
+function isLanguageRequired(
+  lang: ParsedLanguage,
+  jobDescription: string
+): boolean {
   return splitLines(jobDescription).some((line) => {
     const lower = line.toLowerCase();
     if (!lower.includes(lang.name)) return false;
@@ -141,9 +164,11 @@ function isLanguageRequired(lang: ParsedLanguage, jobDescription: string): boole
 }
 
 // Matches "N(+)? years [of/in/with] <skill words...>" e.g. "5+ years of Figma experience".
-const YEARS_BEFORE_SKILL_RE = /(\d{1,2})\+?\s*years?\s*(?:of|in|with)?\s*((?:[a-z0-9][a-z0-9.#+\-/]*\s*){1,4})/gi;
+const YEARS_BEFORE_SKILL_RE =
+  /(\d{1,2})\+?\s*years?\s*(?:of|in|with)?\s*((?:[a-z0-9][a-z0-9.#+\-/]*\s*){1,4})/gi;
 // Matches "<skill words...> N(+)? years" e.g. "React (3+ years)" or "Figma experience: 5 years".
-const SKILL_BEFORE_YEARS_RE = /((?:[a-z0-9][a-z0-9.#+\-/]*[\s,]*){1,4})\(?(\d{1,2})\+?\s*years?\)?/gi;
+const SKILL_BEFORE_YEARS_RE =
+  /((?:[a-z0-9][a-z0-9.#+\-/]*[\s,]*){1,4})\(?(\d{1,2})\+?\s*years?\)?/gi;
 
 // Parse per-skill year requirements ("5+ years of React", "GraphQL (3+ years)") out of the JD,
 // gated through the same skillVocab used for required/preferred skill extraction so generic
@@ -158,7 +183,8 @@ function extractSkillExperienceRequirements(
   const record = (rawWord: string, years: number) => {
     if (!Number.isFinite(years) || years <= 0 || years > 60) return;
     const canonical = normalizeSkill(rawWord, aliases);
-    if (!skillVocab.has(rawWord.toLowerCase()) && !skillVocab.has(canonical)) return;
+    if (!skillVocab.has(rawWord.toLowerCase()) && !skillVocab.has(canonical))
+      return;
     const existing = requirements.get(canonical);
     if (existing === undefined || years > existing) {
       requirements.set(canonical, years);
@@ -170,8 +196,13 @@ function extractSkillExperienceRequirements(
       re.lastIndex = 0;
       let match: RegExpExecArray | null;
       while ((match = re.exec(line))) {
-        const years = Number.parseInt(re === YEARS_BEFORE_SKILL_RE ? match[1] : match[2], 10);
-        const candidateWords = tokenize(re === YEARS_BEFORE_SKILL_RE ? match[2] : match[1]);
+        const years = Number.parseInt(
+          re === YEARS_BEFORE_SKILL_RE ? match[1] : match[2],
+          10
+        );
+        const candidateWords = tokenize(
+          re === YEARS_BEFORE_SKILL_RE ? match[2] : match[1]
+        );
         for (const word of candidateWords) record(word, years);
       }
     }
@@ -205,8 +236,10 @@ export function parseJobDescription(
     skillVocab.add(canonical.toLowerCase());
     for (const alias of aliases) skillVocab.add(alias.toLowerCase());
   }
-  for (const s of config.profile?.mandatorySkills ?? []) skillVocab.add(s.toLowerCase());
-  for (const s of config.profile?.optionalSkills ?? []) skillVocab.add(s.toLowerCase());
+  for (const s of config.profile?.mandatorySkills ?? [])
+    skillVocab.add(s.toLowerCase());
+  for (const s of config.profile?.optionalSkills ?? [])
+    skillVocab.add(s.toLowerCase());
 
   // A skill-like token must be in vocab OR match a tech-symbol pattern:
   //   . # +  → always tech (c#, c++, node.js)
@@ -216,25 +249,39 @@ export function parseJobDescription(
   const isSkillLike = (t: string): boolean => {
     if (skillVocab.has(t)) return true;
     if (/[.#+]/.test(t) && /[a-z]/.test(t)) return true;
-    if (t.includes('/')) return t.split('/').some(p => p.length >= 2 && !STOP_WORDS.has(p));
+    if (t.includes("/"))
+      return t.split("/").some((p) => p.length >= 2 && !STOP_WORDS.has(p));
     return false;
   };
 
   const headerScoped = extractHeaderScopedSkills(lines);
-  const requiredSkillsRaw = unique([...extractRequiredSkills(lines), ...headerScoped.required]).filter(
-    isSkillLike
-  );
-  const preferredSkillsRaw = unique([...extractPreferredSkills(lines), ...headerScoped.preferred]).filter(
-    isSkillLike
-  );
+  const requiredSkillsRaw = unique([
+    ...extractRequiredSkills(lines),
+    ...headerScoped.required,
+  ]).filter(isSkillLike);
+  const preferredSkillsRaw = unique([
+    ...extractPreferredSkills(lines),
+    ...headerScoped.preferred,
+  ]).filter(isSkillLike);
 
-  const requiredSkills = normalizeSkills(requiredSkillsRaw, config.skillAliases);
-  const preferredSkills = normalizeSkills(preferredSkillsRaw, config.skillAliases);
+  const requiredSkills = normalizeSkills(
+    requiredSkillsRaw,
+    config.skillAliases
+  );
+  const preferredSkills = normalizeSkills(
+    preferredSkillsRaw,
+    config.skillAliases
+  );
 
   // Curated keyword list: explicit skills + role keywords + skill-like JD body tokens
   const bodyTokens = tokenize(normalizedText).filter(isSkillLike);
   const roleKeywords = extractRoleKeywords(jobDescription);
-  const keywords = unique([...requiredSkills, ...preferredSkills, ...roleKeywords, ...bodyTokens]);
+  const keywords = unique([
+    ...requiredSkills,
+    ...preferredSkills,
+    ...roleKeywords,
+    ...bodyTokens,
+  ]);
   const skillExperienceRequirements = extractSkillExperienceRequirements(
     lines,
     skillVocab,
@@ -251,7 +298,10 @@ export function parseJobDescription(
     minExperienceYears: extractMinExperience(jobDescription),
     skillExperienceRequirements,
     educationRequirements: extractDegreeLevels(jobDescription),
-    keywordSurfaceForms: collectKeywordSurfaceForms(jobDescription, config.skillAliases),
+    keywordSurfaceForms: collectKeywordSurfaceForms(
+      jobDescription,
+      config.skillAliases
+    ),
     // A language only counts as required if its mention carries a requirement/level cue
     // or sits in a "Languages:" line — plain references ("our Berlin office") don't count.
     requiredLanguages: parseLanguageMentions(jobDescription).filter((lang) =>

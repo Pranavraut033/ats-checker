@@ -54,7 +54,10 @@ export class LLMBudgetManager {
       callsUsed: this.callCount,
       callsRemaining: Math.max(0, this.limits.maxCalls - this.callCount),
       tokensUsed: this.totalTokensUsed,
-      tokensRemaining: Math.max(0, this.limits.maxTotalTokens - this.totalTokensUsed),
+      tokensRemaining: Math.max(
+        0,
+        this.limits.maxTotalTokens - this.totalTokensUsed
+      ),
       totalCalls: this.limits.maxCalls,
       totalTokens: this.limits.maxTotalTokens,
     };

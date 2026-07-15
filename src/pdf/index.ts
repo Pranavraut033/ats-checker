@@ -36,8 +36,7 @@ export async function extractTextFromPDF(
     );
   }
 
-  const bytes =
-    data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+  const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
 
   const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
   const pages: string[] = [];
@@ -119,7 +118,9 @@ export async function extractTextFromPDF(
   return text;
 }
 
-function renderColumn(items: Array<{ x: number; y: number; str: string }>): string {
+function renderColumn(
+  items: Array<{ x: number; y: number; str: string }>
+): string {
   const Y_TOLERANCE = 2;
   const lineMap: Map<number, Array<{ x: number; str: string }>> = new Map();
   const lineOrder: number[] = [];

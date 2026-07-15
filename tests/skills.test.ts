@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import {
   normalizeSkill,
   normalizeSkills,
@@ -7,10 +8,14 @@ import {
   buildCategoryIndex,
   mergeKeywordRegistries,
 } from "../src/utils/skills";
+
 import type { KeywordRegistry, SkillAliases } from "../src/types/config";
 
 describe("normalizeSkill", () => {
-  const aliases: SkillAliases = { javascript: ["js", "ecmascript"], node: ["node.js", "nodejs"] };
+  const aliases: SkillAliases = {
+    javascript: ["js", "ecmascript"],
+    node: ["node.js", "nodejs"],
+  };
 
   it("resolves an alias to its canonical term", () => {
     expect(normalizeSkill("JS", aliases)).toBe("javascript");
@@ -51,7 +56,9 @@ describe("normalizeSkill fuzzy fallback (opt-in)", () => {
     // "developing" has no alias entry at all; stem/fuzzy only helps when the
     // stemmed/near form actually resolves to a known alias key.
     const devAliases: SkillAliases = { develop: ["developing", "developed"] };
-    expect(normalizeSkill("develops", devAliases, { fuzzy: true })).toBe("develop");
+    expect(normalizeSkill("develops", devAliases, { fuzzy: true })).toBe(
+      "develop"
+    );
   });
 
   it("matches a typo'd variant via bounded fuzzy distance when enabled", () => {
@@ -63,7 +70,9 @@ describe("normalizeSkill fuzzy fallback (opt-in)", () => {
   });
 
   it("falls through to the lowercased input when nothing fuzzy-matches either", () => {
-    expect(normalizeSkill("kubernetes", aliases, { fuzzy: true })).toBe("kubernetes");
+    expect(normalizeSkill("kubernetes", aliases, { fuzzy: true })).toBe(
+      "kubernetes"
+    );
   });
 });
 
@@ -71,7 +80,9 @@ describe("normalizeSkills", () => {
   const aliases: SkillAliases = { javascript: ["js"] };
 
   it("normalizes and de-duplicates a list", () => {
-    expect(normalizeSkills(["JS", "javascript", "JavaScript"], aliases)).toEqual(["javascript"]);
+    expect(
+      normalizeSkills(["JS", "javascript", "JavaScript"], aliases)
+    ).toEqual(["javascript"]);
   });
 });
 
@@ -108,19 +119,40 @@ describe("deriveSkillAliases / buildCategoryIndex", () => {
 
 describe("mergeKeywordRegistries", () => {
   it("lets override entries replace base entries with the same canonical term", () => {
-    const base: KeywordRegistry = [{ canonical: "javascript", aliases: ["js"], category: "technical" }];
-    const overrides: KeywordRegistry = [{ canonical: "javascript", aliases: ["ecmascript"], category: "technical" }];
+    const base: KeywordRegistry = [
+      { canonical: "javascript", aliases: ["js"], category: "technical" },
+    ];
+    const overrides: KeywordRegistry = [
+      {
+        canonical: "javascript",
+        aliases: ["ecmascript"],
+        category: "technical",
+      },
+    ];
 
     const merged = mergeKeywordRegistries(base, overrides);
-    expect(merged).toEqual([{ canonical: "javascript", aliases: ["ecmascript"], category: "technical" }]);
+    expect(merged).toEqual([
+      {
+        canonical: "javascript",
+        aliases: ["ecmascript"],
+        category: "technical",
+      },
+    ]);
   });
 
   it("keeps base entries that have no override", () => {
-    const base: KeywordRegistry = [{ canonical: "docker", aliases: [], category: "tool" }];
-    const overrides: KeywordRegistry = [{ canonical: "javascript", aliases: ["js"], category: "technical" }];
+    const base: KeywordRegistry = [
+      { canonical: "docker", aliases: [], category: "tool" },
+    ];
+    const overrides: KeywordRegistry = [
+      { canonical: "javascript", aliases: ["js"], category: "technical" },
+    ];
 
     const merged = mergeKeywordRegistries(base, overrides);
     expect(merged).toHaveLength(2);
-    expect(merged.map((e) => e.canonical).sort()).toEqual(["docker", "javascript"]);
+    expect(merged.map((e) => e.canonical).sort()).toEqual([
+      "docker",
+      "javascript",
+    ]);
   });
 });

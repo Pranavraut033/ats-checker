@@ -1,5 +1,9 @@
 import { ResolvedATSConfig, RuleContext } from "../../types/config";
-import { ParsedJobDescription, ParsedResume, ResumeSection } from "../../types/parser";
+import {
+  ParsedJobDescription,
+  ParsedResume,
+  ResumeSection,
+} from "../../types/parser";
 
 interface RuleEvaluationInput {
   resume: ParsedResume;
@@ -18,7 +22,12 @@ export class RuleEngine {
   constructor(private readonly config: ResolvedATSConfig) {}
 
   private applySectionPenalties(resume: ParsedResume): RuleEvaluationResult {
-    const requiredSections: ResumeSection[] = ["summary", "experience", "skills", "education"];
+    const requiredSections: ResumeSection[] = [
+      "summary",
+      "experience",
+      "skills",
+      "education",
+    ];
     let totalPenalty = 0;
     const warnings: string[] = [];
 
@@ -57,9 +66,13 @@ export class RuleEngine {
     }
 
     if (input.overusedKeywords && input.overusedKeywords.length > 0) {
-      const penalty = input.overusedKeywords.length * this.config.keywordDensity.overusePenalty;
+      const penalty =
+        input.overusedKeywords.length *
+        this.config.keywordDensity.overusePenalty;
       totalPenalty += penalty;
-      warnings.push(`Keyword stuffing detected for: ${input.overusedKeywords.join(", ")} (penalty ${penalty})`);
+      warnings.push(
+        `Keyword stuffing detected for: ${input.overusedKeywords.join(", ")} (penalty ${penalty})`
+      );
     }
 
     if (input.resume.detectedSections.length < 3) {

@@ -1,6 +1,18 @@
 import { ResolvedATSConfig, SkillAliases } from "../../types/config";
-import { ParsedAchievement, ParsedExperienceEntry, ParsedResume, ResumeSection } from "../../types/parser";
-import { detectEmploymentGaps, parseDateRange, sumExperienceYears } from "../../utils/dates";
+import {
+  ParsedAchievement,
+  ParsedExperienceEntry,
+  ParsedResume,
+  ResumeSection,
+} from "../../types/parser";
+import {
+  detectEmploymentGaps,
+  parseDateRange,
+  sumExperienceYears,
+} from "../../utils/dates";
+import { parseLanguageMentions } from "../../utils/languages";
+import { fuzzyEqual, stem } from "../../utils/match";
+import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 import {
   detectFormatting,
   escapeRegExp,
@@ -11,23 +23,54 @@ import {
   tokenize,
   unique,
 } from "../../utils/text";
-import { normalizeSkill, normalizeSkills } from "../../utils/skills";
-import { fuzzyEqual, stem } from "../../utils/match";
-import { parseLanguageMentions } from "../../utils/languages";
 import { inferSeniority } from "../../utils/titles";
 
 // ponytail: German/French aliases added inline alongside English — same flat list, no locale plumbing.
 const SECTION_ALIASES: Record<ResumeSection, string[]> = {
-  summary: ["summary", "profile", "about", "zusammenfassung", "profil", "résumé", "à propos"],
-  experience: [
-    "experience", "work experience", "professional experience", "employment",
-    "work history", "employment history",
-    "erfahrung", "berufserfahrung", "expérience", "expérience professionnelle",
+  summary: [
+    "summary",
+    "profile",
+    "about",
+    "zusammenfassung",
+    "profil",
+    "résumé",
+    "à propos",
   ],
-  skills: ["skills", "technical skills", "technologies", "fähigkeiten", "kenntnisse", "compétences"],
-  education: ["education", "academics", "academic background", "ausbildung", "formation", "études"],
+  experience: [
+    "experience",
+    "work experience",
+    "professional experience",
+    "employment",
+    "work history",
+    "employment history",
+    "erfahrung",
+    "berufserfahrung",
+    "expérience",
+    "expérience professionnelle",
+  ],
+  skills: [
+    "skills",
+    "technical skills",
+    "technologies",
+    "fähigkeiten",
+    "kenntnisse",
+    "compétences",
+  ],
+  education: [
+    "education",
+    "academics",
+    "academic background",
+    "ausbildung",
+    "formation",
+    "études",
+  ],
   projects: ["projects", "portfolio", "projekte", "projets"],
-  certifications: ["certifications", "licenses", "zertifizierungen", "certifications professionnelles"]
+  certifications: [
+    "certifications",
+    "licenses",
+    "zertifizierungen",
+    "certifications professionnelles",
+  ],
 };
 
 const STRONG_VERBS = [
@@ -52,16 +95,40 @@ const STRONG_VERBS = [
   "increased",
 ];
 
-const WEAK_VERBS = ["worked", "helped", "performed", "responsible", "assisted", "participated", "involved"];
+const WEAK_VERBS = [
+  "worked",
+  "helped",
+  "performed",
+  "responsible",
+  "assisted",
+  "participated",
+  "involved",
+];
 
 // Seniority words that precede a role noun ("Senior Engineer", "VP Engineering") but aren't role
 // nouns themselves. Legacy modifier words kept alongside so "Software Engineer"/"Full Stack
 // Developer"/"Frontend Developer"/"Backend Engineer" (the original narrower whitelist) still match.
-const TITLE_SENIORITY_PREFIXES = ["senior", "lead", "principal", "staff", "vp", "director"];
-const TITLE_MODIFIER_WORDS = ["software", "full\\s*stack", "frontend", "backend"];
+const TITLE_SENIORITY_PREFIXES = [
+  "senior",
+  "lead",
+  "principal",
+  "staff",
+  "vp",
+  "director",
+];
+const TITLE_MODIFIER_WORDS = [
+  "software",
+  "full\\s*stack",
+  "frontend",
+  "backend",
+];
 // Shared with jd.parser.ts's extractRoleKeywords — root cause fix for #1 (JD roleKeywords vs
 // resume title phrases previously drawing from two different, disagreeing whitelists).
-const TITLE_PREFIX_WORDS = unique([...TITLE_SENIORITY_PREFIXES, ...TITLE_MODIFIER_WORDS, ...ROLE_NOUNS]);
+const TITLE_PREFIX_WORDS = unique([
+  ...TITLE_SENIORITY_PREFIXES,
+  ...TITLE_MODIFIER_WORDS,
+  ...ROLE_NOUNS,
+]);
 // Stop at comma / hyphen / open-paren so an inline date range ("(Jan 2020 - Present)") on a
 // combined title+dates line doesn't leak into the captured title.
 const TITLE_RE = new RegExp(`^(${TITLE_PREFIX_WORDS.join("|")})[^,(-]*`, "i");
@@ -72,18 +139,25 @@ const METRIC_RE = /\d|%|\$|\bk\+|\bm\+/i;
 function classifyAchievement(line: string): ParsedAchievement {
   const lower = line.toLowerCase();
   const hasMetric = METRIC_RE.test(line);
-  const hasStrongVerb = STRONG_VERBS.some((verb) => new RegExp(`\\b${verb}\\b`).test(lower));
-  const hasWeakVerb = WEAK_VERBS.some((verb) => new RegExp(`\\b${verb}\\b`).test(lower));
+  const hasStrongVerb = STRONG_VERBS.some((verb) =>
+    new RegExp(`\\b${verb}\\b`).test(lower)
+  );
+  const hasWeakVerb = WEAK_VERBS.some((verb) =>
+    new RegExp(`\\b${verb}\\b`).test(lower)
+  );
 
   if (hasStrongVerb && hasMetric) {
-    return { text: line, strength: "strong", reason: "strong verb + quantified impact" };
+    return {
+      text: line,
+      strength: "strong",
+      reason: "strong verb + quantified impact",
+    };
   }
   if (hasWeakVerb) {
     return { text: line, strength: "weak", reason: "weak verb" };
   }
   return { text: line, strength: "weak", reason: "no quantified impact" };
 }
-
 
 // A "tail" following the alias phrase that still counts as a header line rather than body
 // prose: punctuation (colon/dash/period), whitespace, and/or a trailing date/date-range
@@ -125,7 +199,9 @@ function detectSection(line: string): ResumeSection | null {
       if (lineWords.length < aliasWords.length) continue;
       const candidateWords = lineWords.slice(0, aliasWords.length);
       const allFuzzy = aliasWords.every(
-        (aliasWord, i) => aliasWord !== candidateWords[i] && fuzzyEqual(stem(aliasWord), stem(candidateWords[i]))
+        (aliasWord, i) =>
+          aliasWord !== candidateWords[i] &&
+          fuzzyEqual(stem(aliasWord), stem(candidateWords[i]))
       );
       if (!allFuzzy) continue;
       const prefixPattern = new RegExp(
@@ -178,10 +254,17 @@ function parseExplicitSkillList(sectionContent: string | undefined): string[] {
   // ponytail: bullet-separated skill lists wrap across lines in PDF text extraction,
   // so treat common bullet glyphs as the delimiter and fold newlines into spaces when present.
   const hasBullets = /[•·‣▪○●◦]/.test(sectionContent);
-  const normalized = hasBullets ? sectionContent.replace(/\n/g, " ") : sectionContent;
+  const normalized = hasBullets
+    ? sectionContent.replace(/\n/g, " ")
+    : sectionContent;
   return normalized
     .split(/[,;\n]|[•·‣▪○●◦]/)
-    .map((skill) => skill.trim().replace(/^[-•·‣▪○●◦\s]+|[-•·‣▪○●◦\s]+$/g, "").trim())
+    .map((skill) =>
+      skill
+        .trim()
+        .replace(/^[-•·‣▪○●◦\s]+|[-•·‣▪○●◦\s]+$/g, "")
+        .trim()
+    )
     .filter(Boolean);
 }
 
@@ -192,9 +275,14 @@ function parseExplicitSkillList(sectionContent: string | undefined): string[] {
  * unlike parseExplicitSkillList, we don't want to just tokenize everything and treat it
  * as a skill (that would be noise: "led", "team", "quarterly" aren't skills).
  */
-function extractKnownSkillsFromText(text: string | undefined, aliases: SkillAliases): string[] {
+function extractKnownSkillsFromText(
+  text: string | undefined,
+  aliases: SkillAliases
+): string[] {
   if (!text) return [];
-  const canonicalSet = new Set(Object.keys(aliases).map((c) => c.toLowerCase()));
+  const canonicalSet = new Set(
+    Object.keys(aliases).map((c) => c.toLowerCase())
+  );
   const found: string[] = [];
   for (const token of tokenize(text)) {
     const canonical = normalizeSkill(token, aliases);
@@ -209,10 +297,19 @@ function parseSkills(
   sections: Partial<Record<ResumeSection, string>>,
   aliases: ResolvedATSConfig["skillAliases"]
 ): string[] {
-  const explicit = normalizeSkills(parseExplicitSkillList(sections.skills), aliases);
-  const fromExperience = extractKnownSkillsFromText(sections.experience, aliases);
+  const explicit = normalizeSkills(
+    parseExplicitSkillList(sections.skills),
+    aliases
+  );
+  const fromExperience = extractKnownSkillsFromText(
+    sections.experience,
+    aliases
+  );
   const fromSummary = extractKnownSkillsFromText(sections.summary, aliases);
-  return normalizeSkills(unique([...explicit, ...fromExperience, ...fromSummary]), aliases);
+  return normalizeSkills(
+    unique([...explicit, ...fromExperience, ...fromSummary]),
+    aliases
+  );
 }
 
 function parseActionVerbs(text: string): { strong: string[]; weak: string[] } {
@@ -271,7 +368,11 @@ function parseExperience(
 
     if (title) {
       jobTitles.push(title.toLowerCase());
-      const entry: ParsedExperienceEntry = { title, description: line, skills: [] };
+      const entry: ParsedExperienceEntry = {
+        title,
+        description: line,
+        skills: [],
+      };
       entries.push(entry);
       achievements.push(classifyAchievement(line));
       continue;
@@ -279,7 +380,10 @@ function parseExperience(
 
     if (entries.length > 0) {
       const current = entries[entries.length - 1];
-      current.description = [current.description, line].filter(Boolean).join(" ").trim();
+      current.description = [current.description, line]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
     }
     achievements.push(classifyAchievement(line));
   }
@@ -291,7 +395,12 @@ function parseExperience(
     entry.skills = extractKnownSkillsFromText(entry.description, aliases);
   }
 
-  return { entries, rangesInMonths, jobTitles: unique(jobTitles), achievements };
+  return {
+    entries,
+    rangesInMonths,
+    jobTitles: unique(jobTitles),
+    achievements,
+  };
 }
 
 function parseEducation(sectionContent: string | undefined): string[] {
@@ -308,10 +417,12 @@ const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
 // groups of 2-4 digits separated by space/dot/dash. Good enough to flag presence, not validate.
 const PHONE_RE = /\+?\(?\d{1,4}\)?(?:[\s.-]?\d{2,4}){2,4}/;
 // LinkedIn profile URL (with or without protocol/www) or bare "linkedin.com/in/<handle>" mention.
-const LINKEDIN_RE = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|pub)\/[a-z0-9\-_%]+\/?/i;
+const LINKEDIN_RE =
+  /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/(?:in|pub)\/[a-z0-9\-_%]+\/?/i;
 // Best-effort "City, ST"/"City, Country" line — deliberately strict (whole-line match, title-case
 // segments, no digits) so it doesn't false-positive on "Doe, Jane" or bullet text.
-const LOCATION_RE = /^[A-Z][A-Za-z.'-]+(?:\s[A-Z][A-Za-z.'-]+)*,\s*[A-Z][A-Za-z]{1,20}$/;
+const LOCATION_RE =
+  /^[A-Z][A-Za-z.'-]+(?:\s[A-Z][A-Za-z.'-]+)*,\s*[A-Z][A-Za-z]{1,20}$/;
 
 function extractLocation(text: string): string | undefined {
   // Location is almost always near the top of the document, alongside the rest of the
@@ -336,12 +447,19 @@ function extractContact(text: string): ParsedResume["contact"] {
   return { email, phone, linkedin, location };
 }
 
-export function parseResume(resumeText: string, config: ResolvedATSConfig): ParsedResume {
+export function parseResume(
+  resumeText: string,
+  config: ResolvedATSConfig
+): ParsedResume {
   const normalizedText = normalizeWhitespace(resumeText);
   const { sections, detected } = extractSections(resumeText);
   const skills = parseSkills(sections, config.skillAliases);
   const actionVerbs = parseActionVerbs(normalizedText);
-  const experienceData = parseExperience(sections.experience, config.referenceDate, config.skillAliases);
+  const experienceData = parseExperience(
+    sections.experience,
+    config.referenceDate,
+    config.skillAliases
+  );
   const educationEntries = parseEducation(sections.education);
   let totalExperienceYears = sumExperienceYears(
     experienceData.entries
@@ -359,7 +477,12 @@ export function parseResume(resumeText: string, config: ResolvedATSConfig): Pars
     }
   }
 
-  const requiredSections: ResumeSection[] = ["summary", "experience", "skills", "education"];
+  const requiredSections: ResumeSection[] = [
+    "summary",
+    "experience",
+    "skills",
+    "education",
+  ];
   const warnings: string[] = [];
 
   // ponytail: flag flattened/empty extraction (common with multi-column or scanned PDFs)

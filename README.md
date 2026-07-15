@@ -72,11 +72,11 @@ const result = analyzeResume({
   config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score);            // 39.44
-console.log(result.matchedSkills);    // ["javascript", "node", "react", "typescript"]
-console.log(result.missingSkills);    // ["accessibility", "frontend", "graphql"]
-console.log(result.experienceGap);    // 0 (requirement met)
-console.log(result.suggestions);      // ["Highlight these required skills: accessibility, frontend, graphql", ...]
+console.log(result.score); // 39.44
+console.log(result.matchedSkills); // ["javascript", "node", "react", "typescript"]
+console.log(result.missingSkills); // ["accessibility", "frontend", "graphql"]
+console.log(result.experienceGap); // 0 (requirement met)
+console.log(result.suggestions); // ["Highlight these required skills: accessibility, frontend, graphql", ...]
 ```
 
 ---
@@ -85,31 +85,31 @@ console.log(result.suggestions);      // ["Highlight these required skills: acce
 
 `analyzeResume()` returns an `ATSAnalysisResult`:
 
-| Field | Type | Description |
-|---|---|---|
-| `score` | `number` | Overall ATS score 0–100 after rule penalties |
-| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education` |
-| `parseabilityReport` | `ParseabilityReport` | Itemized `{ reason, points }` deductions behind `breakdown.parseability`, plus the underlying formatting signals |
-| `matchedSkills` | `string[]` | Required skills found in the resume |
-| `missingSkills` | `string[]` | Required skills absent from the resume |
-| `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
-| `missingKeywords` | `string[]` | JD keywords absent from the resume (sorted) |
-| `overusedKeywords` | `string[]` | Keywords exceeding density threshold (sorted) |
-| `keywordsByCategory` | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category |
-| `keywordWeights` | `KeywordWeight[]` | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`) |
-| `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified as strong vs weak achievement statements |
-| `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
-| `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
-| `seniorityMatch` | `{ resume?, required?, met }` | Resume vs JD inferred seniority (`junior`–`principal`); `met` is `true` whenever either side is unknown |
-| `employmentGaps` | `{ afterRole, months }[]` | Gaps of 3+ months between consecutive dated roles — informational |
-| `perSkillExperience` | `{ skill, years }[]` | Per-skill years of experience derived from per-role dating (which roles actually mention the skill) |
-| `skillExperienceGaps` | `{ skill, requiredYears, resumeYears }[]` | JD skills the resume has but whose per-role dated experience falls short of a JD "N+ years of X" requirement — informational, doesn't affect `score` |
-| `suggestions` | `string[]` | Deterministic improvement recommendations |
-| `warnings` | `string[]` | Parse warnings and section alerts |
-| `experienceGap` | `number` | Years below JD minimum; `0` when met |
-| `detectedSections` | `string[]` | Resume sections the parser found |
-| `parsedExperienceYears` | `number` | Total years from resume date ranges (overlap-deduplicated) |
-| `experienceEntries` | `ParsedExperienceEntry[]` | Parsed job entries: `title`, `company`, `dates` (with `start`/`end`/`durationInMonths`), `skills` (per-role skill mentions) |
+| Field                   | Type                                          | Description                                                                                                                                          |
+| ----------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `score`                 | `number`                                      | Overall ATS score 0–100 after rule penalties                                                                                                         |
+| `breakdown`             | `ATSBreakdown`                                | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education`                                                                          |
+| `parseabilityReport`    | `ParseabilityReport`                          | Itemized `{ reason, points }` deductions behind `breakdown.parseability`, plus the underlying formatting signals                                     |
+| `matchedSkills`         | `string[]`                                    | Required skills found in the resume                                                                                                                  |
+| `missingSkills`         | `string[]`                                    | Required skills absent from the resume                                                                                                               |
+| `matchedKeywords`       | `string[]`                                    | JD keywords present in the resume (sorted)                                                                                                           |
+| `missingKeywords`       | `string[]`                                    | JD keywords absent from the resume (sorted)                                                                                                          |
+| `overusedKeywords`      | `string[]`                                    | Keywords exceeding density threshold (sorted)                                                                                                        |
+| `keywordsByCategory`    | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category                                                                                                         |
+| `keywordWeights`        | `KeywordWeight[]`                             | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`)                                                                             |
+| `achievementStrength`   | `{ strong: number; weak: number }`            | Count of resume bullets classified as strong vs weak achievement statements                                                                          |
+| `matchedLanguages`      | `ParsedLanguage[]`                            | JD-required languages the resume meets or exceeds in proficiency                                                                                     |
+| `missingLanguages`      | `ParsedLanguage[]`                            | JD-required languages absent or below the required proficiency                                                                                       |
+| `seniorityMatch`        | `{ resume?, required?, met }`                 | Resume vs JD inferred seniority (`junior`–`principal`); `met` is `true` whenever either side is unknown                                              |
+| `employmentGaps`        | `{ afterRole, months }[]`                     | Gaps of 3+ months between consecutive dated roles — informational                                                                                    |
+| `perSkillExperience`    | `{ skill, years }[]`                          | Per-skill years of experience derived from per-role dating (which roles actually mention the skill)                                                  |
+| `skillExperienceGaps`   | `{ skill, requiredYears, resumeYears }[]`     | JD skills the resume has but whose per-role dated experience falls short of a JD "N+ years of X" requirement — informational, doesn't affect `score` |
+| `suggestions`           | `string[]`                                    | Deterministic improvement recommendations                                                                                                            |
+| `warnings`              | `string[]`                                    | Parse warnings and section alerts                                                                                                                    |
+| `experienceGap`         | `number`                                      | Years below JD minimum; `0` when met                                                                                                                 |
+| `detectedSections`      | `string[]`                                    | Resume sections the parser found                                                                                                                     |
+| `parsedExperienceYears` | `number`                                      | Total years from resume date ranges (overlap-deduplicated)                                                                                           |
+| `experienceEntries`     | `ParsedExperienceEntry[]`                     | Parsed job entries: `title`, `company`, `dates` (with `start`/`end`/`durationInMonths`), `skills` (per-role skill mentions)                          |
 
 **Scoring formula:**  
 `score = skills×0.25 + experience×0.20 + keywords×0.25 + parseability×0.20 + education×0.10` → clamped to 0–100 → rule penalties subtracted.
@@ -136,7 +136,13 @@ const result = analyzeResume({
   jobDescription: "...",
   config: {
     // Override scoring weights (auto-normalized to sum to 1)
-    weights: { skills: 0.3, experience: 0.2, keywords: 0.2, parseability: 0.2, education: 0.1 },
+    weights: {
+      skills: 0.3,
+      experience: 0.2,
+      keywords: 0.2,
+      parseability: 0.2,
+      education: 0.1,
+    },
 
     // Fuzzy/stem matching is on by default; disable for exact-match-only (v1 behavior)
     matching: { fuzzy: false },
@@ -145,7 +151,9 @@ const result = analyzeResume({
     skillAliases: { javascript: ["js", "ecmascript"] },
 
     // Categorized keyword/alias entries; merges over the default registry by canonical term
-    keywordRegistry: [{ canonical: "rust", aliases: ["rustlang"], category: "technical" }],
+    keywordRegistry: [
+      { canonical: "rust", aliases: ["rustlang"], category: "technical" },
+    ],
 
     // Industry profile: sets mandatory/optional skills and minExperience
     profile: {
@@ -181,19 +189,19 @@ const result = analyzeResume({
 
 ### Defaults
 
-| Setting | Default |
-|---|---|
-| `weights.skills` | `0.25` |
-| `weights.experience` | `0.20` |
-| `weights.keywords` | `0.25` |
-| `weights.parseability` | `0.20` |
-| `weights.education` | `0.10` |
-| `matching.fuzzy` | `true` (stemmed/fuzzy skill & keyword matching) |
-| `keywordDensity.min` | `0.0025` |
-| `keywordDensity.max` | `0.04` |
-| `keywordDensity.overusePenalty` | `5` |
-| `allowPartialMatches` | `true` |
-| `referenceDate` | Current date (use explicit ISO string for determinism) |
+| Setting                           | Default                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `weights.skills`                  | `0.25`                                                                         |
+| `weights.experience`              | `0.20`                                                                         |
+| `weights.keywords`                | `0.25`                                                                         |
+| `weights.parseability`            | `0.20`                                                                         |
+| `weights.education`               | `0.10`                                                                         |
+| `matching.fuzzy`                  | `true` (stemmed/fuzzy skill & keyword matching)                                |
+| `keywordDensity.min`              | `0.0025`                                                                       |
+| `keywordDensity.max`              | `0.04`                                                                         |
+| `keywordDensity.overusePenalty`   | `5`                                                                            |
+| `allowPartialMatches`             | `true`                                                                         |
+| `referenceDate`                   | Current date (use explicit ISO string for determinism)                         |
 | `sectionPenalties.missingContact` | `12` (no parseable email detected — a real ATS treats this as a near-knockout) |
 
 See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/configuration/) for all options.
@@ -205,7 +213,10 @@ See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/config
 Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). The default registry ships **407 canonical terms** across cloud/infra, databases, frameworks, ML/AI, testing, security/compliance, soft skills, marketing, and PM/agile vocabulary, with common surface-form aliases pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, `reactjs`/`react.js` match `react`, etc. — and typos/word-form variants match too via fuzzy/stem matching (on by default, see [Configuration](#configuration)).
 
 ```typescript
-import { defaultKeywordRegistry, defaultSkillAliases } from "@pranavraut033/ats-checker";
+import {
+  defaultKeywordRegistry,
+  defaultSkillAliases,
+} from "@pranavraut033/ats-checker";
 // defaultKeywordRegistry: [{ canonical: "javascript", aliases: ["js"], category: "technical" }, ...]
 // defaultSkillAliases: { javascript: ["js"], node: ["node.js", "nodejs"], ... }  (derived, back-compat)
 ```
@@ -219,13 +230,17 @@ const result = analyzeResume({
   config: {
     keywordRegistry: [
       { canonical: "rust", aliases: ["rustlang"], category: "technical" },
-      { canonical: "javascript", aliases: ["js", "ecmascript"], category: "technical" }, // overrides default
+      {
+        canonical: "javascript",
+        aliases: ["js", "ecmascript"],
+        category: "technical",
+      }, // overrides default
     ],
   },
 });
 
 console.log(result.keywordsByCategory.technical); // { matched: [...], missing: [...] }
-console.log(result.keywordWeights);                // [{ term, category, jdWeight, resumeWeight, importance }, ...]
+console.log(result.keywordWeights); // [{ term, category, jdWeight, resumeWeight, importance }, ...]
 ```
 
 You can still pass `config.skillAliases` for a flat override — it merges on top of the registry-derived aliases.
@@ -325,7 +340,9 @@ const resumeText = await extractTextFromPDF(bytes, {
   ocrFallback: async (data) => {
     // bring your own OCR engine, e.g. tesseract.js or a cloud OCR API
     const { recognize } = await import("tesseract.js");
-    const { data: { text } } = await recognize(data, "eng");
+    const {
+      data: { text },
+    } = await recognize(data, "eng");
     return text;
   },
 });

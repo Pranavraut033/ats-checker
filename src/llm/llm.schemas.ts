@@ -56,7 +56,15 @@ export const sectionClassificationSchema: JSONSchema = {
           },
           classification: {
             type: "string",
-            enum: ["summary", "experience", "skills", "education", "projects", "certifications", "other"],
+            enum: [
+              "summary",
+              "experience",
+              "skills",
+              "education",
+              "projects",
+              "certifications",
+              "other",
+            ],
             description: "Classified section type",
           },
           confidence: {

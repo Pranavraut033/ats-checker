@@ -3,10 +3,10 @@
  * Provides safe fallback to v1 deterministic logic on any failure
  */
 
-import { LLMClient, LLMConfig, LLMResult } from "../types/llm";
-import { JSONSchema } from "../types/llm";
 import { LLMBudgetManager } from "./llm.budget";
 import { validateJsonSchema } from "./validation";
+import { LLMClient, LLMConfig, LLMResult } from "../types/llm";
+import { JSONSchema } from "../types/llm";
 
 interface LLMCallOptions {
   model?: string;
@@ -43,15 +43,23 @@ export class LLMManager {
     // Attach a temporary handler to catch any unhandled rejections that may occur
     // while the LLM call is in-flight (e.g., provider rejects after we timeout).
     const onUnhandled = (reason: unknown) => {
-      this.warnings.push(`Unhandled rejection during LLM call: ${String(reason)}`);
+      this.warnings.push(
+        `Unhandled rejection during LLM call: ${String(reason)}`
+      );
     };
     process.on("unhandledRejection", onUnhandled);
 
-    let clientPromise: Promise<{ content: unknown; usage?: { total_tokens?: number } }> | undefined = undefined;
+    let clientPromise:
+      | Promise<{ content: unknown; usage?: { total_tokens?: number } }>
+      | undefined = undefined;
 
     try {
       // Check budget before attempting call
-      const estimatedTokens = this.estimateTokens(systemPrompt, userPrompt, options.requestedTokens);
+      const estimatedTokens = this.estimateTokens(
+        systemPrompt,
+        userPrompt,
+        options.requestedTokens
+      );
 
       try {
         this.budgetManager.assertCanCall(estimatedTokens);
@@ -59,7 +67,10 @@ export class LLMManager {
         const msg = `LLM budget exhausted: ${(e as Error).message}`;
         this.warnings.push(msg);
         // Ensure we remove handler shortly even on early return
-        globalThis.setTimeout(() => process.removeListener("unhandledRejection", onUnhandled), 100);
+        globalThis.setTimeout(
+          () => process.removeListener("unhandledRejection", onUnhandled),
+          100
+        );
         return { success: false, fallback: true, error: msg };
       }
 
@@ -67,7 +78,10 @@ export class LLMManager {
       if (!this.isValidJsonSchema(schema)) {
         const msg = "Invalid JSON schema provided";
         this.warnings.push(msg);
-        globalThis.setTimeout(() => process.removeListener("unhandledRejection", onUnhandled), 100);
+        globalThis.setTimeout(
+          () => process.removeListener("unhandledRejection", onUnhandled),
+          100
+        );
         return { success: false, fallback: true, error: msg };
       }
 
@@ -77,7 +91,9 @@ export class LLMManager {
       // Execute with timeout - ensure timeout is cleared if client returns first to avoid unhandled rejections
       clientPromise = this.client.createCompletion({
         model: options.useThinking
-          ? this.config.models?.thinking || this.config.models?.default || "gpt-4o"
+          ? this.config.models?.thinking ||
+            this.config.models?.default ||
+            "gpt-4o"
           : this.config.models?.default || "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
@@ -88,22 +104,30 @@ export class LLMManager {
       });
 
       // Ensure client promise doesn't produce unhandled rejections if it settles later
-      void clientPromise.catch(() => { });
+      void clientPromise.catch(() => {});
 
       // Create a timeout promise that rejects after timeoutMs. Attach a noop catch
       // immediately to prevent unhandledRejection if the timer fires and no one
       // is observing the rejection later in the lifecycle.
       const timeoutPromise = new Promise<never>((_, reject) => {
-        const id = globalThis.setTimeout(() => reject(new Error(`LLM call timeout after ${this.timeoutMs}ms`)), this.timeoutMs);
+        const id = globalThis.setTimeout(
+          () => reject(new Error(`LLM call timeout after ${this.timeoutMs}ms`)),
+          this.timeoutMs
+        );
         // Clear timeout when client settles to avoid the timer firing after client finishes.
         // .finally() re-throws the original rejection into a new promise, so it needs its
         // own catch — clientPromise already having one doesn't cover this derived promise.
-        void clientPromise!.finally(() => globalThis.clearTimeout(id)).catch(() => { });
+        void clientPromise!
+          .finally(() => globalThis.clearTimeout(id))
+          .catch(() => {});
       });
       // Prevent accidental unhandled rejections from the timeout promise
-      void timeoutPromise.catch(() => { });
+      void timeoutPromise.catch(() => {});
 
-      const response = (await Promise.race([clientPromise, timeoutPromise])) as {
+      const response = (await Promise.race([
+        clientPromise,
+        timeoutPromise,
+      ])) as {
         content: unknown;
         usage?: { total_tokens?: number };
       };
@@ -117,14 +141,21 @@ export class LLMManager {
 
         try {
           // Wait until either client settles or graceMs elapses
-          await Promise.race([clientPromise!.catch(() => { }), new Promise((r) => setTimeout(r, graceMs))]);
-        } catch (e) {
+          await Promise.race([
+            clientPromise!.catch(() => {}),
+            new Promise((r) => setTimeout(r, graceMs)),
+          ]);
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
         }
 
-        return { success: false, fallback: true, error: "Empty response from LLM" };
+        return {
+          success: false,
+          fallback: true,
+          error: "Empty response from LLM",
+        };
       }
 
       // Attempt to parse JSON
@@ -141,8 +172,11 @@ export class LLMManager {
 
         const graceMs = Math.min(Math.max(this.timeoutMs * 2, 100), 500);
         try {
-          await Promise.race([clientPromise!.catch(() => { }), new Promise((r) => setTimeout(r, graceMs))]);
-        } catch (e) {
+          await Promise.race([
+            clientPromise!.catch(() => {}),
+            new Promise((r) => setTimeout(r, graceMs)),
+          ]);
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
@@ -158,8 +192,11 @@ export class LLMManager {
 
         const graceMs = Math.min(Math.max(this.timeoutMs * 2, 100), 500);
         try {
-          await Promise.race([clientPromise!.catch(() => { }), new Promise((r) => setTimeout(r, graceMs))]);
-        } catch (e) {
+          await Promise.race([
+            clientPromise!.catch(() => {}),
+            new Promise((r) => setTimeout(r, graceMs)),
+          ]);
+        } catch {
           // intentionally ignore
         } finally {
           process.removeListener("unhandledRejection", onUnhandled);
@@ -191,8 +228,11 @@ export class LLMManager {
       const graceMs = Math.min(Math.max(this.timeoutMs * 2, 100), 500);
 
       try {
-        await Promise.race([clientPromise!.catch(() => { }), new Promise((r) => setTimeout(r, graceMs))]);
-      } catch (e) {
+        await Promise.race([
+          clientPromise!.catch(() => {}),
+          new Promise((r) => setTimeout(r, graceMs)),
+        ]);
+      } catch {
         // intentionally ignore
       } finally {
         process.removeListener("unhandledRejection", onUnhandled);
@@ -225,12 +265,15 @@ export class LLMManager {
 
   // ============ Private helpers ============
 
-
   /**
    * Estimate tokens for a call (rough approximation)
    * 1 token ≈ 4 characters average
    */
-  private estimateTokens(systemPrompt: string, userPrompt: string, requestedTokens?: number): number {
+  private estimateTokens(
+    systemPrompt: string,
+    userPrompt: string,
+    requestedTokens?: number
+  ): number {
     if (requestedTokens) {
       return requestedTokens;
     }
@@ -244,7 +287,11 @@ export class LLMManager {
    * Validate that schema looks like valid JSON schema
    */
   private isValidJsonSchema(schema: JSONSchema): boolean {
-    return schema && schema.type === "object" && !!(schema.properties || schema.required);
+    return (
+      schema &&
+      schema.type === "object" &&
+      !!(schema.properties || schema.required)
+    );
   }
 
   /**
@@ -254,7 +301,7 @@ export class LLMManager {
   private validateAgainstSchema(data: unknown, schema: JSONSchema): boolean {
     try {
       return validateJsonSchema(data, schema);
-    } catch (e) {
+    } catch {
       // If validator throws for any reason, gracefully fallback to simple existence check
       if (typeof data !== "object" || data === null) {
         return false;

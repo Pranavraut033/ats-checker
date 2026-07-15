@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { inferSeniority, normalizeTitle, titleMatch } from "../src/utils/titles";
+
+import {
+  inferSeniority,
+  normalizeTitle,
+  titleMatch,
+} from "../src/utils/titles";
 
 describe("inferSeniority", () => {
   it("detects junior signals", () => {
@@ -22,7 +27,9 @@ describe("inferSeniority", () => {
   });
 
   it("picks the highest-ranked signal across multiple titles", () => {
-    expect(inferSeniority(["Junior Developer", "Senior Developer", "Staff Engineer"])).toBe("lead");
+    expect(
+      inferSeniority(["Junior Developer", "Senior Developer", "Staff Engineer"])
+    ).toBe("lead");
   });
 
   it("returns undefined when no title carries a seniority keyword", () => {
@@ -36,7 +43,9 @@ describe("inferSeniority", () => {
 
 describe("normalizeTitle", () => {
   it("lowercases and strips punctuation noise", () => {
-    expect(normalizeTitle("Sr. Software Engineer, Backend")).toBe("sr software engineer backend");
+    expect(normalizeTitle("Sr. Software Engineer, Backend")).toBe(
+      "sr software engineer backend"
+    );
   });
 
   it("collapses repeated whitespace", () => {
@@ -50,7 +59,9 @@ describe("titleMatch", () => {
   });
 
   it("matches stemmed word-form variants (Developer vs Developing)", () => {
-    expect(titleMatch(["Backend Developer"], ["developing"])).toBeGreaterThan(0);
+    expect(titleMatch(["Backend Developer"], ["developing"])).toBeGreaterThan(
+      0
+    );
   });
 
   it("returns a partial ratio when only some keywords match", () => {

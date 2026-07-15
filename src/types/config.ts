@@ -1,5 +1,5 @@
-import { ATSBreakdown } from "./scoring";
 import { ParsedJobDescription, ParsedResume } from "./parser";
+import { ATSBreakdown } from "./scoring";
 
 export interface ATSWeights {
   skills: number;
@@ -12,7 +12,8 @@ export interface ATSWeights {
 
 export type SkillAliases = Record<string, string[]>;
 
-export type KeywordCategory = "technical" | "tool" | "concept" | "soft" | "marketing" | "domain";
+export type KeywordCategory =
+  "technical" | "tool" | "concept" | "soft" | "marketing" | "domain";
 
 export interface KeywordEntry {
   canonical: string;
@@ -108,7 +109,8 @@ export interface ResolvedATSConfig {
   sectionPenalties: Required<SectionPenaltyConfig>;
   allowPartialMatches: boolean;
   /** Resolved matching behavior; `fuzzy` is always defined (defaults to true). */
-  matching: Required<Pick<MatchingConfig, "fuzzy">> & Pick<MatchingConfig, "threshold">;
+  matching: Required<Pick<MatchingConfig, "fuzzy">> &
+    Pick<MatchingConfig, "threshold">;
   /** Resolved reference date for "Present" duration calculations. */
   referenceDate?: Date;
 }

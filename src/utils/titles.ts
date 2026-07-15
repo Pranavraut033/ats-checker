@@ -1,5 +1,5 @@
-import { ROLE_NOUNS, STOP_WORDS } from "./text";
 import { stem } from "./match";
+import { ROLE_NOUNS, STOP_WORDS } from "./text";
 
 export type Seniority = "junior" | "mid" | "senior" | "lead" | "principal";
 
@@ -9,7 +9,10 @@ const SENIORITY_SIGNALS: { seniority: Seniority; pattern: RegExp }[] = [
   { seniority: "principal", pattern: /\bprincipal\b/i },
   { seniority: "lead", pattern: /\b(lead|staff|head of|director)\b/i },
   { seniority: "senior", pattern: /\b(senior|sr\.?)\b/i },
-  { seniority: "junior", pattern: /\b(junior|jr\.?|entry[\s-]?level|intern(?:ship)?|associate)\b/i },
+  {
+    seniority: "junior",
+    pattern: /\b(junior|jr\.?|entry[\s-]?level|intern(?:ship)?|associate)\b/i,
+  },
 ];
 
 // Rank used to pick the strongest signal when a title matches more than one tier
@@ -67,8 +70,13 @@ function titleTokens(title: string): Set<string> {
  * the shared ROLE_NOUNS vocabulary as a soft synonym set: any resume title token that
  * shares a stemmed role-noun with a JD keyword counts as a match.
  */
-export function titleMatch(resumeTitles: string[], jdRoleKeywords: string[]): number {
-  const keywords = jdRoleKeywords.map((k) => stem(normalizeTitle(k))).filter(Boolean);
+export function titleMatch(
+  resumeTitles: string[],
+  jdRoleKeywords: string[]
+): number {
+  const keywords = jdRoleKeywords
+    .map((k) => stem(normalizeTitle(k)))
+    .filter(Boolean);
   if (keywords.length === 0) {
     return 0;
   }
@@ -84,7 +92,10 @@ export function titleMatch(resumeTitles: string[], jdRoleKeywords: string[]): nu
         return true;
       }
       // Soft synonym: both sides reference a shared role noun (e.g. "engineer").
-      return isRoleNoun && [...tokens].some((t) => roleNounStems.has(t) && t === keyword);
+      return (
+        isRoleNoun &&
+        [...tokens].some((t) => roleNounStems.has(t) && t === keyword)
+      );
     });
     if (hit) {
       matched += 1;

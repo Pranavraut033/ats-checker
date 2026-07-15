@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { parseJobDescription } from "../src/core/parser/jd.parser";
 import { resolveConfig } from "../src/core/scoring/weights";
 
@@ -14,21 +15,37 @@ describe("job description parser edge cases", () => {
   it("flags a language as required when given an explicit level requirement", () => {
     const jd = `Languages: German (B2) required.`;
     const parsed = parseJobDescription(jd, config);
-    expect(parsed.requiredLanguages.some((l) => l.name === "german")).toBe(true);
+    expect(parsed.requiredLanguages.some((l) => l.name === "german")).toBe(
+      true
+    );
   });
 
   it("parses minimum experience expressed as 'yrs.' or 'Jahre'", () => {
-    expect(parseJobDescription("5 yrs. of experience required", config).minExperienceYears).toBe(5);
-    expect(parseJobDescription("5 Jahre Erfahrung erforderlich", config).minExperienceYears).toBe(5);
+    expect(
+      parseJobDescription("5 yrs. of experience required", config)
+        .minExperienceYears
+    ).toBe(5);
+    expect(
+      parseJobDescription("5 Jahre Erfahrung erforderlich", config)
+        .minExperienceYears
+    ).toBe(5);
   });
 
   it("ignores implausible minimum experience values", () => {
-    expect(parseJobDescription("97 years of experience required", config).minExperienceYears).toBeUndefined();
+    expect(
+      parseJobDescription("97 years of experience required", config)
+        .minExperienceYears
+    ).toBeUndefined();
   });
 
   it("picks up Director/Consultant role keywords beyond the original list", () => {
-    const parsed = parseJobDescription("Looking for an Engineering Director or Senior Consultant", config);
-    expect(parsed.roleKeywords).toEqual(expect.arrayContaining(["director", "consultant"]));
+    const parsed = parseJobDescription(
+      "Looking for an Engineering Director or Senior Consultant",
+      config
+    );
+    expect(parsed.roleKeywords).toEqual(
+      expect.arrayContaining(["director", "consultant"])
+    );
   });
 
   it("picks up broadened role keywords beyond engineering (Designer, Recruiter, Accountant)", () => {
@@ -42,17 +59,27 @@ describe("job description parser edge cases", () => {
   });
 
   it("parses 'N+ years of <skill>' requirements gated through the skill vocabulary", () => {
-    const parsed = parseJobDescription("Must have 5+ years of Figma experience.", config);
-    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "figma", years: 5 }]);
+    const parsed = parseJobDescription(
+      "Must have 5+ years of Figma experience.",
+      config
+    );
+    expect(parsed.skillExperienceRequirements).toEqual([
+      { skill: "figma", years: 5 },
+    ]);
   });
 
   it("parses '<skill> (N+ years)' requirements", () => {
     const parsed = parseJobDescription("React (3+ years) required.", config);
-    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "react", years: 3 }]);
+    expect(parsed.skillExperienceRequirements).toEqual([
+      { skill: "react", years: 3 },
+    ]);
   });
 
   it("does not record a skill-experience requirement for non-vocabulary words", () => {
-    const parsed = parseJobDescription("Must have 5+ years of coffee brewing experience.", config);
+    const parsed = parseJobDescription(
+      "Must have 5+ years of coffee brewing experience.",
+      config
+    );
     expect(parsed.skillExperienceRequirements).toEqual([]);
   });
 
@@ -61,14 +88,20 @@ describe("job description parser edge cases", () => {
       "3+ years of Python required. 5+ years of Python preferred.",
       config
     );
-    expect(parsed.skillExperienceRequirements).toEqual([{ skill: "python", years: 5 }]);
+    expect(parsed.skillExperienceRequirements).toEqual([
+      { skill: "python", years: 5 },
+    ]);
   });
 
   it("classifies bulleted skills under a 'Requirements:' header block as required", () => {
     const jd = `Senior Backend Engineer\n\nRequirements:\n- Python\n- Docker\n- SQL\n\nPreferred:\n- Kubernetes\n- GraphQL`;
     const parsed = parseJobDescription(jd, config);
-    expect(parsed.requiredSkills).toEqual(expect.arrayContaining(["python", "docker", "sql"]));
-    expect(parsed.preferredSkills).toEqual(expect.arrayContaining(["kubernetes", "graphql"]));
+    expect(parsed.requiredSkills).toEqual(
+      expect.arrayContaining(["python", "docker", "sql"])
+    );
+    expect(parsed.preferredSkills).toEqual(
+      expect.arrayContaining(["kubernetes", "graphql"])
+    );
     expect(parsed.requiredSkills).not.toContain("kubernetes");
   });
 
@@ -82,18 +115,27 @@ describe("job description parser edge cases", () => {
   });
 
   it("still classifies required/preferred skills via inline cue words without a header block", () => {
-    const parsed = parseJobDescription("Must have Python. Nice to have Kubernetes.", config);
+    const parsed = parseJobDescription(
+      "Must have Python. Nice to have Kubernetes.",
+      config
+    );
     expect(parsed.requiredSkills).toContain("python");
     expect(parsed.preferredSkills).toContain("kubernetes");
   });
 
   it("infers JD seniority from a clear seniority cue in the title", () => {
-    const parsed = parseJobDescription("Senior Backend Engineer\n\nWe are hiring.", config);
+    const parsed = parseJobDescription(
+      "Senior Backend Engineer\n\nWe are hiring.",
+      config
+    );
     expect(parsed.seniority).toBe("senior");
   });
 
   it("returns undefined JD seniority when no seniority cue is present", () => {
-    const parsed = parseJobDescription("Backend Engineer\n\nWe are hiring.", config);
+    const parsed = parseJobDescription(
+      "Backend Engineer\n\nWe are hiring.",
+      config
+    );
     expect(parsed.seniority).toBeUndefined();
   });
 });

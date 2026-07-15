@@ -1,11 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { defaultKeywordRegistry, defaultProfiles } from "../src/profiles";
-import { deriveSkillAliases, buildCategoryIndex } from "../src/utils/skills";
-import type { KeywordCategory } from "../src/types/config";
+
 import deRegistry from "../src/lang/de";
 import enRegistry from "../src/lang/en";
+import { defaultKeywordRegistry, defaultProfiles } from "../src/profiles";
+import { deriveSkillAliases, buildCategoryIndex } from "../src/utils/skills";
 
-const VALID_CATEGORIES: KeywordCategory[] = ["technical", "tool", "concept", "soft", "marketing", "domain"];
+import type { KeywordCategory } from "../src/types/config";
+
+const VALID_CATEGORIES: KeywordCategory[] = [
+  "technical",
+  "tool",
+  "concept",
+  "soft",
+  "marketing",
+  "domain",
+];
 
 describe("defaultKeywordRegistry", () => {
   it("has at least 400 canonical entries", () => {
@@ -23,7 +32,9 @@ describe("defaultKeywordRegistry", () => {
   });
 
   it("does not contain the 'auditin g' typo", () => {
-    const canonicals = defaultKeywordRegistry.map((e) => e.canonical.toLowerCase());
+    const canonicals = defaultKeywordRegistry.map((e) =>
+      e.canonical.toLowerCase()
+    );
     expect(canonicals).not.toContain("auditin g");
     expect(canonicals).toContain("auditing");
   });
@@ -75,7 +86,9 @@ describe("de language pack", () => {
   });
 
   it("every entry has a valid category and canonical terms stay English (no de-only canonicals)", () => {
-    const enCanonicals = new Set(defaultKeywordRegistry.map((e) => e.canonical.toLowerCase()));
+    const enCanonicals = new Set(
+      defaultKeywordRegistry.map((e) => e.canonical.toLowerCase())
+    );
     for (const entry of deRegistry) {
       expect(VALID_CATEGORIES).toContain(entry.category);
       expect(enCanonicals.has(entry.canonical.toLowerCase())).toBe(true);
@@ -90,9 +103,14 @@ describe("de language pack", () => {
 
 describe("defaultProfiles", () => {
   it("every mandatory/optional skill resolves to a valid registry canonical", () => {
-    const canonicals = new Set(defaultKeywordRegistry.map((e) => e.canonical.toLowerCase()));
+    const canonicals = new Set(
+      defaultKeywordRegistry.map((e) => e.canonical.toLowerCase())
+    );
     for (const profile of defaultProfiles) {
-      for (const skill of [...profile.mandatorySkills, ...profile.optionalSkills]) {
+      for (const skill of [
+        ...profile.mandatorySkills,
+        ...profile.optionalSkills,
+      ]) {
         expect(canonicals.has(skill.toLowerCase())).toBe(true);
       }
     }

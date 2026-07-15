@@ -25,11 +25,11 @@ const result = analyzeResume({
   config: { referenceDate: "2026-01-01" }, // freeze clock for reproducible scores
 });
 
-console.log(result.score);           // e.g. 39.44
-console.log(result.matchedSkills);   // ["javascript", "node", "react", "typescript"]
-console.log(result.missingSkills);   // ["accessibility", "frontend", "graphql"]
-console.log(result.experienceGap);   // 0 (requirement met)
-console.log(result.suggestions);     // ["Highlight these required skills: ...", ...]
+console.log(result.score); // e.g. 39.44
+console.log(result.matchedSkills); // ["javascript", "node", "react", "typescript"]
+console.log(result.missingSkills); // ["accessibility", "frontend", "graphql"]
+console.log(result.experienceGap); // 0 (requirement met)
+console.log(result.suggestions); // ["Highlight these required skills: ...", ...]
 ```
 
 ## Features
@@ -58,29 +58,29 @@ console.log(result.suggestions);     // ["Highlight these required skills: ...",
 
 `analyzeResume()` returns an `ATSAnalysisResult`:
 
-| Field | Type | Description |
-|---|---|---|
-| `score` | `number` | Overall ATS score 0–100 after rule penalties |
-| `breakdown` | `ATSBreakdown` | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education` |
-| `parseabilityReport` | `ParseabilityReport` | Itemized deductions behind `breakdown.parseability` |
-| `matchedSkills` | `string[]` | Required skills found in the resume |
-| `missingSkills` | `string[]` | Required skills absent from the resume |
-| `matchedKeywords` | `string[]` | JD keywords present in the resume (sorted) |
-| `missingKeywords` | `string[]` | JD keywords absent from the resume (sorted) |
-| `overusedKeywords` | `string[]` | Keywords exceeding density threshold (sorted) |
-| `keywordsByCategory` | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category |
-| `keywordWeights` | `KeywordWeight[]` | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`) |
-| `achievementStrength` | `{ strong: number; weak: number }` | Count of resume bullets classified strong vs weak |
-| `matchedLanguages` | `ParsedLanguage[]` | JD-required languages the resume meets or exceeds in proficiency |
-| `missingLanguages` | `ParsedLanguage[]` | JD-required languages absent or below the required proficiency |
-| `seniorityMatch` | `{ resume?, required?, met }` | Resume vs JD inferred seniority |
-| `employmentGaps` | `{ afterRole, months }[]` | Gaps ≥3 months between dated roles |
-| `perSkillExperience` | `{ skill, years }[]` | Per-skill years from per-role dating |
-| `suggestions` | `string[]` | Deterministic improvement recommendations |
-| `warnings` | `string[]` | Parse warnings and section alerts |
-| `experienceGap` | `number` | Years below JD minimum; `0` when met |
-| `detectedSections` | `string[]` | Resume sections the parser found |
-| `parsedExperienceYears` | `number` | Total years from resume date ranges |
+| Field                   | Type                                          | Description                                                                 |
+| ----------------------- | --------------------------------------------- | --------------------------------------------------------------------------- |
+| `score`                 | `number`                                      | Overall ATS score 0–100 after rule penalties                                |
+| `breakdown`             | `ATSBreakdown`                                | Sub-scores: `skills`, `experience`, `keywords`, `parseability`, `education` |
+| `parseabilityReport`    | `ParseabilityReport`                          | Itemized deductions behind `breakdown.parseability`                         |
+| `matchedSkills`         | `string[]`                                    | Required skills found in the resume                                         |
+| `missingSkills`         | `string[]`                                    | Required skills absent from the resume                                      |
+| `matchedKeywords`       | `string[]`                                    | JD keywords present in the resume (sorted)                                  |
+| `missingKeywords`       | `string[]`                                    | JD keywords absent from the resume (sorted)                                 |
+| `overusedKeywords`      | `string[]`                                    | Keywords exceeding density threshold (sorted)                               |
+| `keywordsByCategory`    | `Record<KeywordCategory, {matched, missing}>` | Matched/missing keywords grouped by category                                |
+| `keywordWeights`        | `KeywordWeight[]`                             | Per-keyword JD importance (`jdWeight`) and resume usage (`resumeWeight`)    |
+| `achievementStrength`   | `{ strong: number; weak: number }`            | Count of resume bullets classified strong vs weak                           |
+| `matchedLanguages`      | `ParsedLanguage[]`                            | JD-required languages the resume meets or exceeds in proficiency            |
+| `missingLanguages`      | `ParsedLanguage[]`                            | JD-required languages absent or below the required proficiency              |
+| `seniorityMatch`        | `{ resume?, required?, met }`                 | Resume vs JD inferred seniority                                             |
+| `employmentGaps`        | `{ afterRole, months }[]`                     | Gaps ≥3 months between dated roles                                          |
+| `perSkillExperience`    | `{ skill, years }[]`                          | Per-skill years from per-role dating                                        |
+| `suggestions`           | `string[]`                                    | Deterministic improvement recommendations                                   |
+| `warnings`              | `string[]`                                    | Parse warnings and section alerts                                           |
+| `experienceGap`         | `number`                                      | Years below JD minimum; `0` when met                                        |
+| `detectedSections`      | `string[]`                                    | Resume sections the parser found                                            |
+| `parsedExperienceYears` | `number`                                      | Total years from resume date ranges                                         |
 
 **Scoring formula:**  
 `score = skills×0.25 + experience×0.20 + keywords×0.25 + parseability×0.20 + education×0.10` → clamped to 0–100 → rule penalties subtracted. The `keywords` sub-score is a weighted coverage ratio — see [Configuration](configuration.md#keyword-registry--categories) for how weights are derived.
@@ -98,11 +98,11 @@ console.log(result.suggestions);     // ["Highlight these required skills: ...",
 
 **Input:**
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `resumeText` | `string` | ✅ | Full text of the resume |
-| `jobDescription` | `string` | ✅ | Job description text |
-| `config` | `ATSConfig` | — | Optional configuration |
+| Field            | Type        | Required | Description             |
+| ---------------- | ----------- | -------- | ----------------------- |
+| `resumeText`     | `string`    | ✅       | Full text of the resume |
+| `jobDescription` | `string`    | ✅       | Job description text    |
+| `config`         | `ATSConfig` | —        | Optional configuration  |
 
 ### `extractTextFromPDF(data): Promise<string>`
 
@@ -114,9 +114,9 @@ import { extractTextFromPDF } from "@pranavraut033/ats-checker/pdf";
 const resumeText = await extractTextFromPDF(uint8ArrayOrArrayBuffer);
 ```
 
-| Parameter | Type | Description |
-|---|---|---|
-| `data` | `Uint8Array \| ArrayBuffer` | Raw PDF bytes |
+| Parameter | Type                        | Description   |
+| --------- | --------------------------- | ------------- |
+| `data`    | `Uint8Array \| ArrayBuffer` | Raw PDF bytes |
 
 Returns a normalized string ready to pass as `resumeText`. Text-layer PDFs only.
 
@@ -153,7 +153,8 @@ import en from "@pranavraut033/ats-checker/en"; // default registry
 import de from "@pranavraut033/ats-checker/de"; // seed set, German aliases
 
 const result = analyzeResume({
-  resumeText, jobDescription,
+  resumeText,
+  jobDescription,
   config: { keywordRegistry: de },
 });
 ```

@@ -1,6 +1,10 @@
-import { KeywordCategory, KeywordRegistry, SkillAliases } from "../types/config";
-import { unique } from "./text";
 import { fuzzyEqual, stem } from "./match";
+import { unique } from "./text";
+import {
+  KeywordCategory,
+  KeywordRegistry,
+  SkillAliases,
+} from "../types/config";
 
 // Map lookup by default; stem/fuzzy fallback is opt-in (see NormalizeSkillOptions) so
 // existing exact-match callers/tests keep their current behavior until SCORING opts in.
@@ -107,7 +111,9 @@ export function deriveSkillAliases(registry: KeywordRegistry): SkillAliases {
 }
 
 /** Derive a canonical->category lookup from a keyword registry. */
-export function buildCategoryIndex(registry: KeywordRegistry): Map<string, KeywordCategory> {
+export function buildCategoryIndex(
+  registry: KeywordRegistry
+): Map<string, KeywordCategory> {
   const index = new Map<string, KeywordCategory>();
   for (const entry of registry) {
     index.set(entry.canonical.toLowerCase(), entry.category);
@@ -116,9 +122,14 @@ export function buildCategoryIndex(registry: KeywordRegistry): Map<string, Keywo
 }
 
 /** Merge two registries by canonical term; entries in `overrides` win. */
-export function mergeKeywordRegistries(base: KeywordRegistry, overrides: KeywordRegistry): KeywordRegistry {
+export function mergeKeywordRegistries(
+  base: KeywordRegistry,
+  overrides: KeywordRegistry
+): KeywordRegistry {
   const byCanonical = new Map<string, KeywordRegistry[number]>();
-  for (const entry of base) byCanonical.set(entry.canonical.toLowerCase(), entry);
-  for (const entry of overrides) byCanonical.set(entry.canonical.toLowerCase(), entry);
+  for (const entry of base)
+    byCanonical.set(entry.canonical.toLowerCase(), entry);
+  for (const entry of overrides)
+    byCanonical.set(entry.canonical.toLowerCase(), entry);
   return [...byCanonical.values()];
 }

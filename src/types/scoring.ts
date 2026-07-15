@@ -1,9 +1,10 @@
 import { ATSConfig, KeywordCategory } from "./config";
+
 import type { LLMConfig } from "./llm";
 import type { ParsedExperienceEntry, ParsedLanguage } from "./parser";
-import type { Seniority } from "../utils/titles";
 import type { EmploymentGap } from "../utils/dates";
 import type { FormattingSignals } from "../utils/text";
+import type { Seniority } from "../utils/titles";
 
 export interface ATSBreakdown {
   skills: number;
@@ -68,7 +69,10 @@ export interface ATSAnalysisResult {
   missingKeywords: string[];
   overusedKeywords: string[];
   /** Matched/missing keywords grouped by category (technical, tool, concept, soft, marketing, domain). */
-  keywordsByCategory: Record<KeywordCategory, { matched: string[]; missing: string[] }>;
+  keywordsByCategory: Record<
+    KeywordCategory,
+    { matched: string[]; missing: string[] }
+  >;
   /** Per-keyword JD importance and resume usage, for callers who want the raw numbers. */
   keywordWeights: KeywordWeight[];
   /** Count of resume achievement bullets classified as strong vs weak. */
@@ -92,7 +96,11 @@ export interface ATSAnalysisResult {
    * year requirement (e.g. JD wants "5+ years Figma", resume has Figma but only 3 years total).
    * Informational only — does not feed `score`/`breakdown`, same as language proficiency.
    */
-  skillExperienceGaps: { skill: string; requiredYears: number; resumeYears: number }[];
+  skillExperienceGaps: {
+    skill: string;
+    requiredYears: number;
+    resumeYears: number;
+  }[];
   /** Detail behind `breakdown.parseability` — which formatting signals were detected and penalized. */
   parseabilityReport: ParseabilityReport;
   /** Gaps of 3+ months between consecutive (chronologically merged) roles. Informational only. */

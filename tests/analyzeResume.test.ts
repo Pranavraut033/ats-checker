@@ -31,7 +31,9 @@ Preferred: GraphQL. Must have 3+ years experience. Bachelor's degree required.`;
     expect(result.breakdown.education).toBe(100);
     expect(result.matchedKeywords).toContain("react");
     expect(result.missingKeywords).toContain("accessibility");
-    expect(result.suggestions.some((suggestion) => suggestion.includes("keywords"))).toBe(true);
+    expect(
+      result.suggestions.some((suggestion) => suggestion.includes("keywords"))
+    ).toBe(true);
   });
 
   it("flags keyword stuffing when density is high", () => {
@@ -54,8 +56,12 @@ B.S. Computer Science`;
     // v2: re-weighted dimensions + parseability (no parseable email in this fixture) shift the
     // aggregate from v1's 75.5.
     expect(result.score).toBe(63.75);
-    expect(result.warnings).toContain("Keyword stuffing detected for: react (penalty 5)");
-    expect(result.suggestions.some((suggestion) => suggestion.includes("stuffing"))).toBe(true);
+    expect(result.warnings).toContain(
+      "Keyword stuffing detected for: react (penalty 5)"
+    );
+    expect(
+      result.suggestions.some((suggestion) => suggestion.includes("stuffing"))
+    ).toBe(true);
   });
 
   it("applies custom rules provided via config", () => {
@@ -112,7 +118,12 @@ B.S. Design`;
         referenceDate: "2026-01-01",
         // Empty profile so the default software-engineer profile's mandatory/optional
         // skills don't confound this fixture (mirrors the pattern used elsewhere).
-        profile: { name: "none", mandatorySkills: [], optionalSkills: [], minExperience: 0 },
+        profile: {
+          name: "none",
+          mandatorySkills: [],
+          optionalSkills: [],
+          minExperience: 0,
+        },
       },
     });
 
@@ -139,8 +150,8 @@ B.S. Design`;
     expect(result.warnings).toContain(
       "No email address detected — most ATS require a parseable contact email"
     );
-    expect(
-      result.suggestions.some((s) => s.includes("email address"))
-    ).toBe(true);
+    expect(result.suggestions.some((s) => s.includes("email address"))).toBe(
+      true
+    );
   });
 });

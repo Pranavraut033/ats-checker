@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { RuleEngine } from "../src/core/rules/rule.engine";
-import { parseResume } from "../src/core/parser/resume.parser";
+
 import { parseJobDescription } from "../src/core/parser/jd.parser";
+import { parseResume } from "../src/core/parser/resume.parser";
+import { RuleEngine } from "../src/core/rules/rule.engine";
 import { resolveConfig } from "../src/core/scoring/weights";
 
 const config = resolveConfig({});
@@ -50,7 +51,9 @@ describe("RuleEngine", () => {
 
     const result = engine.evaluate({ resume, job });
 
-    expect(result.warnings.some((w) => w.includes("section missing"))).toBe(false);
+    expect(result.warnings.some((w) => w.includes("section missing"))).toBe(
+      false
+    );
     expect(result.totalPenalty).toBe(0);
   });
 
@@ -61,9 +64,15 @@ describe("RuleEngine", () => {
       `Summary\njane.doe@example.com\nSkills\nJavaScript | React | Node\nExperience\nEngineer (2022 - Present) | Team | Impact\nEducation\nB.S.`
     );
 
-    const result = engine.evaluate({ resume, job, overusedKeywords: ["react", "javascript"] });
+    const result = engine.evaluate({
+      resume,
+      job,
+      overusedKeywords: ["react", "javascript"],
+    });
 
-    expect(result.warnings).toContain("Detected table-like or columnar formatting (penalty 8)");
+    expect(result.warnings).toContain(
+      "Detected table-like or columnar formatting (penalty 8)"
+    );
     const expectedStuffingPenalty = 2 * config.keywordDensity.overusePenalty;
     expect(result.warnings).toContain(
       `Keyword stuffing detected for: react, javascript (penalty ${expectedStuffingPenalty})`
@@ -79,14 +88,24 @@ describe("RuleEngine", () => {
     const passingEngine = new RuleEngine(
       resolveConfig({
         rules: [
-          { id: "junior", penalty: 12, warning: "Too junior", condition: (ctx) => ctx.resume.totalExperienceYears < 1 },
+          {
+            id: "junior",
+            penalty: 12,
+            warning: "Too junior",
+            condition: (ctx) => ctx.resume.totalExperienceYears < 1,
+          },
         ],
       })
     );
     const failingEngine = new RuleEngine(
       resolveConfig({
         rules: [
-          { id: "senior", penalty: 12, warning: "Not senior enough", condition: (ctx) => ctx.resume.totalExperienceYears > 10 },
+          {
+            id: "senior",
+            penalty: 12,
+            warning: "Not senior enough",
+            condition: (ctx) => ctx.resume.totalExperienceYears > 10,
+          },
         ],
       })
     );

@@ -1,14 +1,17 @@
 import { describe, it, expect } from "vitest";
+
 import { detectFormatting, tokenize } from "../src/utils/text";
 
 describe("detectFormatting", () => {
   it("detects pipe/tab table structures via hasTables", () => {
-    const raw = "Skill | Level | Years\nJavaScript | Expert | 5\nPython | Advanced | 3";
+    const raw =
+      "Skill | Level | Years\nJavaScript | Expert | 5\nPython | Advanced | 3";
     expect(detectFormatting(raw).hasTables).toBe(true);
   });
 
   it("does not flag a normal prose resume as having tables", () => {
-    const raw = "Summary\nExperienced software engineer with a passion for building products.\nSkills\nJavaScript, Python, SQL";
+    const raw =
+      "Summary\nExperienced software engineer with a passion for building products.\nSkills\nJavaScript, Python, SQL";
     expect(detectFormatting(raw).hasTables).toBe(false);
   });
 
@@ -22,22 +25,29 @@ describe("detectFormatting", () => {
   });
 
   it("does not flag normal single-column text as multi-column", () => {
-    const raw = "Software Engineer\nBuilt scalable backend services using Node.js and PostgreSQL.";
+    const raw =
+      "Software Engineer\nBuilt scalable backend services using Node.js and PostgreSQL.";
     expect(detectFormatting(raw).hasMultiColumn).toBe(false);
   });
 
   it("detects a plausible email as contactParseable", () => {
-    expect(detectFormatting("Contact: jane.doe@example.com").contactParseable).toBe(true);
-    expect(detectFormatting("No contact info here").contactParseable).toBe(false);
+    expect(
+      detectFormatting("Contact: jane.doe@example.com").contactParseable
+    ).toBe(true);
+    expect(detectFormatting("No contact info here").contactParseable).toBe(
+      false
+    );
   });
 
   it("flags non-standard bullet glyphs", () => {
-    const raw = "➤ Led a team of five engineers\n➤ Shipped three major releases\n➤ Owned the roadmap";
+    const raw =
+      "➤ Led a team of five engineers\n➤ Shipped three major releases\n➤ Owned the roadmap";
     expect(detectFormatting(raw).nonStandardBullets).toBe(true);
   });
 
   it("does not flag standard bullets as non-standard", () => {
-    const raw = "- Led a team of five engineers\n- Shipped three major releases\n* Owned the roadmap";
+    const raw =
+      "- Led a team of five engineers\n- Shipped three major releases\n* Owned the roadmap";
     expect(detectFormatting(raw).nonStandardBullets).toBe(false);
   });
 
@@ -47,7 +57,8 @@ describe("detectFormatting", () => {
   });
 
   it("does not flag a normal resume as likely scanned", () => {
-    const raw = "Experienced software engineer with over five years building web applications using React and Node.js.";
+    const raw =
+      "Experienced software engineer with over five years building web applications using React and Node.js.";
     expect(detectFormatting(raw).likelyScanned).toBe(false);
   });
 
@@ -64,7 +75,11 @@ describe("detectFormatting", () => {
 
 describe("tokenize stem option", () => {
   it("keeps existing behavior by default (no stemming)", () => {
-    expect(tokenize("developing developed developer")).toEqual(["developing", "developed", "developer"]);
+    expect(tokenize("developing developed developer")).toEqual([
+      "developing",
+      "developed",
+      "developer",
+    ]);
   });
 
   it("stems tokens when opted in", () => {
