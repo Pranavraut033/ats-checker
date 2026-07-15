@@ -1,4 +1,4 @@
-import { ParsedDateRange } from "../types/parser";
+import { ParsedDateRange, ParsedExperienceEntry } from "../types/parser";
 
 // ponytail: German/French month names added inline alongside English — same flat map.
 const MONTHS: Record<string, number> = {
@@ -165,4 +165,64 @@ export function sumExperienceYears(ranges: ParsedDateRange[]): number {
   // Fallback: naive sum (no overlap detection possible without bounds)
   const months = ranges.reduce((total, r) => total + (r.durationInMonths ?? 0), 0);
   return Number((months / 12).toFixed(2));
+}
+
+export interface EmploymentGap {
+  /** Title (or company/fallback label) of the role worked immediately before the gap. */
+  afterRole: string;
+  months: number;
+}
+
+/**
+ * Detect gaps between consecutive roles (sorted chronologically, with overlapping/
+ * concurrent roles merged first — same overlap-merge approach as sumExperienceYears,
+ * so a freelance gig running alongside a full-time role doesn't register as a "gap").
+ * Only entries with fully resolved date bounds (startYear + endYear) are considered;
+ * entries missing bounds are skipped since a gap can't be computed without them.
+ */
+export function detectEmploymentGaps(
+  entries: ParsedExperienceEntry[],
+  minGapMonths = 3
+): EmploymentGap[] {
+  const toIndex = (year: number, month: number) => year * 12 + month;
+
+  const intervals = entries
+    .filter(
+      (e): e is ParsedExperienceEntry & { dates: ParsedDateRange } =>
+        e.dates?.startYear !== undefined && e.dates?.endYear !== undefined
+    )
+    .map((e) => ({
+      s: toIndex(e.dates.startYear!, e.dates.startMonth ?? 1),
+      e: toIndex(e.dates.endYear!, e.dates.endMonth ?? 12),
+      label: e.title || e.company || "previous role",
+    }))
+    .sort((a, b) => a.s - b.s || b.e - a.e);
+
+  if (intervals.length < 2) {
+    return [];
+  }
+
+  const gaps: EmploymentGap[] = [];
+  let curEnd = intervals[0].e;
+  let curEndLabel = intervals[0].label;
+
+  for (let i = 1; i < intervals.length; i++) {
+    const interval = intervals[i];
+    if (interval.s <= curEnd + 1) {
+      // Overlapping or contiguous — merge, keeping whichever role's end extends furthest.
+      if (interval.e > curEnd) {
+        curEnd = interval.e;
+        curEndLabel = interval.label;
+      }
+      continue;
+    }
+    const gapMonths = interval.s - curEnd - 1;
+    if (gapMonths >= minGapMonths) {
+      gaps.push({ afterRole: curEndLabel, months: gapMonths });
+    }
+    curEnd = interval.e;
+    curEndLabel = interval.label;
+  }
+
+  return gaps;
 }

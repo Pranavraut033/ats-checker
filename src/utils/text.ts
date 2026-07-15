@@ -1,3 +1,5 @@
+import { stem } from "./match";
+
 export const STOP_WORDS = new Set([
   // articles / prepositions / conjunctions
   "the", "and", "or", "a", "an", "of", "for", "to", "with", "in", "on", "at",
@@ -55,12 +57,16 @@ export function splitLines(text: string): string[] {
 // ponytail: custom regex beats any NLP lib here — domain-specific, no dep, fully deterministic
 const TECH_TOKEN_RE = /[a-z0-9][a-z0-9.#+\-/]*[a-z0-9#+]/g;
 
-export function tokenize(text: string): string[] {
+export function tokenize(text: string, options?: { stem?: boolean }): string[] {
   const normalized = normalizeForComparison(text);
   // Require at least one letter: drops bare numbers (100, 3+, 50%) and keeps c#, 3d, node.js
-  return (normalized.match(TECH_TOKEN_RE) ?? []).filter(
+  const tokens = (normalized.match(TECH_TOKEN_RE) ?? []).filter(
     (t) => /[a-z]/.test(t) && !STOP_WORDS.has(t)
   );
+  if (!options?.stem) {
+    return tokens;
+  }
+  return tokens.map((t) => stem(t));
 }
 
 export function escapeRegExp(input: string): string {
@@ -104,4 +110,79 @@ export function containsTableLikeStructure(text: string): boolean {
     }
   }
   return tableLines >= 2;
+}
+
+/** ATS-relevant parseability signals extracted from a resume's raw text. */
+export interface FormattingSignals {
+  /** Pipe/tab/aligned-space table structure (reuses containsTableLikeStructure). */
+  hasTables: boolean;
+  /** Very wide, inconsistent whitespace gaps suggesting a PDF-extracted multi-column layout. */
+  hasMultiColumn: boolean;
+  /** Control chars / private-use-area glyphs (icon fonts) / replacement chars from a bad extraction. */
+  hasSpecialChars: boolean;
+  /** Bullets other than the common -, *, •, o, numbered/lettered list markers. */
+  nonStandardBullets: boolean;
+  /** Text density/shape consistent with a scanned image (no embedded text layer) rather than real text. */
+  likelyScanned: boolean;
+  /** A plausible email address is present in the raw text (contact info is extractable). */
+  contactParseable: boolean;
+}
+
+const STANDARD_BULLET_RE = /^\s*(?:[-*•o‣▪]|\(?[a-z0-9]+[.)])\s+/i;
+// Common non-standard bullet glyphs PDF/Word exports emit (arrows, checks, diamonds, dingbats).
+const NON_STANDARD_BULLET_RE = /^\s*[➤➢✓✔✗➔❖◆♦❯›»★☆♥❤]/;
+// Private-use-area codepoints (icon fonts mis-decoded as text) + the Unicode replacement char.
+const SPECIAL_CHAR_RE = /[-�]|[\x00-\x08\x0B\x0C\x0E-\x1F]/;
+
+/**
+ * Heuristic parseability/formatting detector for raw resume text. Reuses
+ * containsTableLikeStructure for hasTables; the rest are lightweight regex/line
+ * scans in the same style. Informational only — callers decide how to score it.
+ */
+export function detectFormatting(raw: string): FormattingSignals {
+  const lines = splitLines(raw);
+
+  const hasTables = containsTableLikeStructure(raw);
+
+  // Multi-column PDFs often extract as lines with very large, irregular whitespace
+  // gaps between short fragments (columns interleaved) rather than the more regular
+  // 3+ space alignment the table heuristic looks for.
+  let wideGapLines = 0;
+  for (const line of lines) {
+    if (/\S( {6,})\S/.test(line)) {
+      wideGapLines += 1;
+    }
+  }
+  const hasMultiColumn = wideGapLines >= 2;
+
+  const hasSpecialChars = SPECIAL_CHAR_RE.test(raw);
+
+  let bulletLines = 0;
+  let nonStandardBulletLines = 0;
+  for (const line of lines) {
+    if (NON_STANDARD_BULLET_RE.test(line)) {
+      bulletLines += 1;
+      nonStandardBulletLines += 1;
+    } else if (STANDARD_BULLET_RE.test(line)) {
+      bulletLines += 1;
+    }
+  }
+  const nonStandardBullets = nonStandardBulletLines > 0 && nonStandardBulletLines >= bulletLines / 2;
+
+  // Very little recognizable alphabetic content relative to overall length suggests a
+  // scanned image whose "text layer" is empty/garbled rather than genuine extracted text.
+  const trimmed = raw.trim();
+  const letterCount = (trimmed.match(/[a-zA-Z]/g) ?? []).length;
+  const likelyScanned = trimmed.length > 0 && (letterCount < 20 || letterCount / trimmed.length < 0.2);
+
+  const contactParseable = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(raw);
+
+  return {
+    hasTables,
+    hasMultiColumn,
+    hasSpecialChars,
+    nonStandardBullets,
+    likelyScanned,
+    contactParseable,
+  };
 }

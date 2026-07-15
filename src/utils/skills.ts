@@ -1,8 +1,13 @@
 import { KeywordCategory, KeywordRegistry, SkillAliases } from "../types/config";
 import { unique } from "./text";
+import { fuzzyEqual, stem } from "./match";
 
-// ponytail: Map lookup, not fuzzy match — add fuzzy only if real misses show up.
+// Map lookup by default; stem/fuzzy fallback is opt-in (see NormalizeSkillOptions) so
+// existing exact-match callers/tests keep their current behavior until SCORING opts in.
 const aliasIndexCache = new WeakMap<SkillAliases, Map<string, string>>();
+// Cache of stemmed-alias-key -> canonical, built lazily alongside the exact index so the
+// fuzzy fallback also stays a Map lookup (plus a bounded distance check) rather than a scan.
+const stemIndexCache = new WeakMap<SkillAliases, Map<string, string>>();
 
 function getAliasIndex(aliases: SkillAliases): Map<string, string> {
   let index = aliasIndexCache.get(aliases);
@@ -20,17 +25,75 @@ function getAliasIndex(aliases: SkillAliases): Map<string, string> {
   return index;
 }
 
-export function normalizeSkill(skill: string, aliases: SkillAliases): string {
+function getStemIndex(aliases: SkillAliases): Map<string, string> {
+  let index = stemIndexCache.get(aliases);
+  if (!index) {
+    index = new Map();
+    for (const [key, canonical] of getAliasIndex(aliases)) {
+      const stemmed = stem(key);
+      // First writer wins so aliasing collisions stay deterministic across runs.
+      if (!index.has(stemmed)) {
+        index.set(stemmed, canonical);
+      }
+    }
+    stemIndexCache.set(aliases, index);
+  }
+  return index;
+}
+
+export interface NormalizeSkillOptions {
+  /** Fall back to stemmed/fuzzy matching when the exact alias lookup misses. Default: false. */
+  fuzzy?: boolean;
+  /** Passed through to fuzzyEqual when fuzzy fallback is enabled. */
+  maxDistance?: number;
+}
+
+export function normalizeSkill(
+  skill: string,
+  aliases: SkillAliases,
+  options?: NormalizeSkillOptions
+): string {
   const normalized = skill.trim().toLowerCase();
-  return getAliasIndex(aliases).get(normalized) ?? normalized;
+  const exact = getAliasIndex(aliases).get(normalized);
+  if (exact) {
+    return exact;
+  }
+  if (!options?.fuzzy) {
+    return normalized;
+  }
+
+  const stemmed = stem(normalized);
+  const stemIndex = getStemIndex(aliases);
+  const stemHit = stemIndex.get(stemmed);
+  if (stemHit) {
+    return stemHit;
+  }
+
+  // Bounded fuzzy scan of alias keys, stem-first to skip obviously distant candidates
+  // before paying for Levenshtein.
+  for (const [key, canonical] of stemIndex) {
+    if (fuzzyEqual(stemmed, key, { maxDistance: options.maxDistance })) {
+      return canonical;
+    }
+  }
+  return normalized;
 }
 
-export function normalizeSkills(skills: string[], aliases: SkillAliases): string[] {
-  return unique(skills.map((skill) => normalizeSkill(skill, aliases)));
+export function normalizeSkills(
+  skills: string[],
+  aliases: SkillAliases,
+  options?: NormalizeSkillOptions
+): string[] {
+  return unique(skills.map((skill) => normalizeSkill(skill, aliases, options)));
 }
 
-export function skillMatched(candidate: string, targetSkills: Set<string>, aliases: SkillAliases): boolean {
-  const normalizedCandidate = normalizeSkill(candidate, aliases);
+export function skillMatched(
+  candidate: string,
+  targetSkills: Set<string>,
+  aliases: SkillAliases,
+  options?: NormalizeSkillOptions
+): boolean {
+  const normalizedCandidate = normalizeSkill(candidate, aliases, options);
   return targetSkills.has(normalizedCandidate);
 }
 

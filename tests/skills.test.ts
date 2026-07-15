@@ -40,6 +40,33 @@ describe("normalizeSkill", () => {
   });
 });
 
+describe("normalizeSkill fuzzy fallback (opt-in)", () => {
+  const aliases: SkillAliases = { react: ["reactjs"], python: [] };
+
+  it("is off by default: an unknown near-variant passes through unchanged", () => {
+    expect(normalizeSkill("developing", aliases)).toBe("developing");
+  });
+
+  it("matches a stemmed word-form variant when fuzzy is enabled", () => {
+    // "developing" has no alias entry at all; stem/fuzzy only helps when the
+    // stemmed/near form actually resolves to a known alias key.
+    const devAliases: SkillAliases = { develop: ["developing", "developed"] };
+    expect(normalizeSkill("develops", devAliases, { fuzzy: true })).toBe("develop");
+  });
+
+  it("matches a typo'd variant via bounded fuzzy distance when enabled", () => {
+    expect(normalizeSkill("reactjss", aliases, { fuzzy: true })).toBe("react");
+  });
+
+  it("still resolves exact/alias matches first without touching fuzzy logic", () => {
+    expect(normalizeSkill("ReactJS", aliases, { fuzzy: true })).toBe("react");
+  });
+
+  it("falls through to the lowercased input when nothing fuzzy-matches either", () => {
+    expect(normalizeSkill("kubernetes", aliases, { fuzzy: true })).toBe("kubernetes");
+  });
+});
+
 describe("normalizeSkills", () => {
   const aliases: SkillAliases = { javascript: ["js"] };
 
