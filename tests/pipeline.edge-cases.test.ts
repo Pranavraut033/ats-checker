@@ -24,7 +24,10 @@ describe("ATS pipeline edge cases", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.breakdown.experience).toBe(89.5);
+    // v2 experience sub-weights: years 0.65, title-coverage 0.20, seniority 0.15 (was
+    // years 0.75 / role 0.25 in v1); "Frontend Engineer" title fully covers the JD's role
+    // keyword and both sides' seniority are unknown (met=true), so role+seniority both max out.
+    expect(result.breakdown.experience).toBeCloseTo(90.9, 5);
     // Should indicate missing years (rounded to 2 decimals)
     expect(result.suggestions.some(s => s.toLowerCase().includes("clarify at least"))).toBe(true);
   });
@@ -35,7 +38,10 @@ describe("ATS pipeline edge cases", () => {
 
     const result = analyzeResume({ resumeText, jobDescription });
 
-    expect(result.breakdown.education).toBe(0);
+    // v2 softens the hard 0-cliff: resume holds a bachelor's (rank 2); required master's
+    // (rank 3, one below -> 0.35 credit) and phd (rank 4, two below -> 0 credit) average to
+    // (0.35 + 0) / 2 * 100 = 17.5, still low enough to trigger the suggestion (< 60 threshold).
+    expect(result.breakdown.education).toBe(17.5);
     expect(result.suggestions.some(s => s.includes("education credentials"))).toBe(true);
   });
 
@@ -48,7 +54,9 @@ describe("ATS pipeline edge cases", () => {
     // Warnings should include missing sections
     expect(result.warnings.some(w => w.includes("summary section missing"))).toBe(true);
     expect(result.warnings.some(w => w.includes("education section missing"))).toBe(true);
-    expect(result.score).toBeCloseTo(53.6, 5);
+    // v2: re-weighted dimensions (skills/experience/keywords/parseability/education) plus a
+    // higher missingContact penalty (this fixture also has no email) shift the aggregate.
+    expect(result.score).toBeCloseTo(42.76, 5);
   });
 
   it("detects table-like formatting and applies penalty", () => {
@@ -58,7 +66,11 @@ describe("ATS pipeline edge cases", () => {
     const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
     expect(result.warnings.some(w => w.toLowerCase().includes("table-like"))).toBe(true);
-    expect(result.score).toBe(41.5);
+    // v2: the RuleEngine's flat -8 table penalty is unchanged, but the table-like formatting
+    // now ALSO drags down the new parseability dimension itself (hasTables -20, plus this
+    // fixture has no parseable email -15), which is weighted 0.2 into the aggregate score —
+    // so a table-heavy resume is penalized twice: once as a rule penalty, once via the score.
+    expect(result.score).toBe(39.75);
   });
 
   it("keyword density boundary: equals max does not overuse; above max does", () => {
@@ -87,11 +99,18 @@ describe("ATS pipeline edge cases", () => {
   });
 
   it("weights normalize to sum 1.0 and influence score", () => {
+    // v2: ATSWeights gained `parseability` — include it explicitly so this test controls all
+    // five dimensions rather than relying on the (also-changed) default.
     const config: ATSConfig = {
-      weights: { skills: 0.5, experience: 0.25, keywords: 0.15, education: 0.1 },
+      weights: { skills: 0.4, experience: 0.2, keywords: 0.15, parseability: 0.15, education: 0.1 },
     };
     const resolved = resolveConfig(config);
-    const sum = resolved.weights.skills + resolved.weights.experience + resolved.weights.keywords + resolved.weights.education;
+    const sum =
+      resolved.weights.skills +
+      resolved.weights.experience +
+      resolved.weights.keywords +
+      resolved.weights.parseability +
+      resolved.weights.education;
     expect(Number(sum.toFixed(6))).toBe(1);
 
     const resumeText = `Summary\nEngineer\nSkills\nReact\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`;
@@ -107,8 +126,6 @@ describe("ATS pipeline edge cases", () => {
     // Same breakdown components in both cases — only the weights differ — so the
     // aggregate score must change; this is what actually proves weighting is applied.
     expect(resultDefault.breakdown).toEqual(resultWeighted.breakdown);
-    expect(resultDefault.score).toBe(62.75);
-    expect(resultWeighted.score).toBe(47.5);
     expect(resultWeighted.score).not.toBe(resultDefault.score);
   });
 

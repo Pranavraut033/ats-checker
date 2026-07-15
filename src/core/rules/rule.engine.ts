@@ -1,6 +1,5 @@
 import { ResolvedATSConfig, RuleContext } from "../../types/config";
 import { ParsedJobDescription, ParsedResume, ResumeSection } from "../../types/parser";
-import { containsTableLikeStructure } from "../../utils/text";
 
 interface RuleEvaluationInput {
   resume: ParsedResume;
@@ -50,7 +49,9 @@ export class RuleEngine {
     totalPenalty += sectionResult.totalPenalty;
     warnings.push(...sectionResult.warnings);
 
-    if (containsTableLikeStructure(input.resume.raw)) {
+    // Single source of truth: reuse the already-computed FormattingSignals instead of
+    // re-running the raw-text table heuristic independently (parser owns detection).
+    if (input.resume.formatting.hasTables) {
       totalPenalty += 8;
       warnings.push("Detected table-like or columnar formatting (penalty 8)");
     }

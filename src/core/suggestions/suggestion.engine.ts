@@ -69,7 +69,9 @@ export class SuggestionEngine {
       );
     }
 
-    if (input.job.educationRequirements.length > 0 && input.score.educationScore === 0) {
+    // Threshold widened from "exactly 0" to "meaningfully short" now that scoreEducation gives
+    // partial credit for adjacent degree levels (see scorer.ts) instead of a hard 0-cliff.
+    if (input.job.educationRequirements.length > 0 && input.score.educationScore < 60) {
       suggestions.push(
         `State your education credentials matching: ${formatList(input.job.educationRequirements)}`
       );
@@ -121,6 +123,31 @@ export class SuggestionEngine {
     for (const gap of input.score.skillExperienceGaps) {
       suggestions.push(
         `The role asks for ${gap.requiredYears}+ years of ${gap.skill}; make that duration explicit in your experience section.`
+      );
+    }
+
+    // Low parseability: call out the specific formatting issue(s) an ATS parser would trip on,
+    // rather than a generic "formatting is bad" message.
+    if (input.score.breakdown.parseability < 80) {
+      for (const deduction of input.score.parseabilityReport.deductions) {
+        suggestions.push(`Improve resume parseability: ${deduction.reason}.`);
+      }
+    }
+
+    // Employment gaps: only worth a suggestion once they're long enough to likely draw a
+    // recruiter's attention (6+ months), so short/normal between-role gaps stay silent.
+    const GAP_THRESHOLD_MONTHS = 6;
+    for (const gap of input.score.employmentGaps) {
+      if (gap.months >= GAP_THRESHOLD_MONTHS) {
+        suggestions.push(
+          `Address the ${gap.months}-month employment gap after "${gap.afterRole}" — a brief explanation (upskilling, caregiving, freelance work, etc.) reassures recruiters.`
+        );
+      }
+    }
+
+    if (!input.score.seniorityMatch.met) {
+      suggestions.push(
+        `This role expects ${input.score.seniorityMatch.required} seniority, but your resume reads as ${input.score.seniorityMatch.resume}; emphasize scope/ownership that reflects the level the role expects.`
       );
     }
 

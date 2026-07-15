@@ -90,6 +90,10 @@ export function analyzeResume(input: AnalyzeResumeInput): ATSAnalysisResult {
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,
     experienceEntries: parsedResume.experience,
+    parseabilityReport: scoring.parseabilityReport,
+    employmentGaps: scoring.employmentGaps,
+    seniorityMatch: scoring.seniorityMatch,
+    perSkillExperience: scoring.perSkillExperience,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };
@@ -194,6 +198,10 @@ export async function analyzeResumeAsync(input: AnalyzeResumeInput): Promise<ATS
     detectedSections: parsedResume.detectedSections,
     parsedExperienceYears: parsedResume.totalExperienceYears,
     experienceEntries: parsedResume.experience,
+    parseabilityReport: scoring.parseabilityReport,
+    employmentGaps: scoring.employmentGaps,
+    seniorityMatch: scoring.seniorityMatch,
+    perSkillExperience: scoring.perSkillExperience,
     suggestions,
     warnings: [...suggestionResult.warnings, ...llmWarnings],
   };

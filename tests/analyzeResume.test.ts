@@ -21,7 +21,10 @@ Preferred: GraphQL. Must have 3+ years experience. Bachelor's degree required.`;
       config: { referenceDate: "2026-01-01" },
     });
 
-    expect(result.score).toBe(55.94);
+    // v2: re-weighted dimensions (skills .25/experience .20/keywords .25/parseability .20/
+    // education .10) plus the new parseability dimension (this fixture has no parseable email)
+    // shift the aggregate from v1's 55.94.
+    expect(result.score).toBe(43.44);
     expect(result.breakdown.skills).toBeCloseTo(50, 5);
     expect(result.breakdown.experience).toBe(100);
     expect(result.breakdown.keywords).toBe(43.75);
@@ -48,7 +51,9 @@ B.S. Computer Science`;
     });
 
     expect(result.overusedKeywords).toEqual(["react"]);
-    expect(result.score).toBe(75.5);
+    // v2: re-weighted dimensions + parseability (no parseable email in this fixture) shift the
+    // aggregate from v1's 75.5.
+    expect(result.score).toBe(63.75);
     expect(result.warnings).toContain("Keyword stuffing detected for: react (penalty 5)");
     expect(result.suggestions.some((suggestion) => suggestion.includes("stuffing"))).toBe(true);
   });
@@ -81,7 +86,9 @@ B.S. Computer Science`;
     });
 
     expect(result.warnings).toContain("Clarify experience duration");
-    expect(result.score).toBe(23.25);
+    // v2: re-weighted dimensions + parseability (no parseable email in this fixture) shift the
+    // aggregate from v1's 23.25.
+    expect(result.score).toBeCloseTo(25.38, 5);
   });
 
   it("broadened role vocabulary + per-skill experience gaps + missing-email warning (UX Designer)", () => {
@@ -92,7 +99,7 @@ Figma, Sketch, User Research
 Experience
 Designer
 PixelCraft Studio, 2023 - Present
-Redesigned onboarding flow and improved signup completion by 18%.
+Redesigned onboarding flow in Figma and improved signup completion by 18%.
 Education
 B.S. Design`;
 
@@ -111,13 +118,16 @@ B.S. Design`;
 
     // (a) #1/#2 fix: "designer" is now a shared role noun on both the JD and resume sides
     // (resume title line "Designer" is on its own line, so it's captured — unlike the
-    // title+date-combined-on-one-line fixtures elsewhere in this suite), so the 25%-weighted
-    // role component now contributes instead of silently scoring 0.
-    // years component alone would be 46.2 (0.616 coverage * 75); +25 role component = 71.2.
-    expect(result.breakdown.experience).toBe(71.2);
+    // title+date-combined-on-one-line fixtures elsewhere in this suite), so the role and
+    // seniority components now contribute instead of silently scoring 0.
+    // v2 sub-weights: years 0.616 coverage * 0.65 = 40.04; titleMatch("designer") fully
+    // covers the JD's role keyword (+20); both sides' seniority unknown -> met=true (+15).
+    expect(result.breakdown.experience).toBeCloseTo(75.04, 5);
 
-    // (b) #3: JD asks for "5+ years of Figma"; resume has figma but only ~3.08 years of
-    // total experience, so it surfaces as an informational gap (does not affect score/breakdown).
+    // (b) #3: JD asks for "5+ years of Figma"; resume's Designer role bullet explicitly
+    // mentions Figma, so per-role dating attributes that role's ~3.08 years to the skill
+    // (v2 computePerSkillExperience, replacing the old total-tenure approximation) —
+    // still short of the JD's 5-year requirement, so it surfaces as an informational gap.
     expect(result.skillExperienceGaps).toEqual([
       { skill: "figma", requiredYears: 5, resumeYears: 3.08 },
     ]);

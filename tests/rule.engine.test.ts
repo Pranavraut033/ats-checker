@@ -31,18 +31,21 @@ describe("RuleEngine", () => {
       `education section missing (penalty ${config.sectionPenalties.missingEducation})`
     );
     // Sections present (experience) cost nothing; only the three missing ones do.
+    // Plus missingContact (12) — this fixture also has no parseable email.
     expect(result.totalPenalty).toBe(
       config.sectionPenalties.missingSummary +
         config.sectionPenalties.missingSkills +
         config.sectionPenalties.missingEducation +
-        5 // "few recognizable sections" penalty (only 1 of 4 detected)
+        5 + // "few recognizable sections" penalty (only 1 of 4 detected)
+        config.sectionPenalties.missingContact
     );
   });
 
   it("applies no section penalty when all four required sections are present", () => {
     const engine = new RuleEngine(config);
+    // Includes a parseable email so missingContact doesn't confound this section-only assertion.
     const { resume, job } = buildInput(
-      `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.`
+      `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (2022 - Present)\nEducation\nB.S.\njane.doe@example.com`
     );
 
     const result = engine.evaluate({ resume, job });
@@ -53,8 +56,9 @@ describe("RuleEngine", () => {
 
   it("penalizes table-like formatting and keyword stuffing independently", () => {
     const engine = new RuleEngine(config);
+    // Includes a parseable email so missingContact doesn't confound this table/stuffing assertion.
     const { resume, job } = buildInput(
-      `Summary\nSkills\nJavaScript | React | Node\nExperience\nEngineer (2022 - Present) | Team | Impact\nEducation\nB.S.`
+      `Summary\njane.doe@example.com\nSkills\nJavaScript | React | Node\nExperience\nEngineer (2022 - Present) | Team | Impact\nEducation\nB.S.`
     );
 
     const result = engine.evaluate({ resume, job, overusedKeywords: ["react", "javascript"] });

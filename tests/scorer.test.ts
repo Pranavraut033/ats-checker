@@ -39,9 +39,11 @@ describe("calculateScore — experience (years capped at 2x coverage, role title
   });
 
   it("falling short of required years scores proportionally", () => {
-    // 4 actual / 10 required = 0.4 coverage * 0.75 weight = 30; no role keywords -> +25 = 55.6 (rounded)
+    // v2 experience sub-weights: years 0.65, title-coverage 0.20, seniority 0.15.
+    // ~4.02 actual / 10 required = ~0.402 coverage * 0.65 weight = ~26.15; no role keywords ->
+    // full role credit (+20); both sides' seniority unknown -> met=true (+15) = ~61.52.
     const job = parseJobDescription("Must have 10+ years experience.", config);
-    expect(calculateScore(resume, job, config).breakdown.experience).toBeCloseTo(55.6, 5);
+    expect(calculateScore(resume, job, config).breakdown.experience).toBeCloseTo(61.52, 5);
   });
 
   it("no experience requirement in the JD scores 100 regardless of resume", () => {
@@ -53,8 +55,11 @@ describe("calculateScore — experience (years capped at 2x coverage, role title
 describe("calculateScore — skillExperienceGaps (informational only, never feeds score/breakdown)", () => {
   it("flags a gap when the resume has the skill but falls short of the required years", () => {
     const job = parseJobDescription("Must have 5+ years of Figma experience.", config);
+    // v2: per-skill years come from per-role dating (entry.skills + entry.dates), not overall
+    // tenure — so the skill must actually appear in a dated role's bullet text, not just the
+    // Skills section, to be attributed any years here.
     const resume = parseResume(
-      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2024 - Present)\nEducation\nB.S.`,
+      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2024 - Present)\nDesigned interfaces using Figma.\nEducation\nB.S.`,
       config
     );
     const result = calculateScore(resume, job, config);
@@ -79,7 +84,7 @@ describe("calculateScore — skillExperienceGaps (informational only, never feed
   it("does not flag a gap when the resume already meets the required years", () => {
     const job = parseJobDescription("Must have 1+ years of Figma experience.", config);
     const resume = parseResume(
-      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2020 - Present)\nEducation\nB.S.`,
+      `Summary\nDesigner.\nSkills\nFigma\nExperience\nDesigner (2020 - Present)\nDesigned interfaces using Figma.\nEducation\nB.S.`,
       config
     );
     expect(calculateScore(resume, job, config).skillExperienceGaps).toEqual([]);

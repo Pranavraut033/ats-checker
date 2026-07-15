@@ -10,7 +10,8 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     "education": 100,
     "experience": 100,
     "keywords": 100,
-    "skills": 44.24999999999999,
+    "parseability": 85,
+    "skills": 59,
   },
   "detectedSections": [
     "summary",
@@ -18,6 +19,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     "experience",
     "education",
   ],
+  "employmentGaps": [],
   "experienceEntries": [
     {
       "dates": {
@@ -31,6 +33,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
         "startYear": 2019,
       },
       "description": "Software Engineer (Jan 2019 - Dec 2022)",
+      "skills": [],
       "title": "Software Engineer",
     },
   ],
@@ -115,6 +118,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
   ],
   "matchedLanguages": [],
   "matchedSkills": [
+    "backend",
     "docker",
     "python",
     "sql",
@@ -122,7 +126,6 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
   "missingKeywords": [],
   "missingLanguages": [],
   "missingSkills": [
-    "backend",
     "javascript",
     "node",
     "react",
@@ -135,18 +138,52 @@ exports[`golden snapshot — fixed score with pinned referenceDate > backend JD 
     "python",
     "sql",
   ],
+  "parseabilityReport": {
+    "contactParseable": false,
+    "deductions": [
+      {
+        "points": 15,
+        "reason": "No parseable contact email detected",
+      },
+    ],
+    "detectedSectionCount": 4,
+    "hasMultiColumn": false,
+    "hasSpecialChars": false,
+    "hasTables": false,
+    "likelyScanned": false,
+    "nonStandardBullets": false,
+  },
   "parsedExperienceYears": 4,
-  "score": 58.28,
-  "skillExperienceGaps": [],
+  "perSkillExperience": [],
+  "score": 49.75,
+  "seniorityMatch": {
+    "met": true,
+    "required": undefined,
+    "resume": undefined,
+  },
+  "skillExperienceGaps": [
+    {
+      "requiredYears": 3,
+      "resumeYears": 0,
+      "skill": "docker",
+    },
+    {
+      "requiredYears": 3,
+      "resumeYears": 0,
+      "skill": "sql",
+    },
+  ],
   "suggestions": [
-    "Highlight these required skills: backend, javascript, node, react, typescript",
+    "Highlight these required skills: javascript, node, react, typescript",
     "Avoid keyword stuffing for: backend, docker, engineer, python, sql",
     "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
     "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
+    "The role asks for 3+ years of docker; make that duration explicit in your experience section.",
+    "The role asks for 3+ years of sql; make that duration explicit in your experience section.",
   ],
   "warnings": [
     "Keyword stuffing detected for: backend, docker, engineer, python, sql (penalty 25)",
-    "Missing contact email (penalty 0)",
+    "Missing contact email (penalty 12)",
     "No email address detected — most ATS require a parseable contact email",
   ],
 }
@@ -162,6 +199,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "education": 100,
     "experience": 100,
     "keywords": 43.75,
+    "parseability": 85,
     "skills": 49.99999999999999,
   },
   "detectedSections": [
@@ -170,6 +208,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "experience",
     "education",
   ],
+  "employmentGaps": [],
   "experienceEntries": [
     {
       "dates": {
@@ -183,6 +222,9 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
         "startYear": 2020,
       },
       "description": "Senior Engineer at ExampleCorp (Jan 2020 - Present) - Built React apps and APIs.",
+      "skills": [
+        "react",
+      ],
       "title": "Senior Engineer at ExampleCorp",
     },
   ],
@@ -294,8 +336,34 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
     "react",
     "typescript",
   ],
+  "parseabilityReport": {
+    "contactParseable": false,
+    "deductions": [
+      {
+        "points": 15,
+        "reason": "No parseable contact email detected",
+      },
+    ],
+    "detectedSectionCount": 4,
+    "hasMultiColumn": false,
+    "hasSpecialChars": false,
+    "hasTables": false,
+    "likelyScanned": false,
+    "nonStandardBullets": false,
+  },
   "parsedExperienceYears": 6.08,
-  "score": 55.94,
+  "perSkillExperience": [
+    {
+      "skill": "react",
+      "years": 6.08,
+    },
+  ],
+  "score": 43.44,
+  "seniorityMatch": {
+    "met": true,
+    "required": undefined,
+    "resume": "senior",
+  },
   "skillExperienceGaps": [],
   "suggestions": [
     "Highlight these required skills: accessibility, frontend, graphql",
@@ -306,7 +374,7 @@ exports[`golden snapshot — fixed score with pinned referenceDate > frontend JD
   ],
   "warnings": [
     "Keyword stuffing detected for: engineer, react, typescript (penalty 15)",
-    "Missing contact email (penalty 0)",
+    "Missing contact email (penalty 12)",
     "No email address detected — most ATS require a parseable contact email",
   ],
 }

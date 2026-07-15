@@ -428,11 +428,14 @@ B.S. Computer Science`;
     // This should work exactly as v1 - no LLM involved
     const result = analyzeResume({ resumeText, jobDescription, config: { referenceDate: "2026-01-01" } });
 
-    expect(result.score).toBe(75.75);
+    // v2: re-weighted dimensions + the new parseability dimension (no parseable email in this
+    // fixture) shift the aggregate from v1's 75.75.
+    expect(result.score).toBeCloseTo(63.13, 5);
     expect(result.breakdown).toEqual({
       skills: 52.49999999999999,
       experience: 100,
       keywords: 100,
+      parseability: 85,
       education: 100,
     });
     expect(result.suggestions).toEqual([
@@ -440,6 +443,12 @@ B.S. Computer Science`;
       "Avoid keyword stuffing for: engineer, react",
       "Strengthen bullet points with impact verbs (led, built, improved, delivered).",
       "Add a clearly formatted email address near the top of your resume so ATS and recruiters can contact you.",
+      // v2: per-role skill dating (computePerSkillExperience) now drives skillExperienceGaps
+      // instead of assuming a matched skill spans the resume's whole tenure — this resume's
+      // one experience entry has no bullet text, so no skill gets any per-role-dated years,
+      // surfacing "react" as a gap against the JD's "3+ years" mention even though the resume's
+      // overall tenure (5 years) would have covered it under the old approximation.
+      "The role asks for 3+ years of react; make that duration explicit in your experience section.",
     ]);
   });
 
@@ -460,7 +469,8 @@ B.S. Computer Science`;
       },
     });
 
-    expect(result.score).toBe(47.5);
+    // v2: re-weighted dimensions shift the aggregate from v1's 47.5.
+    expect(result.score).toBe(47);
     expect(result.suggestions).toEqual([
       "Highlight these required skills: javascript, node, react, typescript",
       "Clarify at least 3 years of relevant experience with quantified achievements.",
@@ -494,7 +504,9 @@ B.S. Computer Science`,
       config: { referenceDate: "2026-01-01" },
     });
 
-    expect(result.score).toBe(78.2);
+    // v2: re-weighted dimensions + the new parseability dimension (no parseable email in this
+    // fixture) shift the aggregate from v1's 78.2.
+    expect(result.score).toBe(63.5);
     // This resume has non-empty suggestions (keyword stuffing warning), so the LLM is invoked.
     expect(mockClient.createCompletion).toHaveBeenCalled();
   });
