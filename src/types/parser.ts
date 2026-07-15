@@ -1,3 +1,7 @@
+import { Seniority } from "../utils/titles";
+import { EmploymentGap } from "../utils/dates";
+import { FormattingSignals } from "../utils/text";
+
 export type ResumeSection =
   | "summary"
   | "experience"
@@ -24,6 +28,8 @@ export interface ParsedExperienceEntry {
   location?: string;
   dates?: ParsedDateRange;
   description?: string;
+  /** Skills mentioned within this role's bullets, resolved via the alias/fuzzy registry lookup. */
+  skills: string[];
 }
 
 export interface ParsedAchievement {
@@ -59,7 +65,13 @@ export interface ParsedResume {
   keywords: string[];
   languages: ParsedLanguage[];
   /** Contact details extracted via regex; absent fields mean detection failed, not that the resume lacks them. */
-  contact?: { email?: string; phone?: string };
+  contact?: { email?: string; phone?: string; linkedin?: string; location?: string };
+  /** Inferred overall seniority (highest-ranked signal across job titles), or undefined if unknown. */
+  seniority?: Seniority;
+  /** Gaps of minGapMonths+ between consecutive (chronologically merged) roles. */
+  employmentGaps: EmploymentGap[];
+  /** ATS-relevant parseability/formatting signals extracted from the raw text. */
+  formatting: FormattingSignals;
   warnings: string[];
 }
 
@@ -83,4 +95,6 @@ export interface ParsedJobDescription {
   /** canonical keyword -> the surface form (original casing/spelling) the JD used. */
   keywordSurfaceForms: Record<string, string>;
   requiredLanguages: ParsedLanguage[];
+  /** Inferred seniority cue from the JD's role/title text, or undefined if unknown. */
+  seniority?: Seniority;
 }

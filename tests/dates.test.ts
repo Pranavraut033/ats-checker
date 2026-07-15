@@ -4,7 +4,7 @@ import type { ParsedExperienceEntry } from "../src/types/parser";
 
 function entry(title: string, range: string): ParsedExperienceEntry {
   const dates = parseDateRange(range, new Date("2024-06-01"));
-  return { title, dates: dates ?? undefined };
+  return { title, dates: dates ?? undefined, skills: [] };
 }
 
 describe("detectEmploymentGaps", () => {
@@ -45,7 +45,7 @@ describe("detectEmploymentGaps", () => {
   });
 
   it("skips entries without resolvable date bounds", () => {
-    const entries: ParsedExperienceEntry[] = [{ title: "Engineer" }, entry("Senior Engineer", "Jan 2020 - Dec 2021")];
+    const entries: ParsedExperienceEntry[] = [{ title: "Engineer", skills: [] }, entry("Senior Engineer", "Jan 2020 - Dec 2021")];
     expect(detectEmploymentGaps(entries)).toEqual([]);
   });
 

@@ -3,6 +3,7 @@ import { ParsedJobDescription, ParsedLanguage, SkillExperienceRequirement } from
 import { normalizeWhitespace, splitLines, tokenize, unique, STOP_WORDS, ROLE_NOUNS } from "../../utils/text";
 import { normalizeSkill, normalizeSkills } from "../../utils/skills";
 import { parseLanguageMentions } from "../../utils/languages";
+import { inferSeniority } from "../../utils/titles";
 
 // Map any variant found in JD text to a canonical form that also appears in resume text.
 // ponytail: German/French degree terms added inline alongside English — same flat list.
@@ -38,6 +39,48 @@ function extractPreferredSkills(lines: string[]): string[] {
   return preferred;
 }
 
+// Block-scoped required/preferred detection: a line that's JUST a header (nothing but the
+// header phrase, optionally colon-terminated) scopes every subsequent line to that bucket
+// until the next header (of either flavor) or an unrelated section header. This supplements
+// (doesn't replace) the line-local cue-word heuristics above, since some JDs mix inline cues
+// without ever using a dedicated header.
+const REQUIRED_HEADER_RE =
+  /^(?:requirements?|must[\s-]?haves?|required\s+skills?|required\s+qualifications?|qualifications?|minimum\s+qualifications?)\s*:?\s*$/i;
+const PREFERRED_HEADER_RE =
+  /^(?:preferred(?:\s+skills?|\s+qualifications?)?|nice[\s-]?to[\s-]?haves?|bonus(?:\s+points?)?|pluses?)\s*:?\s*$/i;
+// Unrelated headers that end an open required/preferred scope without opening a new one, so
+// "Requirements:" bullets don't keep absorbing "Responsibilities:"/"About us:" prose below them.
+const OTHER_HEADER_RE =
+  /^(?:responsibilities|duties|about(?:\s+the)?(?:\s+role|\s+us|\s+company|\s+team)?|what\s+you.?ll\s+do|who\s+you\s+are|benefits|perks|compensation|how\s+to\s+apply|overview|summary|about)\s*:?\s*$/i;
+
+function extractHeaderScopedSkills(lines: string[]): { required: string[]; preferred: string[] } {
+  const required: string[] = [];
+  const preferred: string[] = [];
+  let scope: "required" | "preferred" | null = null;
+
+  for (const line of lines) {
+    if (REQUIRED_HEADER_RE.test(line)) {
+      scope = "required";
+      continue;
+    }
+    if (PREFERRED_HEADER_RE.test(line)) {
+      scope = "preferred";
+      continue;
+    }
+    if (OTHER_HEADER_RE.test(line)) {
+      scope = null;
+      continue;
+    }
+    if (scope === "required") {
+      required.push(...tokenize(line));
+    } else if (scope === "preferred") {
+      preferred.push(...tokenize(line));
+    }
+  }
+
+  return { required, preferred };
+}
+
 // Shared with resume.parser.ts's title detection so both sides agree on role vocabulary —
 // this is the root cause fix for #1 (JD single-token roleKeywords never matching resume title phrases).
 const ROLE_NOUN_RE = new RegExp(`(${ROLE_NOUNS.join("|")})`, "gi");
@@ -47,6 +90,16 @@ function extractRoleKeywords(text: string): string[] {
   const roleMatches = text.match(ROLE_NOUN_RE) ?? [];
   const fallback = roleMatches.length === 0 ? [text.split(/\n/)[0] ?? ""] : [];
   return unique(tokenize([...roleMatches, ...fallback].join(" ")));
+}
+
+// Lines that mention a role noun (e.g. "Senior Backend Engineer", "hiring a Product Designer")
+// carry the JD's title/seniority context; fall back to the first line (typically the job title
+// heading) when no role noun appears anywhere. Uses .match (not .test) against the shared global
+// ROLE_NOUN_RE so we don't trip over its persisted lastIndex state between calls.
+function extractTitleContextLines(text: string): string[] {
+  const lines = splitLines(text);
+  const roleLines = lines.filter((line) => line.match(ROLE_NOUN_RE) !== null);
+  return roleLines.length > 0 ? roleLines : lines.slice(0, 1);
 }
 
 function extractMinExperience(text: string): number | undefined {
@@ -167,8 +220,13 @@ export function parseJobDescription(
     return false;
   };
 
-  const requiredSkillsRaw = extractRequiredSkills(lines).filter(isSkillLike);
-  const preferredSkillsRaw = extractPreferredSkills(lines).filter(isSkillLike);
+  const headerScoped = extractHeaderScopedSkills(lines);
+  const requiredSkillsRaw = unique([...extractRequiredSkills(lines), ...headerScoped.required]).filter(
+    isSkillLike
+  );
+  const preferredSkillsRaw = unique([...extractPreferredSkills(lines), ...headerScoped.preferred]).filter(
+    isSkillLike
+  );
 
   const requiredSkills = normalizeSkills(requiredSkillsRaw, config.skillAliases);
   const preferredSkills = normalizeSkills(preferredSkillsRaw, config.skillAliases);
@@ -199,5 +257,6 @@ export function parseJobDescription(
     requiredLanguages: parseLanguageMentions(jobDescription).filter((lang) =>
       isLanguageRequired(lang, jobDescription)
     ),
+    seniority: inferSeniority(extractTitleContextLines(jobDescription)),
   };
 }

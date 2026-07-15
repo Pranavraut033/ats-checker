@@ -63,4 +63,37 @@ describe("job description parser edge cases", () => {
     );
     expect(parsed.skillExperienceRequirements).toEqual([{ skill: "python", years: 5 }]);
   });
+
+  it("classifies bulleted skills under a 'Requirements:' header block as required", () => {
+    const jd = `Senior Backend Engineer\n\nRequirements:\n- Python\n- Docker\n- SQL\n\nPreferred:\n- Kubernetes\n- GraphQL`;
+    const parsed = parseJobDescription(jd, config);
+    expect(parsed.requiredSkills).toEqual(expect.arrayContaining(["python", "docker", "sql"]));
+    expect(parsed.preferredSkills).toEqual(expect.arrayContaining(["kubernetes", "graphql"]));
+    expect(parsed.requiredSkills).not.toContain("kubernetes");
+  });
+
+  it("stops a header-scoped block at the next unrelated section header", () => {
+    const jd = `Requirements:\n- Python\n\nResponsibilities:\n- Ship features and mentor engineers on the team`;
+    const parsed = parseJobDescription(jd, config);
+    expect(parsed.requiredSkills).toContain("python");
+    // "engineers"/"team" from the Responsibilities block should not leak into requiredSkills
+    // just because they follow a "Requirements:" header earlier in the document.
+    expect(parsed.requiredSkills).not.toContain("engineers");
+  });
+
+  it("still classifies required/preferred skills via inline cue words without a header block", () => {
+    const parsed = parseJobDescription("Must have Python. Nice to have Kubernetes.", config);
+    expect(parsed.requiredSkills).toContain("python");
+    expect(parsed.preferredSkills).toContain("kubernetes");
+  });
+
+  it("infers JD seniority from a clear seniority cue in the title", () => {
+    const parsed = parseJobDescription("Senior Backend Engineer\n\nWe are hiring.", config);
+    expect(parsed.seniority).toBe("senior");
+  });
+
+  it("returns undefined JD seniority when no seniority cue is present", () => {
+    const parsed = parseJobDescription("Backend Engineer\n\nWe are hiring.", config);
+    expect(parsed.seniority).toBeUndefined();
+  });
 });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { parseResume } from "../src/core/parser/resume.parser";
+import { resolveConfig } from "../src/core/scoring/weights";
 
 describe("resume parser section detection", () => {
   const minimalConfig = {
@@ -95,5 +96,107 @@ describe("resume parser section detection", () => {
     const resume = `Experience\nDesigner\nSome Studio, 2020 - 2022`;
     const parsed = parseResume(resume, minimalConfig);
     expect(parsed.jobTitles).toContain("designer");
+  });
+});
+
+describe("resume parser — robust section headers", () => {
+  const minimalConfig = {
+    skillAliases: {},
+    profile: { name: "test", mandatorySkills: [], optionalSkills: [], minExperience: 0 },
+    rules: [],
+    weights: { skills: 0.25, experience: 0.25, keywords: 0.25, education: 0.25, normalizedTotal: 1 },
+    keywordDensity: { min: 0.0025, max: 0.04, overusePenalty: 5 },
+    sectionPenalties: { missingSummary: 4, missingExperience: 10, missingSkills: 8, missingEducation: 6 },
+    allowPartialMatches: true,
+  } as any;
+
+  it("matches a header with a trailing date range (WORK HISTORY 2015-2024)", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nWORK HISTORY 2015-2024\nEngineer (2015 - 2024)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.detectedSections).toContain("experience");
+  });
+
+  it("matches a header with a trailing em-dash (Professional Experience —)", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nProfessional Experience —\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.detectedSections).toContain("experience");
+  });
+
+  it("matches an all-caps header with trailing colon punctuation", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nEXPERIENCE:\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    expect(parsed.detectedSections).toContain("experience");
+  });
+
+  it("does not match a sentence that merely starts with a header word as a section header", () => {
+    const resume = `Summary\nSkills to bring to the table include collaboration and curiosity.\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, minimalConfig);
+    // The "Skills to bring..." sentence should stay folded into the summary body, not be
+    // (mis)detected as a "skills" section header.
+    expect(parsed.detectedSections).not.toContain("skills");
+  });
+});
+
+describe("resume parser — whole-document skill extraction", () => {
+  const config = resolveConfig({});
+
+  it("detects skills mentioned only in experience bullets, not just a dedicated Skills section", () => {
+    const resume = `Summary\nBackend engineer.\nExperience\nSenior Engineer (2020 - Present)\nBuilt services in Python and deployed with Docker.\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    expect(parsed.skills).toEqual(expect.arrayContaining(["python", "docker"]));
+  });
+
+  it("detects skills mentioned in the summary section", () => {
+    const resume = `Summary\nExperienced with React and PostgreSQL.\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    expect(parsed.skills).toEqual(expect.arrayContaining(["react", "postgresql"]));
+  });
+
+  it("populates per-role skills on each experience entry", () => {
+    const resume = `Summary\nEngineer.\nExperience\nSenior Engineer (2020 - Present)\nBuilt services in Python and deployed with Docker.\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    const entry = parsed.experience.find((e) => e.title === "Senior Engineer");
+    expect(entry?.skills).toEqual(expect.arrayContaining(["python", "docker"]));
+  });
+});
+
+describe("resume parser — contact extraction", () => {
+  const config = resolveConfig({});
+
+  it("extracts email, phone, LinkedIn, and a best-effort location", () => {
+    const resume = `Jane Doe\nSan Francisco, CA\njane.doe@example.com | +1 415-555-0134\nlinkedin.com/in/janedoe\n\nSummary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    expect(parsed.contact?.email).toBe("jane.doe@example.com");
+    expect(parsed.contact?.phone).toBeTruthy();
+    expect(parsed.contact?.linkedin).toContain("linkedin.com/in/janedoe");
+    expect(parsed.contact?.location).toBe("San Francisco, CA");
+  });
+});
+
+describe("resume parser — seniority and employment gaps", () => {
+  const config = resolveConfig({});
+
+  it("infers overall seniority from job titles", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nSenior Engineer (2020 - Present)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    expect(parsed.seniority).toBe("senior");
+  });
+
+  it("detects an employment gap of more than 3 months between two dated roles", () => {
+    const resume = `Summary\nEngineer.\nSkills\nJavaScript\nExperience\nEngineer (Jan 2018 - Dec 2019)\nSenior Engineer (Sep 2020 - Dec 2021)\nEducation\nB.S.`;
+    const parsed = parseResume(resume, { ...config, referenceDate: new Date("2024-06-01") });
+    expect(parsed.employmentGaps.length).toBeGreaterThan(0);
+    expect(parsed.employmentGaps[0].months).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe("resume parser — formatting signals", () => {
+  const config = resolveConfig({});
+
+  it("populates resume.formatting from detectFormatting", () => {
+    const resume = `Summary\nEngineer.\nSkills | JavaScript | React\nExperience\nEngineer (2020 - Present) | Team | Impact\nEducation\nB.S.`;
+    const parsed = parseResume(resume, config);
+    expect(parsed.formatting.hasTables).toBe(true);
+    expect(typeof parsed.formatting.contactParseable).toBe("boolean");
   });
 });
