@@ -202,7 +202,7 @@ See [Configuration docs](https://pranavraut033.github.io/ats-checker/docs/config
 
 ## Keyword Registry, Categories & Aliases
 
-Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). The default registry ships **407 canonical terms** across cloud/infra, databases, frameworks, ML/AI, testing, security/compliance, soft skills, marketing, and PM/agile vocabulary, with common surface-form aliases pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, `reactjs`/`react.js` match `react`, etc. — and typos/word-form variants match too via fuzzy/stem matching (on by default, see [Matching](#configuration)).
+Every built-in keyword/skill belongs to a `KeywordRegistry` entry — a canonical term, its aliases, and a category (`technical` | `tool` | `concept` | `soft` | `marketing` | `domain`). The default registry ships **407 canonical terms** across cloud/infra, databases, frameworks, ML/AI, testing, security/compliance, soft skills, marketing, and PM/agile vocabulary, with common surface-form aliases pre-loaded so `js` matches `javascript`, `k8s` matches `kubernetes`, `reactjs`/`react.js` match `react`, etc. — and typos/word-form variants match too via fuzzy/stem matching (on by default, see [Configuration](#configuration)).
 
 ```typescript
 import { defaultKeywordRegistry, defaultSkillAliases } from "@pranavraut033/ats-checker";
